@@ -1,0 +1,13 @@
+This software contains dependencies with the following open-source projects:
+
+- CAMARA Project - Dedicated Networks
+  available at https://github.com/camaraproject/DedicatedNetworks
+  Licensed under Apache License 2.0 (https://github.com/camaraproject/DedicatedNetworks/blob/main/LICENSE)
+
+- CAMARA Project - QoS Booking
+  available at https://github.com/camaraproject/QoSBooking
+  Licensed under Apache License 2.0 (https://github.com/camaraproject/QoSBooking/blob/main/LICENSE)
+
+- CAMARA Project - Quality on Demand
+  available at https://github.com/camaraproject/QualityOnDemand
+  Licensed under Apache License 2.0 (https://github.com/camaraproject/QualityOnDemand/blob/main/LICENSE)
