@@ -13,20 +13,19 @@ This repository contains example files, tools and configurations for working wit
 
 ```
 rt-camara-examples/
-  ConnectivityQualityManagement/
-    DedicatedNetworks-management-portal/   Node.js portal for Dedicated Networks APIs
-    Insomnia_Using_DedicatedNetworks.yaml  Insomnia collection — Dedicated Networks
-    Insomnia_Using_QoSBooking.yaml         Insomnia collection — QoS Booking
-    Insomnia_Using_QualityonDemand.yaml    Insomnia collection — Quality on Demand
+  management-portal/
+    DedicatedNetworks/        Node.js portal for Dedicated Networks APIs
+  insomnia/
+    Insomnia_Using_DedicatedNetworks.yaml
+    Insomnia_Using_QoSBooking.yaml
+    Insomnia_Using_QualityonDemand.yaml
 ```
 
 ## Contents
 
-### Connectivity Quality Management
+### Management Portal
 
-Examples and tools for APIs within the scope of [CAMARA Connectivity Quality Management](https://github.com/camaraproject/ConnectivityQualityManagement).
-
-#### Dedicated Networks Management Portal
+#### Dedicated Networks
 
 A browser-based portal for managing CAMARA Dedicated Networks. It provides a Node.js/Express backend that proxies authenticated CAMARA API calls, and a single-page frontend for:
 
@@ -38,14 +37,14 @@ A browser-based portal for managing CAMARA Dedicated Networks. It provides a Nod
 - Alerts on network activation, expiry and termination
 - One-click home tab for immediate connectivity quality provisioning
 
-See the [portal README](./ConnectivityQualityManagement/DedicatedNetworks-management-portal/README.md) for setup instructions.
+See the [portal README](./management-portal/DedicatedNetworks/README.md) for setup instructions.
 
-#### Insomnia Collections
+### Insomnia Collections
 
 Ready-to-import API collections for [Insomnia](https://insomnia.rest/):
 
 | File | APIs covered |
 |------|-------------|
-| [`Insomnia_Using_DedicatedNetworks.yaml`](./ConnectivityQualityManagement/Insomnia_Using_DedicatedNetworks.yaml) | Dedicated Networks, Profiles, Accesses |
-| [`Insomnia_Using_QoSBooking.yaml`](./ConnectivityQualityManagement/Insomnia_Using_QoSBooking.yaml) | QoS Booking |
-| [`Insomnia_Using_QualityonDemand.yaml`](./ConnectivityQualityManagement/Insomnia_Using_QualityonDemand.yaml) | Quality on Demand |
+| [`Insomnia_Using_DedicatedNetworks.yaml`](./insomnia/Insomnia_Using_DedicatedNetworks.yaml) | Dedicated Networks, Profiles, Accesses |
+| [`Insomnia_Using_QoSBooking.yaml`](./insomnia/Insomnia_Using_QoSBooking.yaml) | QoS Booking |
+| [`Insomnia_Using_QualityonDemand.yaml`](./insomnia/Insomnia_Using_QualityonDemand.yaml) | Quality on Demand |

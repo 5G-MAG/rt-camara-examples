@@ -63,7 +63,7 @@ npx localtunnel --port 3001
 ## Project structure
 
 ```
-DedicatedNetworks-management-portal/
+management-portal/DedicatedNetworks/
   .env.example              All required environment variables (no secrets)
   server.js                 Express entry point (port 3001)
   public/
