@@ -1,0 +1,3026 @@
+<!DOCTYPE html>
+<!--
+License: 5G-MAG Public License (v1.0)
+Author: Jordi Joan Gimenez
+Copyright: (C) 2026 5G-MAG Association
+
+For full license terms please see the LICENSE file distributed with this
+program. If this file is missing then the license can be retrieved from
+https://hub.5g-mag.com/Getting-Started/OFFICIAL_5G-MAG_Public_License_v1.0.pdf
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5G-MAG - CAMARA Dedicated Networks</title>
+<link rel="stylesheet" href="/lib/leaflet.css"/>
+<link rel="stylesheet" href="/lib/Control.Geocoder.css"/>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;600;700&display=swap');
+
+  :root {
+    --bg:        #f7f8fa;
+    --bg-panel:  #ffffff;
+    --bg-raised: #f0f2f5;
+    --bg-hover:  #e8ebf0;
+    --border:    #e1e4ea;
+    --border-mid:#cdd1db;
+    --text-1:    #0a0a0a;
+    --text-2:    #1f2937;
+    --text-3:    #4b5563;
+    --accent:    #2563eb;
+    --accent-lt: #eff4ff;
+    --accent-bdr:#bfdbfe;
+    --green:     #15803d;
+    --green-lt:  #f0fdf4;
+    --green-bdr: #86efac;
+    --red:       #dc2626;
+    --red-lt:    #fef2f2;
+    --red-bdr:   #fecaca;
+    --amber:     #d97706;
+    --amber-lt:  #fffbeb;
+    --purple:    #7c3aed;
+    --purple-lt: #f5f3ff;
+    --teal:      #0369a1;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04);
+    --radius:    8px;
+    --radius-lg: 12px;
+    --font:      'Poppins', system-ui, sans-serif;
+    --mono:      'SF Mono', 'Fira Code', 'Courier New', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text-1); height: 100vh; display: flex; flex-direction: column; overflow: hidden; font-size: 13px; }
+
+  /* ── Header ── */
+  /* ── Tab nav bar ── */
+  .main-tabs { background: rgb(0,160,210); display: flex; align-items: stretch; padding: 0 16px; height: 44px; box-sizing: border-box; font-family: var(--font); flex-shrink: 0; }
+  .main-tab { display: block; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 600; line-height: 41px; padding: 0 18px; border-bottom: 3px solid transparent; box-sizing: border-box; transition: color .15s, border-color .15s; white-space: nowrap; cursor: pointer; letter-spacing: normal; text-transform: none; }
+  .main-tab:hover { color: #fff; border-bottom-color: rgba(255,255,255,0.5); }
+  .main-tab.active { color: #fff; border-bottom-color: #fff; }
+  /* ── App header ── */
+  header { height: 76px; padding: 0 20px; background: rgb(0,160,210); display: flex; align-items: center; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,.15); }
+  .header-logo-wrap { display: flex; align-items: center; flex: 0 0 auto; }
+  .header-logo-wrap img { height: 52px; width: auto; display: block; }
+  .header-title-center { flex: 1 1 auto; text-align: center; font-size: 18px; font-weight: 600; color: #fff; font-family: var(--font); }
+  .header-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+  .sandbox-status { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; }
+  .sandbox-indicator { display: flex; align-items: center; gap: 5px; font-size: 11px; color: rgba(255,255,255,0.85); font-family: var(--font); white-space: nowrap; }
+  .sandbox-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.3); flex-shrink: 0; transition: background .4s; }
+  .sandbox-dot.ok  { background: #4ade80; }
+  .sandbox-dot.err { background: #f87171; }
+
+  /* ── Home tab ── */
+  .home-layout { display: flex; flex: 1; overflow: hidden; min-height: 0; flex-direction: column; }
+  .home-top-row { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+  .home-map-wrap { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  #home-map { flex: 1; min-height: 0; }
+  .home-right { width: 440px; min-width: 360px; border-right: 1px solid var(--border); display: flex; flex-direction: column; background: var(--bg-panel); flex-shrink: 0; overflow-y: auto; padding: 14px 16px; gap: 14px; }
+  .home-cards-row { display: flex; gap: 12px; flex-wrap: wrap; flex-shrink: 0; border-top: 1px solid var(--border); padding: 14px 16px; background: var(--bg-panel); overflow-y: auto; max-height: 320px; }
+  .home-section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); margin-bottom: 8px; }
+  .home-profile-item { border: 1px solid var(--border); border-radius: var(--radius); padding: 9px 12px; margin-bottom: 6px; cursor: pointer; transition: border-color .12s, background .12s; display: flex; align-items: flex-start; gap: 8px; }
+  .home-profile-item:hover { border-color: var(--accent-bdr); background: var(--accent-lt); }
+  .home-profile-item.selected { border-color: var(--accent); background: var(--accent-lt); box-shadow: var(--shadow-sm); }
+  .home-profile-name { font-size: 13px; font-weight: 600; color: var(--text-1); }
+  .home-profile-detail { font-size: 11px; color: var(--text-3); margin-top: 3px; }
+  .home-input-label { font-size: 11px; font-weight: 600; color: var(--text-2); margin-bottom: 5px; display: block; }
+  .home-input { width: 100%; padding: 8px 10px; border: 1px solid var(--border-mid); border-radius: var(--radius); font-size: 13px; font-family: var(--font); background: var(--bg); color: var(--text-1); outline: none; box-sizing: border-box; }
+  .home-input:focus { border-color: var(--accent); }
+  .home-obtain-btn { width: 100%; padding: 12px; border: none; border-radius: var(--radius); background: #15803d; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer; font-family: var(--font); transition: background .12s, box-shadow .12s; letter-spacing: 0.01em; }
+  .home-obtain-btn:hover:not(:disabled) { background: #166534; box-shadow: var(--shadow-md); }
+  .home-obtain-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .leaflet-locate-btn { background: var(--bg-panel); border: none; border-radius: var(--radius); padding: 5px 10px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: var(--font); box-shadow: var(--shadow-sm); color: var(--text-1); white-space: nowrap; transition: background .12s; }
+  .leaflet-locate-btn:hover { background: var(--accent-lt); color: var(--accent); }
+  .home-result-card { flex: 1 1 260px; min-width: 240px; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; background: var(--bg-raised); }
+  .home-card-title { font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-3); margin-bottom: 10px; }
+  .home-st { font-size: 12px; padding: 6px 10px; border-radius: var(--radius); font-weight: 500; margin-top: 8px; display: block; }
+  .home-st.ok  { background: var(--green-lt); color: var(--green); border: 1px solid var(--green-bdr); }
+  .home-st.err { background: var(--red-lt);   color: var(--red);   border: 1px solid var(--red-bdr); }
+
+  /* ── Pages ── */
+  .page { display: none; flex: 1; overflow: hidden; flex-direction: column; min-height: 0; }
+  .page.active { display: flex; }
+  .top-row { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+
+  /* ── Sidebar ── */
+  .sidebar { width: 240px; min-width: 240px; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 12px; gap: 7px; overflow-y: auto; background: var(--bg-panel); flex-shrink: 0; }
+
+  /* ── Map ── */
+  #map { flex: 1; min-width: 0; }
+  #map.draw-mode { cursor: crosshair !important; }
+
+  /* ── Right panel ── */
+  .right-panel { width: 300px; min-width: 280px; border-left: 1px solid var(--border); display: flex; flex-direction: column; background: var(--bg-panel); flex-shrink: 0; overflow: hidden; }
+
+  /* ── Resize handle ── */
+  .resize-handle { height: 4px; background: var(--border); cursor: ns-resize; flex-shrink: 0; transition: background .15s; }
+  .resize-handle:hover { background: var(--accent); }
+
+  /* ── Bottom panel ── */
+  .bottom-panel { height: 200px; min-height: 60px; border-top: 1px solid var(--border); display: flex; flex-shrink: 0; overflow: hidden; background: var(--bg-panel); }
+  .bottom-section { flex: 1; display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid var(--border); min-width: 120px; }
+  .bottom-section:last-child { border-right: none; }
+  .bottom-ew-handle { width: 4px; background: var(--border); cursor: ew-resize; flex-shrink: 0; transition: background .15s; }
+  .bottom-ew-handle:hover { background: rgb(0,160,210); }
+  .sidebar-ew-handle { width: 4px; background: var(--border); cursor: ew-resize; flex-shrink: 0; transition: background .15s; }
+  .sidebar-ew-handle:hover { background: rgb(0,160,210); }
+  .bottom-title { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-2); padding: 8px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; background: var(--bg-raised); }
+  .bottom-body { flex: 1; overflow-y: auto; padding: 10px 12px; }
+
+  /* ── Tabs ── */
+  .tab-bar { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; background: var(--bg-raised); }
+  .tab { flex: 1; padding: 9px 6px; font-size: 11px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-3); cursor: pointer; text-align: center; border-bottom: 2px solid transparent; transition: color .15s; }
+  .tab:hover { color: var(--text-1); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--bg-panel); }
+  .tab-content { flex: 1; overflow-y: auto; padding: 12px; display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── Buttons ── */
+  .btn { width: 100%; padding: 8px 12px; border: none; border-radius: var(--radius); font-size: 12px; font-weight: 500; letter-spacing: 0.03em; cursor: pointer; transition: background .12s, box-shadow .12s; font-family: var(--font); }
+  .btn-green  { background: var(--green); color: #fff; box-shadow: var(--shadow-sm); }
+  .btn-green:hover  { background: #15803d; box-shadow: var(--shadow-md); }
+  .btn-blue   { background: var(--accent); color: #fff; box-shadow: var(--shadow-sm); }
+  .btn-blue:hover   { background: #1d4ed8; box-shadow: var(--shadow-md); }
+  .btn-ghost  { background: var(--bg-panel); color: var(--accent); border: 1px solid var(--border-mid); }
+  .btn-ghost:hover  { background: var(--accent-lt); border-color: var(--accent-bdr); }
+  .btn-ghost.on     { background: var(--accent-lt); color: var(--accent); border-color: var(--accent); }
+  .btn-red    { background: var(--bg-panel); color: var(--red); border: 1px solid var(--red-bdr); }
+  .btn-red:hover    { background: var(--red-lt); }
+  .btn-row { display: flex; gap: 6px; }
+  .btn-row .btn { flex: 1; }
+  .btn-red-solid { background: #dc2626 !important; color: #fff !important; border: none; border-radius: var(--radius); padding: 9px 12px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: var(--font); transition: background .12s; white-space: nowrap; width: 100%; display: block; }
+  .btn-red-solid:hover:not(:disabled) { background: #b91c1c !important; }
+  .btn-red-solid:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-sm { padding: 4px 10px; font-size: 11px; width: auto; }
+  .btn-purple { background: rgba(255,255,255,.18); color: #fff; border: 1px solid rgba(255,255,255,.35); border-radius: 10px; padding: 7px 16px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: background .15s, transform .18s; white-space: nowrap; }
+  .btn-purple:hover { background: rgba(255,255,255,.28); transform: translateY(-1px); }
+  .btn-purple:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-teal { background: rgba(255,255,255,.18); color: #fff; border: 1px solid rgba(255,255,255,.35); border-radius: 10px; padding: 7px 16px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: background .15s, transform .18s; white-space: nowrap; }
+  .btn-teal:hover { background: rgba(255,255,255,.28); transform: translateY(-1px); }
+  .btn-teal:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── Common ── */
+  .divider { border: none; border-top: 1px solid var(--border); }
+  .sec-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); }
+  .hint { font-size: 12px; color: var(--text-3); line-height: 1.6; }
+  .st { font-size: 12px; padding: 6px 10px; border-radius: var(--radius); display: none; font-weight: 500; }
+  .st.ok  { background: var(--green-lt); color: var(--green); border: 1px solid var(--green-bdr); }
+  .st.err { background: var(--red-lt);   color: var(--red);   border: 1px solid var(--red-bdr); }
+  .empty { font-size: 12px; color: var(--text-3); padding: 20px 0; text-align: center; line-height: 1.7; }
+  .back  { font-size: 12px; color: var(--accent); cursor: pointer; margin-bottom: 10px; display: inline-flex; align-items: center; gap: 4px; font-weight: 500; }
+  .back:hover { color: #1d4ed8; }
+
+  /* ── Detail rows ── */
+  .dk { font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-3); margin-bottom: 2px; margin-top: 10px; }
+  .dv { font-size: 13px; color: var(--text-1); word-break: break-all; font-family: var(--font); }
+
+  /* ── Cards ── */
+  .area-card, .net-card, .acc-card, .pcard { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; cursor: pointer; margin-bottom: 6px; transition: border-color .12s, box-shadow .12s; }
+  .area-card:hover, .net-card:hover, .acc-card:hover { border-color: var(--border-mid); box-shadow: var(--shadow-sm); }
+  .area-card.active, .net-card.active, .acc-card.active { border-color: var(--accent); background: var(--accent-lt); box-shadow: var(--shadow-sm); }
+  .pcname { font-size: 13px; font-weight: 600; color: var(--text-1); margin-bottom: 4px; }
+
+  /* ── Tags ── */
+  .tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; background: var(--accent-lt); color: var(--accent); border: 1px solid var(--accent-bdr); margin: 2px 2px 0 0; cursor: pointer; font-weight: 500; transition: background .1s; }
+  .tag:hover { background: #dbeafe; }
+  .tag-green { background: var(--green-lt); color: var(--green); border-color: var(--green-bdr); cursor: default; }
+  .tag-green:hover { background: #dcfce7; }
+
+  /* ── Status badges ── */
+  .status-badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; letter-spacing: 0.04em; }
+  .status-REQUESTED  { background: var(--amber-lt); color: var(--amber); border: 1px solid #fde68a; }
+  .status-RESERVED   { background: var(--accent-lt); color: var(--accent); border: 1px solid var(--accent-bdr); }
+  .status-ACTIVATED  { background: var(--green-lt); color: var(--green); border: 1px solid var(--green-bdr); }
+  .status-TERMINATED { background: var(--bg-raised); color: var(--text-3); border: 1px solid var(--border); }
+  .status-GRANTED  { background: var(--green-lt); color: var(--green); border: 1px solid var(--green-bdr); }
+  .status-DENIED   { background: var(--red-lt);   color: var(--red);   border: 1px solid var(--red-bdr); }
+  .status-PENDING  { background: var(--amber-lt); color: var(--amber); border: 1px solid #fde68a; }
+
+  /* ── Net card ── */
+  .net-card-name { font-size: 13px; font-weight: 600; color: var(--text-1); }
+  .net-card-id   { font-size: 11px; color: var(--text-3); font-family: var(--mono); margin-top: 1px; }
+
+  /* ── Access card ── */
+  .acc-card { cursor: pointer; }
+
+  /* ── Draw tools ── */
+  #coords-table { font-size: 11px; font-family: var(--mono); background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px; max-height: 100px; overflow-y: auto; }
+  #draw-validation { font-size: 11px; padding: 5px 8px; border-radius: var(--radius); display: none; }
+
+  /* ── Inputs ── */
+  input[type="text"], input[type="date"], input[type="time"], input[type="datetime-local"], select, textarea {
+    background: var(--bg-panel); color: var(--text-1); border: 1px solid var(--border-mid); border-radius: var(--radius);
+    padding: 7px 10px; font-size: 12px; outline: none; font-family: var(--font); width: 100%;
+    transition: border-color .12s, box-shadow .12s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+  textarea { resize: vertical; }
+
+  /* ── Modal ── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(17,24,39,.4); backdrop-filter: blur(2px); z-index: 1000; align-items: center; justify-content: center; }
+  .modal-box { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius-lg); width: 520px; max-width: 95vw; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-md); }
+  .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; background: var(--bg-raised); }
+  .modal-title { font-size: 14px; font-weight: 600; color: var(--text-1); }
+  .modal-close { background: none; border: none; color: var(--text-3); font-size: 20px; cursor: pointer; line-height: 1; padding: 0; transition: color .12s; }
+  .modal-close:hover { color: var(--text-1); }
+  .modal-body { padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+  .modal-step { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); margin-bottom: 6px; }
+  .modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; flex-shrink: 0; background: var(--bg-raised); }
+  .modal-select { width: 100%; }
+  .modal-input  { width: 100%; }
+  .modal-profile-detail { margin-top: 8px; background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; font-size: 12px; color: var(--text-2); display: none; }
+  .modal-st { font-size: 12px; padding: 8px 12px; border-radius: var(--radius); display: none; white-space: pre-line; font-weight: 500; }
+  .modal-st.ok  { background: var(--green-lt); color: var(--green); border: 1px solid var(--green-bdr); }
+  .modal-st.err { background: var(--red-lt);   color: var(--red);   border: 1px solid var(--red-bdr); }
+  .modal-duration { margin-top: 8px; font-size: 12px; display: none; font-weight: 500; }
+  .time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .time-label { font-size: 11px; font-weight: 500; color: var(--text-2); margin-bottom: 4px; }
+  .modal-area-item { padding: 8px 12px; background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; transition: border-color .12s; }
+  .modal-area-item:hover { border-color: var(--border-mid); background: var(--bg-raised); }
+  .modal-area-item.selected { border-color: var(--accent); background: var(--accent-lt); }
+  .btn-cancel { background: var(--bg-panel); color: var(--text-2); border: 1px solid var(--border-mid); border-radius: var(--radius); padding: 8px 18px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: var(--font); transition: background .12s; }
+  .btn-cancel:hover { background: var(--bg-raised); }
+
+  /* ── Pool add form ── */
+  #pool-add-form { background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<nav class="main-tabs">
+  <div class="main-tab active" data-page="page-home">&#128680; Urgent Connectivity Quality</div>
+    <div class="main-tab"        data-page="page-areas">&#128205; Reservation of a Dedicated Network</div>
+    <div class="main-tab"        data-page="page-networks">&#128246; Dedicated Network Management</div>
+    <div class="main-tab"        data-page="page-devices">&#128241; Device Management</div>
+</nav>
+<header>
+  <div class="header-logo-wrap">
+    <img src="/5gmag.png" alt="5G-MAG logo">
+  </div>
+  <div class="header-title-center">CAMARA Dedicated Networks</div>
+  <div class="sandbox-status" id="sandbox-status">
+    <div class="sandbox-indicator"><div class="sandbox-dot" id="sdot-areas"></div>Areas</div>
+    <div class="sandbox-indicator"><div class="sandbox-dot" id="sdot-profiles"></div>Profiles</div>
+    <div class="sandbox-indicator"><div class="sandbox-dot" id="sdot-networks"></div>Networks</div>
+    <div class="sandbox-indicator"><div class="sandbox-dot" id="sdot-accesses"></div>Accesses</div>
+  </div>
+  <div class="header-actions"><!-- buttons injected per tab --></div>
+</header>
+
+<!-- ═══ PAGE 0: HOME / IMMEDIATE CONNECTIVITY QUALITY ═══ -->
+<div class="page active" id="page-home">
+  <div class="home-layout">
+    <div class="home-top-row">
+      <div class="home-right">
+        <div>
+          <div class="home-section-label">Immediate Connectivity Quality</div>
+        </div>
+        <div>
+          <div class="home-section-label">Your Location</div>
+          <div id="home-location-display" style="font-size:12px;color:var(--text-3);font-family:var(--mono);line-height:1.6;">Click on the map or use &ldquo;Use My Location&rdquo;</div>
+        </div>
+        <div>
+          <div class="home-section-label">Available Network Profiles</div>
+          <div id="home-profiles-list"><div class="empty">Select a location to load available profiles.</div></div>
+        </div>
+        <div id="home-qos-section" style="display:none;">
+          <div class="home-section-label">QoS Profile</div>
+          <div id="home-qos-list"></div>
+        </div>
+        <div>
+          <label class="home-input-label" for="home-until">Connectivity Quality until:</label>
+          <input type="datetime-local" class="home-input" id="home-until">
+        </div>
+        <div>
+          <label class="home-input-label" for="home-phone">SIM Card Details</label>
+          <input type="tel" class="home-input" id="home-phone" placeholder="e.g. +41799445408">
+        </div>
+        <div id="home-status" style="display:none;" class="home-st"></div>
+        <button class="home-obtain-btn" id="home-obtain-btn" disabled>&#9889; Obtain Connectivity Quality NOW</button>
+      </div>
+      <div class="home-map-wrap">
+        <div id="home-map"></div>
+      </div>
+    </div>
+    <div class="home-cards-row" id="home-cards-row" style="display:none;">
+      <div class="home-result-card" id="home-network-card"></div>
+      <div class="home-result-card" id="home-access-card"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 1: NETWORK SERVICE AREAS ═══ -->
+<div class="page" id="page-areas">
+  <div class="top-row">
+
+    <div class="sidebar">
+      <button class="btn-red-solid" id="reserve-btn" disabled style="width:100%;padding:9px;margin-bottom:4px;opacity:0.4;cursor:not-allowed;">&#9889; Reserve a Dedicated Network</button>
+      <hr class="divider">
+      <div class="sec-label" style="margin-bottom:4px;">Service Areas</div>
+      <button class="btn btn-green" id="get-areas-btn">&#9654; Explore Service Areas</button>
+      <button class="btn btn-red"   id="clear-map-btn">&#10005; Clear Map</button>
+      <div id="areas-status" class="st"></div>
+      <hr class="divider">
+      <div class="sec-label" style="margin-bottom:6px;">Search for a Service Area</div>
+      <div class="hint" id="draw-hint">Choose a mode then click the map.</div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" id="mode-point-btn">&#11044; Point</button>
+        <button class="btn btn-ghost" id="mode-polygon-btn">&#9651; Polygon</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" id="undo-btn" style="display:none">&#8617; Undo</button>
+        <button class="btn btn-red"   id="clear-draw-btn">&#10005; Clear Draw</button>
+      </div>
+      <div id="point-count" style="display:none;font-size:12px;color:var(--accent);"></div>
+      <div id="draw-validation"></div>
+      <button class="btn btn-blue" id="close-polygon-btn" style="display:none">&#9679; Close Polygon</button>
+      <div id="coords-wrap" style="display:none">
+        <div class="sec-label" style="margin-top:4px;">Points</div>
+        <div id="coords-table"></div>
+      </div>
+      <div id="search-wrap" style="display:none;gap:6px;">
+        <button class="btn btn-blue" id="search-at-btn"          style="display:none">&#128205; Find Available Areas</button>
+        <button class="btn btn-blue" id="search-overlapping-btn" style="display:none">&#11040; Find Overlapping Areas</button>
+        <button class="btn btn-blue" id="search-covering-btn"    style="display:none">&#9711; Find Covering Areas</button>
+      </div>
+      <div id="extra-filters" style="display:none;flex-direction:column;gap:6px;">
+        <hr class="divider">
+        <div class="sec-label">Additional Filters</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+          <div>
+            <div style="font-size:10px;font-weight:600;color:var(--text-3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:3px;">By Name</div>
+            <input id="filter-name" type="text" placeholder="Area name" />
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:600;color:var(--text-3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:3px;">Profile ID</div>
+            <input id="filter-profile-id" type="text" placeholder="UUID" />
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:600;color:var(--text-3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:3px;">QoS Name</div>
+            <input id="filter-qos-name" type="text" placeholder="QOS_A" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-ew-handle"></div>
+
+    <div id="map"></div>
+    <div class="sidebar-ew-handle"></div>
+
+    <div class="right-panel">
+      <div class="tab-bar">
+        <div class="tab active" data-panel="right1" data-tab="areas">Service Areas</div>
+        <div class="tab"        data-panel="right1" data-tab="detail">Area Detail</div>
+      </div>
+      <div class="tab-content active" id="tab-areas">
+        <div id="area-list"><div class="empty">Click "Get Service Areas" to load.</div></div>
+      </div>
+      <div class="tab-content" id="tab-detail">
+        <div class="empty" id="detail-empty">Click an area to see details.</div>
+        <div id="detail-content" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="resize-handle" id="resize-handle-1"></div>
+  <div class="bottom-panel" id="bottom-panel-1">
+    <div class="bottom-section">
+      <div class="bottom-title">Network Profiles <button class="btn btn-ghost btn-sm" id="load-profiles-btn">&#8635; Load</button></div>
+      <div class="bottom-body">
+        <div id="profiles-status" class="st" style="margin-bottom:6px;"></div>
+        <div id="profiles-list"><div class="empty">Click Load.</div></div>
+      </div>
+    </div>
+    <div class="bottom-ew-handle"></div>
+    <div class="bottom-section">
+      <div class="bottom-title">QoS Profiles <button class="btn btn-ghost btn-sm" id="load-qos-btn">&#8635; Load</button></div>
+      <div class="bottom-body">
+        <div id="qos-status" class="st" style="margin-bottom:6px;"></div>
+        <div id="qos-list"><div class="empty">Click Load.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAGE 2: NETWORK MANAGEMENT ═══ -->
+<div class="page" id="page-networks">
+  <div class="top-row">
+
+    <!-- Left: Networks list -->
+    <!-- Left: Networks list -->
+    <div class="sidebar">
+      <button class="btn-red-solid" id="create-access-btn-header" disabled style="width:100%;padding:9px;margin-bottom:4px;opacity:0.4;cursor:not-allowed;">&#128279; Create Access</button>
+      <hr class="divider">
+      <div class="sec-label" style="margin-bottom:4px;">Dedicated Networks</div>
+      <button class="btn btn-green" id="load-networks-btn">&#8635; Load Dedicated Networks</button>
+      <div id="networks-status" class="st"></div>
+      <div id="networks-list"><div class="empty">Click "Load Dedicated Networks".</div></div>
+    </div>
+
+    <div class="sidebar-ew-handle"></div>
+    <!-- Centre: Network Detail -->
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--bg);">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--accent);flex-shrink:0;font-weight:600;background:var(--bg-raised);">Network Detail</div>
+      <div style="flex:1;overflow-y:auto;padding:16px 18px;background:var(--bg);">
+        <div class="empty" id="net-detail-empty">Select a network from the list.</div>
+        <div id="net-detail-content" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- Right: Accesses -->
+    <div class="sidebar-ew-handle"></div>
+    <div class="right-panel">
+      <div class="tab-bar">
+        <div class="tab active" data-panel="right2" data-tab="accesses">Accesses</div>
+        <div class="tab"        data-panel="right2" data-tab="access-detail">Access Detail</div>
+      </div>
+      <div class="tab-content active" id="tab-accesses">
+        <div id="accesses-status" class="st" style="margin-bottom:6px;"></div>
+        <div id="accesses-list"><div class="empty">Select a network to see accesses.</div></div>
+      </div>
+      <div class="tab-content" id="tab-access-detail">
+        <div class="empty" id="access-detail-empty">Select an access to see details.</div>
+        <div id="access-detail-content" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="resize-handle" id="resize-handle-2"></div>
+  <div class="bottom-panel" id="bottom-panel-2">
+    <div class="bottom-section">
+      <div class="bottom-title">Devices in the Dedicated Network <span id="devices-access-label" style="font-size:10px;color:var(--text-3);text-transform:none;letter-spacing:0;margin-left:4px;"></span>
+        <button class="btn btn-ghost btn-sm" id="load-devices-btn" style="display:none">&#8635; Load</button>
+      </div>
+      <div class="bottom-body">
+        <div id="devices-status" class="st" style="margin-bottom:6px;"></div>
+        <div id="devices-list"><div class="empty">Select an access to see devices.</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ═══ PAGE 3: DEVICE MANAGEMENT ═══ -->
+<div class="page" id="page-devices">
+  <div style="padding:24px 28px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:24px;min-height:0;">
+
+    <!-- ── My Available Devices ── -->
+    <div style="background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--text-1);">My Available Devices</div>
+          <div style="font-size:12px;color:var(--text-3);margin-top:3px;">Build your device pool here before creating accesses.</div>
+        </div>
+        <button class="btn btn-blue btn-sm" id="add-pool-device-btn" style="padding:8px 16px;font-size:13px;width:auto;">+ Add Device</button>
+      </div>
+
+      <div id="pool-add-form" style="display:none;padding:16px 20px;border-bottom:1px solid var(--border);">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div>
+            <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Name</div>
+            <input id="pool-dev-name" type="text" placeholder="e.g. Camera 1" style="width:100%;" />
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Phone Number</div>
+            <input id="pool-dev-phone" type="text" placeholder="+49123456789" style="width:100%;" />
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-blue btn-sm" id="pool-save-btn" style="padding:7px 18px;width:auto;">Save</button>
+          <button class="btn btn-ghost btn-sm" id="pool-cancel-btn" style="padding:7px 18px;width:auto;">Cancel</button>
+        </div>
+      </div>
+
+      <div id="pool-status" class="st" style="padding:0 16px;margin-top:6px;"></div>
+      <div id="device-pool-list"><div class="empty">No devices yet. Click &ldquo;+ Add Device&rdquo; to build your pool.</div></div>
+
+    </div>
+
+    <!-- ── Devices in Networks ── -->
+    <div style="background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);">
+        <div style="font-size:15px;font-weight:700;color:var(--text-1);">Devices in Networks</div>
+        <div style="font-size:12px;color:var(--text-3);margin-top:3px;">Check which devices are already in a dedicated network.</div>
+      </div>
+      <div id="in-network-device-list"><div class="empty">No devices in any network yet.</div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ RESERVE MODAL ═══ -->
+<div class="modal-overlay" id="reserve-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">&#9889; Reserve a Dedicated Network</div>
+      <button class="modal-close" id="modal-close-btn">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <div class="modal-step">1 &mdash; Service Area</div>
+        <div id="modal-area-display" style="padding:10px;background:var(--accent-lt);border:1px solid var(--accent-bdr);border-radius:var(--radius);font-size:12px;">Loading selected area...</div>
+      </div>
+      <div>
+        <div class="modal-step">2 &mdash; Network Profile</div>
+        <select class="modal-select" id="modal-profile-select"><option value="">-- Select a network profile --</option></select>
+        <div class="modal-profile-detail" id="modal-profile-detail"></div>
+      </div>
+      <div>
+        <div class="modal-step">3 &mdash; Service Time</div>
+        <div class="time-grid">
+          <div>
+            <div class="time-label">Start date</div>
+            <input type="date" id="modal-start-date" class="modal-input"/>
+            <div class="time-label" style="margin-top:6px;">Start time</div>
+            <input type="time" id="modal-start-time" class="modal-input"/>
+          </div>
+          <div>
+            <div class="time-label">End date</div>
+            <input type="date" id="modal-end-date" class="modal-input"/>
+            <div class="time-label" style="margin-top:6px;">End time</div>
+            <input type="time" id="modal-end-time" class="modal-input"/>
+          </div>
+        </div>
+        <div class="modal-duration" id="modal-duration"></div>
+      </div>
+      <div>
+        <div class="modal-step">4 &mdash; Local Nickname <span style="color:var(--text-3);font-size:10px;text-transform:none;letter-spacing:0;">(optional &mdash; stored locally, not sent to API)</span></div>
+        <div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">Give this reservation a friendly name so you can identify it without using the network ID.</div>
+        <input type="text" id="modal-name" class="modal-input" placeholder="e.g. My Production Network"/>
+      </div>
+      <div class="modal-st" id="modal-status"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="modal-cancel-btn">Cancel</button>
+      <button class="btn-purple" id="modal-create-btn">&#9889; Create Network</button>
+    </div>
+  </div>
+</div>
+
+<textarea id="draw-output" style="display:none"></textarea>
+
+<!-- Create Access Modal -->
+<div class="modal-overlay" id="access-modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">&#128279; Create Access</div>
+      <button class="modal-close" id="access-modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+
+      <div>
+        <div class="modal-step">1 &mdash; Dedicated Network</div>
+        <div id="access-network-display" style="padding:10px;background:var(--accent-lt);border:1px solid var(--accent-bdr);border-radius:var(--radius);font-size:12px;">Loading...</div>
+      </div>
+
+      <div>
+        <div class="modal-step">2 &mdash; Default QoS Profile <span style="color:var(--text-3);font-size:10px;text-transform:none;letter-spacing:0;">(optional)</span></div>
+        <select class="modal-select" id="access-qos-select">
+          <option value="">-- Use network default --</option>
+        </select>
+        <div style="font-size:10px;color:var(--text-3);margin-top:4px;">Leave blank to inherit the network's default QoS profile.</div>
+      </div>
+
+      <div>
+        <div class="modal-step">3 &mdash; Devices from Pool</div>
+        <div style="font-size:11px;color:var(--text-3);margin-bottom:8px;">Select at least one device from your pool to include in this access.</div>
+        <div id="access-pool-list" style="max-height:150px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;"></div>
+        <div id="access-pool-empty" class="empty" style="display:none;">No devices in pool yet. Add devices in the Device Pool panel first.</div>
+      </div>
+
+      <div class="modal-st" id="access-modal-status"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="access-modal-cancel">Cancel</button>
+      <button class="btn-red-solid" id="access-modal-create">&#128279; Create Access</button>
+    </div>
+  </div>
+</div>
+
+<!-- Profile Detail Modal -->
+<div class="modal-overlay" id="profile-modal-overlay">
+  <div class="modal-box" style="width:420px;">
+    <div class="modal-header">
+      <div class="modal-title" id="profile-modal-title">Network Profile</div>
+      <button class="modal-close" id="profile-modal-close">&times;</button>
+    </div>
+    <div class="modal-body" id="profile-modal-body" style="gap:6px;">
+      <div class="empty">Loading...</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="profile-modal-cancel">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="/lib/leaflet.js"></script>
+<script src="/lib/Control.Geocoder.js"></script>
+<script>
+  delete L.Icon.Default.prototype._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconUrl:       '/lib/images/marker-icon.png',
+    iconRetinaUrl: '/lib/images/marker-icon-2x.png',
+    shadowUrl:     '/lib/images/marker-shadow.png',
+  });
+</script>
+<script>
+window.addEventListener('load', function () {
+
+  // ── Page switching ────────────────────────────────────────
+  document.querySelectorAll('.main-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.main-tab').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.page).classList.add('active');
+      if (tab.dataset.page === 'page-home') {
+        setTimeout(function(){ if (homeMap) homeMap.invalidateSize(); }, 50);
+      } else if (tab.dataset.page === 'page-networks') {
+        setTimeout(function(){ map.invalidateSize(); }, 50);
+        loadNetworks();
+      } else if (tab.dataset.page === 'page-devices') {
+        renderPoolDevices();
+      } else {
+        stopAccessRefresh();
+        // Re-render map when switching back to areas tab
+        setTimeout(function(){
+          map.invalidateSize();
+          // Re-add layers if they exist but aren't showing
+          if (vizLayers.length === 0 && layersByArea.length > 0) showAll();
+        }, 100);
+      }
+    });
+  });
+
+  // ── Tab switching (right panels) ─────────────────────────
+  document.querySelectorAll('.tab').forEach(function(t) {
+    t.addEventListener('click', function() {
+      var panel = t.dataset.panel;
+      document.querySelectorAll('.tab[data-panel="' + panel + '"]').forEach(function(x) { x.classList.remove('active'); });
+      t.classList.add('active');
+      // find sibling tab-contents — identify by checking if the id starts with "tab-"
+      var bar = t.parentElement;
+      var contents = bar.parentElement.querySelectorAll('.tab-content');
+      contents.forEach(function(c) { c.classList.remove('active'); });
+      var target = document.getElementById('tab-' + t.dataset.tab);
+      if (target) target.classList.add('active');
+    });
+  });
+
+  // ── Resize handles ────────────────────────────────────────
+  // ── Horizontal resizer for bottom sections ──────────────
+  function makeHorizResizable(handleEl, leftEl, rightEl) {
+    var dragging = false, startX, startLW, startRW;
+    handleEl.addEventListener('mousedown', function(e) {
+      dragging = true; startX = e.clientX;
+      startLW = leftEl.offsetWidth; startRW = rightEl.offsetWidth;
+      document.body.style.userSelect = 'none'; document.body.style.cursor = 'ew-resize';
+    });
+    document.addEventListener('mousemove', function(e) {
+      if (!dragging) return;
+      var dx = e.clientX - startX;
+      var newLW = Math.max(120, startLW + dx);
+      leftEl.style.flex = 'none'; leftEl.style.width = newLW + 'px';
+      // right side: if it has flex:1 (map), just let it shrink naturally
+      var rightFlex = window.getComputedStyle(rightEl).flex;
+      if (!rightFlex || rightFlex === 'none' || rightFlex.startsWith('0')) {
+        var newRW = Math.max(120, startRW - dx);
+        rightEl.style.flex = 'none'; rightEl.style.width = newRW + 'px';
+      }
+    });
+    document.addEventListener('mouseup', function() {
+      if (dragging) { dragging = false; document.body.style.userSelect = ''; document.body.style.cursor = ''; }
+    });
+  }
+
+  function makeResizable(handleId, panelId) {
+    var resizing = false, startY, startH;
+    document.getElementById(handleId).addEventListener('mousedown', function(e) {
+      resizing = true; startY = e.clientY; startH = document.getElementById(panelId).offsetHeight;
+      document.body.style.userSelect = 'none';
+    });
+    document.addEventListener('mousemove', function(e) {
+      if (!resizing) return;
+      var h = Math.max(60, Math.min(startH + startY - e.clientY, window.innerHeight * 0.6));
+      document.getElementById(panelId).style.height = h + 'px';
+      map.invalidateSize();
+    });
+    document.addEventListener('mouseup', function() {
+      if (resizing) { resizing = false; document.body.style.userSelect = ''; map.invalidateSize(); }
+    });
+  }
+  makeResizable('resize-handle-1', 'bottom-panel-1');
+  makeResizable('resize-handle-2', 'bottom-panel-2');
+  // Wire horizontal resizers for bottom sections
+  document.querySelectorAll('.bottom-ew-handle').forEach(function(h) {
+    var left  = h.previousElementSibling;
+    var right = h.nextElementSibling;
+    if (left && right) makeHorizResizable(h, left, right);
+  });
+  // Wire horizontal resizers for sidebar/right-panel
+  document.querySelectorAll('.sidebar-ew-handle').forEach(function(h) {
+    var left  = h.previousElementSibling;
+    var right = h.nextElementSibling;
+    if (left && right) makeHorizResizable(h, left, right);
+  });
+
+  // ── Helpers ──────────────────────────────────────────────
+  var COLORS = ['#3b82f6','#f59e0b','#10b981','#ef4444','#a855f7','#ec4899','#14b8a6','#f97316'];
+  function setSt(id, msg, ok) { var el=document.getElementById(id); el.className='st '+(ok?'ok':'err'); el.textContent=msg; el.style.display='block'; }
+  function clrSt(id) { document.getElementById(id).style.display='none'; }
+  function fmtTp(o) { return o&&o.value!=null?o.value+' '+(o.unit||''):JSON.stringify(o); }
+  function drow(k,v) { return '<div class="dk">'+k+'</div><div class="dv" style="margin-bottom:2px;">'+v+'</div>'; }
+  function prow(k,v) { return '<div class="dk">'+k+'</div><div class="dv" style="margin-bottom:2px;">'+v+'</div>'; }
+  function statusBadge(s) { return '<span class="status-badge status-'+(s||'UNKNOWN')+'">'+(s||'UNKNOWN')+'</span>'; }
+  function fmtDate(iso) {
+    if (!iso) return '\u2014';
+    var d = new Date(iso);
+    var day   = String(d.getDate()).padStart(2,'0');
+    var month = String(d.getMonth()+1).padStart(2,'0');
+    var year  = d.getFullYear();
+    var time  = d.toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'});
+    return day+'/'+month+'/'+year+' '+time;
+  }
+  function fmtDuration(startIso, endIso) {
+    if (!startIso || !endIso) return '\u2014';
+    var ms = new Date(endIso) - new Date(startIso);
+    if (ms <= 0) return '\u2014';
+    var h = Math.floor(ms / 3600000);
+    var m = Math.floor((ms % 3600000) / 60000);
+    return (h ? h + 'h ' : '') + m + 'm';
+  }
+
+  // ── Map ──────────────────────────────────────────────────
+  var map = L.map('map').setView([20, 0], 3);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19 }).addTo(map);
+  L.Control.geocoder({ defaultMarkGeocode: false, placeholder: 'Search place…' })
+    .on('markgeocode', function(e) { map.setView(e.geocode.center, 13); })
+    .addTo(map);
+
+  // "Use My Location" control for the areas map
+  (function() {
+    var LocateControl = L.Control.extend({
+      options: { position: 'topright' },
+      onAdd: function() {
+        var btn = L.DomUtil.create('button', 'leaflet-locate-btn');
+        btn.innerHTML = '&#128205; Use My Location';
+        L.DomEvent.disableClickPropagation(btn);
+        L.DomEvent.on(btn, 'click', function() {
+          if (!navigator.geolocation) return;
+          btn.textContent = 'Locating…'; btn.disabled = true;
+          navigator.geolocation.getCurrentPosition(function(pos) {
+            btn.innerHTML = '&#128205; Use My Location'; btn.disabled = false;
+            var lat = pos.coords.latitude, lng = pos.coords.longitude;
+            map.setView([lat, lng], 13);
+            // Switch to point mode and place a marker
+            setMode('point');
+            drawPoints = [{ lat: lat, lng: lng }];
+            drawMarkers.push(addDM(drawPoints[0], 0));
+            drawing = false;
+            document.getElementById('map').classList.remove('draw-mode');
+            document.getElementById('draw-hint').textContent = 'Point placed. Drag to adjust.';
+            updateSearchJSON();
+          }, function() {
+            btn.innerHTML = '&#128205; Use My Location'; btn.disabled = false;
+          });
+        });
+        return btn;
+      }
+    });
+    new LocateControl().addTo(map);
+  }());
+  var vizLayers=[], layersByArea=[], currentAreas=[];
+  var miniMapInstance = null; // track the network-detail mini map so we can .remove() it
+  var selectedArea = null; // currently active area card
+
+  function clearViz() { vizLayers.forEach(function(l){map.removeLayer(l);}); vizLayers=[]; }
+
+  function makeLabel(name, id, color) {
+    return L.divIcon({ className: '',
+      html: '<div style="display:inline-block;background:#fff;border:2px solid '+color+';border-radius:6px;padding:4px 10px;white-space:nowrap;cursor:pointer;line-height:1.4;font-size:12px;font-weight:600;color:#111827;box-shadow:0 2px 6px rgba(0,0,0,0.12);">'
+        + '<span style="color:#111827;">'+( name||'Area')+'</span>'
+        + (id ? '<span style="display:block;font-size:9px;font-family:monospace;color:'+color+';margin-top:1px;">'+id+'</span>' : '')
+        + '</div>',
+      iconSize: null, iconAnchor: [0, 0] });
+  }
+
+  function renderSA(sa, color) {
+    var area=sa.area; if(!area||!area.areaType) return [];
+    var type=area.areaType.toUpperCase(), icon=makeLabel(sa.name,sa.id,color), layers=[];
+    function mkL(lat,lng){ var l=L.marker([lat,lng],{icon:icon,interactive:true}); l._sa=sa; l.on('click',function(){onLabelClick(l._sa);}); return l; }
+    if(type==='CIRCLE'){
+      var lat=area.center&&area.center.latitude,lng=area.center&&area.center.longitude;
+      if(lat==null||lng==null||area.radius==null) return [];
+      layers.push(L.circle([lat,lng],{radius:area.radius,color:color,fillColor:color,fillOpacity:0.12,weight:2}));
+      layers.push(L.circleMarker([lat,lng],{radius:5,color:color,fillColor:color,fillOpacity:1,weight:0}));
+      layers.push(mkL(lat,lng));
+    } else if(type==='POLYGON'){
+      var raw=area.boundary||area.coordinates||area.points||[]; if(!raw.length) return [];
+      var ll=raw.map(function(c){return Array.isArray(c)?[c[1],c[0]]:[c.latitude,c.longitude];});
+      layers.push(L.polygon(ll,{color:color,fillColor:color,fillOpacity:0.12,weight:2}));
+      var cLat=ll.reduce(function(s,p){return s+p[0];},0)/ll.length, cLng=ll.reduce(function(s,p){return s+p[1];},0)/ll.length;
+      layers.push(mkL(cLat,cLng));
+    } else if(type==='POINT'){
+      var pLat=area.latitude!=null?area.latitude:(area.center&&area.center.latitude);
+      var pLng=area.longitude!=null?area.longitude:(area.center&&area.center.longitude);
+      if(pLat==null||pLng==null) return [];
+      layers.push(L.circleMarker([pLat,pLng],{radius:8,color:color,fillColor:color,fillOpacity:1,weight:2}));
+      layers.push(mkL(pLat,pLng));
+    }
+    return layers;
+  }
+
+  function displayAreas(areas) {
+    clearViz(); layersByArea=[]; currentAreas=areas;
+    document.getElementById('area-list').innerHTML='';
+    areas.forEach(function(sa,i) {
+      var color=COLORS[i%COLORS.length], layers=renderSA(sa,color);
+      layersByArea.push(layers); buildAreaCard(sa,i,color);
+    });
+  }
+
+  function showOnly(i) {
+    clearViz(); var bounds=[];
+    (layersByArea[i]||[]).forEach(function(l){ l.addTo(map); vizLayers.push(l);
+      if(l.getBounds){var b=l.getBounds();if(b.isValid()){bounds.push(b.getNorthEast());bounds.push(b.getSouthWest());}}
+      else if(l.getLatLng){bounds.push(l.getLatLng());}
+    });
+    if(bounds.length) map.fitBounds(L.latLngBounds(bounds),{padding:[50,50]});
+  }
+
+  function showAll() {
+    clearViz(); var bounds=[];
+    layersByArea.forEach(function(layers){
+      layers.forEach(function(l){ l.addTo(map); vizLayers.push(l);
+        if(l.getBounds){var b=l.getBounds();if(b.isValid()){bounds.push(b.getNorthEast());bounds.push(b.getSouthWest());}}
+        else if(l.getLatLng){bounds.push(l.getLatLng());}
+      });
+    });
+    if(bounds.length) map.fitBounds(L.latLngBounds(bounds),{padding:[40,40]});
+  }
+
+  function buildAreaCard(sa, idx, color) {
+    var el=document.createElement('div'); el.className='area-card';
+    el.innerHTML='<div style="font-size:13px;font-weight:700;color:var(--text-1);border-left:3px solid '+color+';padding-left:7px;">'+(sa.name||'Unnamed')+'</div>'
+      +(sa.description?'<div style="font-size:11px;color:var(--text-3);margin-top:2px;">'+sa.description+'</div>':'');
+    el.addEventListener('click',function(){
+      document.querySelectorAll('.area-card').forEach(function(c){c.classList.remove('active');});
+      el.classList.add('active'); showOnly(idx); fetchAndShowDetail(sa.id,sa);
+      selectedArea = sa;
+      var rb=document.getElementById('reserve-btn');
+      rb.disabled=false; rb.style.opacity='1'; rb.style.cursor='pointer';
+    });
+    document.getElementById('area-list').appendChild(el);
+  }
+
+  function onLabelClick(sa) {
+    currentAreas.forEach(function(a,i){
+      var match=a===sa||(a.id&&a.id===sa.id);
+      var cards=document.querySelectorAll('.area-card');
+      if(cards[i]) cards[i].classList.toggle('active',match);
+      if(match){ showOnly(i); if(cards[i]) cards[i].scrollIntoView({behavior:'smooth',block:'nearest'});
+        selectedArea = a;
+        var rb = document.getElementById('reserve-btn');
+        rb.disabled = false; rb.style.opacity='1'; rb.style.cursor='pointer';
+      }
+    });
+    fetchAndShowDetail(sa.id,sa);
+  }
+
+  function fetchAndShowDetail(areaId, fallback) {
+    if(!areaId){showDetail(fallback);return;}
+    fetch('/api/areas/'+areaId).then(function(r){return r.json().then(function(d){return{ok:r.ok,data:d};});})
+    .then(function(r){showDetail(r.ok?r.data:fallback);}).catch(function(){showDetail(fallback);});
+  }
+
+  function showDetail(sa) {
+    var leftTab=document.querySelector('[data-panel="right1"][data-tab="detail"]');
+    if(leftTab) leftTab.click();
+    document.getElementById('detail-empty').style.display='none';
+    var el=document.getElementById('detail-content'); el.style.display='block';
+    var html='';
+    if(sa.name) html+=drow('Name',sa.name);
+    if(sa.description) html+=drow('Description',sa.description);
+    if(sa.networkProfiles&&sa.networkProfiles.length){
+      html+='<div class="dk">Network Profiles</div><div style="margin-top:3px;">';
+      html+=sa.networkProfiles.map(function(p){return '<span class="tag" data-profile-id="'+p+'">'+p.slice(0,8)+'...</span>';}).join('');
+      html+='</div>';
+    }
+    if(sa.qosProfiles&&sa.qosProfiles.length){
+      html+='<div class="dk">QoS Profiles</div><div style="margin-top:3px;">';
+      html+=sa.qosProfiles.map(function(p){return '<span class="tag" data-qos-name="'+p+'">'+p+' &#8599;</span>';}).join('');
+      html+='</div>';
+    }
+    el.innerHTML=html;
+    if(sa.networkProfiles){
+      sa.networkProfiles.forEach(function(pid){
+        fetch('/api/profiles/network/'+pid).then(function(r){return r.json();}).then(function(p){
+          el.querySelectorAll('[data-profile-id="'+pid+'"]').forEach(function(tag){tag.textContent=(p.name||pid)+' \u2197';});
+        }).catch(function(){});
+      });
+    }
+  }
+
+  document.getElementById('tab-detail').addEventListener('click',function(e){
+    var pt=e.target.closest('[data-profile-id]'),qt=e.target.closest('[data-qos-name]');
+    if(pt) loadProfileDetail(pt.dataset.profileId);
+    if(qt) loadQosDetail(qt.dataset.qosName);
+  });
+
+  // ── Get / Clear areas ─────────────────────────────────────
+  document.getElementById('get-areas-btn').addEventListener('click',function(){
+    var btn=this; btn.textContent='Loading...'; btn.disabled=true; clrSt('areas-status');
+    fetch('/api/areas/retrieve',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+    .then(function(r){return r.json().then(function(d){return{ok:r.ok,status:r.status,data:d};});})
+    .then(function(r){
+      btn.textContent='\u25b6 Get Service Areas'; btn.disabled=false;
+      if(!r.ok){setSt('areas-status','HTTP '+r.status+': '+(r.data.message||r.data.error||'Error'),false);return;}
+      var areas=Array.isArray(r.data)?r.data:[r.data];
+      setSt('areas-status',areas.length+' area(s) \u2014 click one to focus',true);
+      displayAreas(areas); showAll();
+      document.querySelector('[data-panel="right1"][data-tab="areas"]').click();
+    })
+    .catch(function(e){btn.textContent='\u25b6 Get Service Areas';btn.disabled=false;setSt('areas-status','Failed: '+e.message,false);});
+  });
+
+  document.getElementById('clear-map-btn').addEventListener('click',function(){
+    clearViz(); layersByArea=[]; currentAreas=[];
+    document.getElementById('area-list').innerHTML='<div class="empty">Click \u201cGet Service Areas\u201d to load.</div>';
+    document.getElementById('detail-empty').style.display='block';
+    document.getElementById('detail-content').style.display='none';
+    clrSt('areas-status');
+    selectedArea = null;
+    var rb=document.getElementById('reserve-btn'); rb.disabled=true; rb.style.opacity='0.4'; rb.style.cursor='not-allowed';
+  });
+
+  // ── Network Profiles ──────────────────────────────────────
+  function loadAllProfiles(){
+    var list=document.getElementById('profiles-list'); list.innerHTML='<div class="empty">Loading...</div>'; clrSt('profiles-status');
+    fetch('/api/profiles/network').then(function(r){return r.json().then(function(d){return{ok:r.ok,data:d};});})
+    .then(function(r){
+      if(!r.ok){setSt('profiles-status','Error: '+(r.data.message||'Unknown'),false);list.innerHTML='';return;}
+      var profiles=Array.isArray(r.data)?r.data:[r.data];
+      setSt('profiles-status',profiles.length+' profile(s)',true);
+      list.innerHTML=profiles.map(function(p){return profileCard(p,false);}).join('')||'<div class="empty">None returned.</div>';
+    }).catch(function(e){setSt('profiles-status','Failed: '+e.message,false);list.innerHTML='';});
+  }
+
+  function loadProfileDetail(pid){
+    var list=document.getElementById('profiles-list'); list.innerHTML='<div class="empty">Loading...</div>'; clrSt('profiles-status');
+    fetch('/api/profiles/network/'+pid).then(function(r){return r.json().then(function(d){return{ok:r.ok,data:d};});})
+    .then(function(r){
+      if(!r.ok){setSt('profiles-status','Error: '+(r.data.message||'Unknown'),false);list.innerHTML='';return;}
+      setSt('profiles-status','Loaded',true);
+      var back=document.createElement('div'); back.className='back'; back.textContent='\u2190 All profiles';
+      back.addEventListener('click',loadAllProfiles);
+      list.innerHTML=''; list.appendChild(back); list.insertAdjacentHTML('beforeend',profileCard(r.data,true));
+    }).catch(function(e){setSt('profiles-status','Failed: '+e.message,false);list.innerHTML='';});
+  }
+
+  function profileCard(p,expanded){
+    var html='<div class="pcard"><div class="pcname">'+(p.name||p.id||'Profile')+'</div>';
+    if(!expanded){
+      if(p.id) html+='<div style="font-size:10px;color:var(--text-3);font-family:monospace;margin-bottom:4px;">'+p.id+'</div>';
+      html+='<span class="tag" data-profile-id="'+(p.id||p.name||'')+'">View details \u2197</span>';
+    } else {
+      html+=prow('Profile Name',p.name||'\u2014');
+      if(p.maxNumberOfDevices!=null) html+=prow('Maximum allowed number of devices',p.maxNumberOfDevices);
+      if(p.aggregatedUlThroughput) html+=prow('Aggregated Uplink Throughput',fmtTp(p.aggregatedUlThroughput));
+      if(p.aggregatedDlThroughput) html+=prow('Aggregated Downlink Throughput',fmtTp(p.aggregatedDlThroughput));
+      if(p.qosProfiles&&p.qosProfiles.length){
+        html+='<div class="dk">Available QoS Profiles</div><div style="margin-top:3px;">';
+        html+=p.qosProfiles.map(function(q){return '<span class="tag" data-qos-name="'+q+'">'+q+' \u2197</span>';}).join('');
+        html+='</div>';
+      }
+      if(p.defaultQosProfile) html+='<div class="dk">Default QoS Profile</div><div style="margin-top:3px;"><span class="tag" data-qos-name="'+p.defaultQosProfile+'">'+p.defaultQosProfile+' \u2197</span></div>';
+    }
+    html+='</div>'; return html;
+  }
+
+  document.getElementById('load-profiles-btn').addEventListener('click',loadAllProfiles);
+  document.getElementById('profiles-list').addEventListener('click',function(e){
+    var pt=e.target.closest('[data-profile-id]'),qt=e.target.closest('[data-qos-name]');
+    if(pt) loadProfileDetail(pt.dataset.profileId);
+    if(qt) loadQosDetail(qt.dataset.qosName);
+  });
+
+  // ── QoS Profiles ─────────────────────────────────────────
+  function loadAllQos(){
+    var list=document.getElementById('qos-list'); list.innerHTML='<div class="empty">Loading...</div>'; clrSt('qos-status');
+    fetch('/api/profiles/qos').then(function(r){
+      var ct=r.headers.get('content-type')||'';
+      if(!ct.includes('application/json')) return r.text().then(function(){return{ok:false,data:{error:'Non-JSON. Check QOD_URL in .env.'}};});
+      return r.json().then(function(d){return{ok:r.ok,data:d};});
+    }).then(function(r){
+      if(!r.ok){setSt('qos-status',r.data.error||'Error',false);list.innerHTML='<div class="empty" style="color:#f87171;">'+(r.data.error||'Check QOD_URL in .env')+'</div>';return;}
+      var profiles=Array.isArray(r.data)?r.data:(r.data.qosProfiles||[r.data]);
+      setSt('qos-status',profiles.length+' profile(s)',true);
+      list.innerHTML=profiles.map(function(p){var name=typeof p==='string'?p:(p.name||p.qosProfile||JSON.stringify(p));return '<div class="pcard"><span class="tag" data-qos-name="'+name+'">'+name+' \u2197</span></div>';}).join('')||'<div class="empty">None returned.</div>';
+    }).catch(function(e){setSt('qos-status','Failed: '+e.message,false);list.innerHTML='';});
+  }
+
+  function loadQosDetail(name){
+    var list=document.getElementById('qos-list'); list.innerHTML='<div class="empty">Loading...</div>'; clrSt('qos-status');
+    fetch('/api/profiles/qos/'+encodeURIComponent(name)).then(function(r){
+      var ct=r.headers.get('content-type')||'';
+      if(!ct.includes('application/json')) return r.text().then(function(){return{ok:false,data:{error:'Non-JSON. Check QOD_URL in .env.'}};});
+      return r.json().then(function(d){return{ok:r.ok,data:d};});
+    }).then(function(r){
+      if(!r.ok){setSt('qos-status',r.data.error||'Error',false);list.innerHTML='<div class="empty">Not found.</div>';return;}
+      setSt('qos-status','Loaded',true);
+      var p=r.data, back=document.createElement('div');
+      back.className='back'; back.textContent='\u2190 All QoS profiles'; back.addEventListener('click',loadAllQos);
+      var skip={name:1,qosProfile:1};
+      var html='<div class="pcard"><div class="pcname"><span class="tag">'+(p.name||name)+'</span></div>';
+      Object.keys(p).forEach(function(k){if(skip[k])return; html+=prow(k,typeof p[k]==='object'?JSON.stringify(p[k]):String(p[k]));});
+      html+='</div>';
+      list.innerHTML=''; list.appendChild(back); list.insertAdjacentHTML('beforeend',html);
+    }).catch(function(e){setSt('qos-status','Failed: '+e.message,false);list.innerHTML='';});
+  }
+
+  document.getElementById('load-qos-btn').addEventListener('click',loadAllQos);
+  document.getElementById('qos-list').addEventListener('click',function(e){
+    var qt=e.target.closest('[data-qos-name]'); if(qt) loadQosDetail(qt.dataset.qosName);
+  });
+
+  // ═══ PAGE 2: NETWORK MANAGEMENT ════════════════════════════
+
+  var selectedNetworkId = null;
+  var selectedNetwork   = null;
+  var selectedAccessId  = null;
+
+  // ── Auto-refresh timer ──────────────────────────────────
+  var autoRefreshTimer = null;
+  var currentNetworkList = [];
+
+  // ── Alert tracking ──────────────────────────────────────
+  var _netStatusCache   = {};  // networkId -> last known status
+  var _expiryAlertFired = {};  // networkId -> true once 10-min warning sent
+  var networkNicknames = (function() {
+    try { var raw = localStorage.getItem('dn_network_nicknames'); if (raw) return JSON.parse(raw); } catch(e) {}
+    return {};
+  }()); // networkId -> user-set nickname, persisted
+
+  var networkApiNameCache = (function() {
+    try { var raw = localStorage.getItem('dn_network_names'); if (raw) return JSON.parse(raw); } catch(e) {}
+    return {};
+  }()); // networkId -> API-returned name, persisted
+
+  function saveNetworkNicknames() {
+    try { localStorage.setItem('dn_network_nicknames', JSON.stringify(networkNicknames)); } catch(e) {}
+  }
+  function saveNetworkApiNames() {
+    try { localStorage.setItem('dn_network_names', JSON.stringify(networkApiNameCache)); } catch(e) {}
+  }
+
+  function getNickname(n) {
+    return networkNicknames[n.id] || n.name || networkApiNameCache[n.id] || null;
+  }
+  function getDisplayName(n) {
+    return networkNicknames[n.id] || n.name || networkApiNameCache[n.id] || n.id || 'Unnamed';
+  }
+
+  var STABLE_NET_STATUSES = ['ACTIVATED', 'TERMINATED', 'DENIED'];
+
+  function needsFastRefresh() {
+    var now = Date.now();
+    return currentNetworkList.some(function(n) {
+      if (!n.status || STABLE_NET_STATUSES.indexOf(n.status) === -1) return true;
+      if (n.status === 'ACTIVATED' && n.serviceTime && n.serviceTime.end) {
+        var end = new Date(n.serviceTime.end).getTime();
+        var diff = end - now;
+        var total = n.serviceTime.start ? (end - new Date(n.serviceTime.start).getTime()) : 600000;
+        var warnThreshold = Math.min(600000, Math.max(60000, total / 2));
+        if (diff <= warnThreshold) return true; // includes expired-but-not-yet-TERMINATED
+      }
+      return false;
+    });
+  }
+
+  function scheduleAutoRefresh() {
+    clearTimeout(autoRefreshTimer);
+    var delay = needsFastRefresh() ? 5000 : 30000;
+    autoRefreshTimer = setTimeout(function() {
+      autoRefreshTimer = null;
+      if (currentNetworkList.length) loadNetworks(true);
+      if (selectedNetworkId) loadAccesses(selectedNetworkId, true);
+      if (selectedAccessId) syncAccessDevices(selectedAccessId);
+    }, delay);
+  }
+
+  function startAutoRefresh() {
+    if (autoRefreshTimer) return;
+    scheduleAutoRefresh();
+  }
+
+  function stopAutoRefresh() {
+    clearTimeout(autoRefreshTimer);
+    autoRefreshTimer = null;
+  }
+
+  // ── Load networks ─────────────────────────────────────────
+  document.getElementById('load-networks-btn').addEventListener('click', function(){ loadNetworks(false); });
+
+  function loadNetworks(silent) {
+    var list = document.getElementById('networks-list');
+    var activeId = selectedNetworkId; // capture before any DOM clearing
+    if (!silent) { list.innerHTML = '<div class="empty">Loading...</div>'; clrSt('networks-status'); }
+    fetch('/api/networks').then(function(r){return r.json().then(function(d){return{ok:r.ok,status:r.status,data:d};});})
+    .then(function(r){
+      if (!r.ok) { setSt('networks-status','HTTP '+r.status+': '+(r.data.message||r.data.error||'Error'),false); list.innerHTML=''; return; }
+      var networks = Array.isArray(r.data) ? r.data : [r.data];
+      currentNetworkList = networks;
+      networks.forEach(function(n) { if (n.id && n.name) networkApiNameCache[n.id] = n.name; });
+      saveNetworkApiNames();
+
+      // Alert on ACTIVATED transition
+      networks.forEach(function(n) {
+        if (!n.id) return;
+        var prev = _netStatusCache[n.id];
+        var curr = n.status;
+        if (prev && prev !== 'ACTIVATED' && curr === 'ACTIVATED') {
+          var label = getDisplayName(n) || n.id;
+          alert('Network "' + label + '" is now ACTIVATED.');
+        }
+        _netStatusCache[n.id] = curr;
+      });
+      setSt('networks-status', networks.length + ' network(s)', true);
+      if (!networks.length) { list.innerHTML='<div class="empty">No networks found.</div>'; stopAutoRefresh(); return; }
+
+      list.innerHTML = '';
+      networks.forEach(function(n) { buildNetCard(n, activeId); });
+
+      // Refresh detail panel for the selected network
+      if (activeId) {
+        var still = networks.find(function(n){ return n.id === activeId; });
+        if (still) {
+          if (silent) {
+            // Only patch the status badge in-place — avoids destroying the mini map every 5s
+            selectedNetwork = still;  // keep in sync so _remainTimer reads fresh status
+            var badge = document.getElementById('net-detail-status-badge');
+            if (badge) badge.innerHTML = statusBadge(still.status || 'UNKNOWN');
+            else showNetworkDetail(still);
+          } else {
+            showNetworkDetail(still);
+          }
+        }
+      }
+      scheduleAutoRefresh();
+    }).catch(function(e){ if(!silent) setSt('networks-status','Failed: '+e.message,false); scheduleAutoRefresh(); });
+  }
+
+  function buildNetCard(n, activeId){
+    var el=document.createElement('div'); el.className='net-card'; el.dataset.netId = n.id || '';
+    if (n.id && n.id === activeId) el.classList.add('active');
+    var _pid = n.networkProfileId;
+    var _aid = n.serviceAreaId;
+    var _nid = n.id;
+    // Resolve names from caches (also check currentAreas for area names)
+    if (_aid && !areaNameCache[_aid]) {
+      var knownArea = currentAreas.find(function(a){ return a.id === _aid; });
+      if (knownArea && knownArea.name) areaNameCache[_aid] = knownArea.name;
+    }
+    var areaText  = _aid ? (areaNameCache[_aid] ? '&#128205; ' + areaNameCache[_aid] : '&#128205; Loading...') : '';
+    var profileText = _pid ? (profileNameCache[_pid] ? '&#128246; ' + profileNameCache[_pid] : '&#127760; Loading...') : '';
+    el.innerHTML = '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;">'
+      + '<div style="flex:1;min-width:0;">'
+      + '<div class="net-card-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+getDisplayName(n)+'</div>'
+      + (_aid ? '<div id="nc-area-'+_nid+'" style="font-size:11px;color:var(--text-3);margin-top:2px;">'+areaText+'</div>' : '')
+      + (_pid ? '<div id="nc-profile-'+_nid+'" style="font-size:11px;color:var(--text-3);margin-top:1px;">'+profileText+'</div>' : '')
+      + '</div>'
+      + statusBadge(n.status)
+      + '</div>';
+    // Fetch profile name only if not already cached
+    if (_pid && !profileNameCache[_pid]) {
+      fetch('/api/profiles/network/'+_pid).then(function(r){return r.json();})
+      .then(function(p){
+        var name = p.name || _pid.slice(0,8)+'...';
+        profileNameCache[_pid] = name;
+        var el3 = document.getElementById('nc-profile-'+_nid);
+        if (el3) el3.textContent = '📶 ' + name;
+      }).catch(function(){
+        var el3 = document.getElementById('nc-profile-'+_nid);
+        if (el3) el3.textContent = '';
+      });
+    }
+    // Fetch area name if not cached
+    if (_aid && !areaNameCache[_aid]) {
+      fetch('/api/areas/'+_aid).then(function(r){ return r.json(); })
+      .then(function(a){
+        var name = a.name || _aid.slice(0,8)+'...';
+        areaNameCache[_aid] = name;
+        var el4 = document.getElementById('nc-area-'+_nid);
+        if (el4) el4.textContent = '📍 ' + name;
+      }).catch(function(){
+        var el4 = document.getElementById('nc-area-'+_nid);
+        if (el4) el4.textContent = '';
+      });
+    }
+    el.addEventListener('click',function(){
+      document.querySelectorAll('.net-card').forEach(function(c){c.classList.remove('active');});
+      el.classList.add('active');
+      selectedNetworkId=n.id;
+      selectedNetwork=n;
+      showNetworkDetail(n);
+      loadAccesses(n.id);
+      updateCreateAccessBtnFromPool();
+      renderInNetworkDevices();
+    });
+    document.getElementById('networks-list').appendChild(el);
+  }
+
+  function showNetworkDetail(n){
+    document.getElementById('net-detail-empty').style.display='none';
+    var el=document.getElementById('net-detail-content'); el.style.display='block';
+    var st=n.status||'UNKNOWN';
+    var displayName = getDisplayName(n);
+    var html='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px;flex-wrap:wrap;">'
+      +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+      +'<div style="font-size:16px;font-weight:700;color:var(--text-1);">'+displayName+'</div>'
+      +'<span id="net-detail-status-badge">'+statusBadge(st)+'</span>'
+      +(n.serviceTime ? '<span style="font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums;" id="net-remaining">—</span>' : '')
+      +'</div>'
+      +'<div style="display:flex;gap:6px;flex-shrink:0;">'
+      +'<button class="btn btn-blue btn-sm" id="refresh-network-btn" style="width:auto;padding:5px 10px;">↻ Refresh</button>'
+      +'<button class="btn btn-red btn-sm" id="delete-network-btn" style="width:auto;padding:5px 10px;">🗑 Delete</button>'
+      +'</div>'
+      +'</div>';
+
+    if (n.id) html += drow('Network ID','<span style="font-family:monospace;font-size:11px;">'+n.id+'</span>');
+
+    // Nickname editor
+    var currentNick = networkNicknames[n.id] || '';
+    html += '<div class="dk">Local Nickname</div>';
+    html += '<div style="display:flex;gap:6px;margin-bottom:2px;">';
+    html += '<input id="net-nickname-input" type="text" value="'+currentNick+'" placeholder="Set a local name for this network" style="flex:1;" />';
+    html += '<button id="net-nickname-save" style="background:var(--accent);color:#fff;border:none;border-radius:var(--radius);padding:6px 10px;font-size:11px;cursor:pointer;font-family:var(--font);">Save</button>';
+    html += '</div>';
+
+    // Profile — clickable tag that opens profile modal
+    if (n.networkProfileId) {
+      var _cachedName = profileNameCache[n.networkProfileId];
+      html += '<div class="dk">Network Profile</div><div style="margin-bottom:2px;"><span class="tag" id="net-profile-tag" data-profile-id="'+n.networkProfileId+'" style="cursor:pointer;">'+(_cachedName ? _cachedName + ' ↗' : n.networkProfileId.slice(0,8)+'... ↗')+'</span></div>';
+    }
+
+    // Service time
+    if (n.serviceTime) {
+      html += '<div style="display:flex;gap:16px;margin-bottom:6px;">'
+        + '<div><div class="dk" style="margin-bottom:2px;">Start</div><div class="dv">'+fmtDate(n.serviceTime.start)+'</div></div>'
+        + '<div><div class="dk" style="margin-bottom:2px;">End</div><div class="dv">'+fmtDate(n.serviceTime.end)+'</div></div>'
+        + '<div><div class="dk" style="margin-bottom:2px;">Duration</div><div class="dv">'+fmtDuration(n.serviceTime.start, n.serviceTime.end)+'</div></div>'
+        + '</div>';
+    }
+
+    // Service Area — show name + mini map
+    if (n.serviceAreaId) {
+      html += '<div class="dk">Service Area</div>';
+      html += '<div id="net-area-name" style="font-size:12px;color:var(--text-1);margin-bottom:6px;">'+n.serviceAreaId.slice(0,8)+'...</div>';
+      html += '<div id="net-mini-map" style="width:100%;aspect-ratio:1/1;max-height:220px;border-radius:6px;overflow:hidden;border:1px solid var(--border);margin-bottom:8px;"></div>';
+    }
+
+    html += '<div id="net-action-status" class="st" style="margin-top:8px;"></div>';
+
+    el.innerHTML = html;
+
+    // Nickname save
+    document.getElementById('net-nickname-save').addEventListener('click', function() {
+      var val = document.getElementById('net-nickname-input').value.trim();
+      if (val) { networkNicknames[n.id] = val; }
+      else { delete networkNicknames[n.id]; }
+      saveNetworkNicknames();
+      // Refresh card names in sidebar
+      document.querySelectorAll('.net-card').forEach(function(card) {
+        if (card.dataset.netId === n.id) {
+          card.querySelector('.net-card-name').textContent = getDisplayName(n);
+        }
+      });
+      // Update detail header
+      var headerEl = el.querySelector('div[style*="font-size:16px"]');
+      if (headerEl) headerEl.textContent = getDisplayName(n);
+      var btn = document.getElementById('net-nickname-save');
+      btn.textContent = '✓'; btn.style.background = '#15803d';
+      setTimeout(function(){ btn.textContent = 'Save'; btn.style.background = '#2563eb'; }, 1500);
+    });
+
+    // Resolve profile name (use cache to avoid flicker on refresh)
+    if (n.networkProfileId) {
+      if (profileNameCache[n.networkProfileId]) {
+        var tag = document.getElementById('net-profile-tag');
+        if (tag) tag.textContent = profileNameCache[n.networkProfileId] + ' ↗';
+      } else {
+        fetch('/api/profiles/network/'+n.networkProfileId).then(function(r){return r.json();})
+        .then(function(p){
+          var name = p.name || n.networkProfileId;
+          profileNameCache[n.networkProfileId] = name;
+          var tag = document.getElementById('net-profile-tag');
+          if (tag) tag.textContent = name + ' ↗';
+        }).catch(function(){});
+      }
+    }
+
+    // Resolve area name + render mini map
+    if (n.serviceAreaId) {
+      // Check if we have it in currentAreas first
+      var known = currentAreas.find(function(a){ return a.id === n.serviceAreaId; });
+      if (known) {
+        if (known.id && known.name) areaNameCache[known.id] = known.name;
+        showAreaNameAndMiniMap(known);
+      } else {
+        fetch('/api/areas/'+n.serviceAreaId).then(function(r){return r.json();})
+        .then(function(a){
+          if (a.id && a.name) areaNameCache[a.id] = a.name;
+          showAreaNameAndMiniMap(a);
+        })
+        .catch(function(){});
+      }
+    }
+
+    // Live remaining timer — always read from selectedNetwork so status updates are picked up
+    if (window._remainTimer) { clearInterval(window._remainTimer); window._remainTimer = null; }
+    if (n.serviceTime && n.serviceTime.end) {
+      updateRemaining(n.status, n.serviceTime.start, n.serviceTime.end);
+      window._remainTimer = setInterval(function(){
+        if (selectedNetwork && selectedNetwork.serviceTime) {
+          updateRemaining(selectedNetwork.status, selectedNetwork.serviceTime.start, selectedNetwork.serviceTime.end);
+        }
+      }, 1000);
+    }
+
+    // Profile tag click → open profile modal
+    el.addEventListener('click', function(e) {
+      var pt = e.target.closest('[data-profile-id]');
+      if (pt) openProfileModal(pt.dataset.profileId);
+    });
+
+    // Delete
+    document.getElementById('delete-network-btn').addEventListener('click', function() {
+      if (!confirm('Delete network "'+(n.name||n.id)+'"? This cannot be undone.')) return;
+      var btn = this; btn.textContent = 'Deleting...'; btn.disabled = true;
+      fetch('/api/networks/'+n.id, {method:'DELETE'})
+      .then(function(r){
+        // 204 No Content = success, no body
+        if (r.status === 204 || r.status === 200) {
+          el.style.display='none';
+          document.getElementById('net-detail-empty').style.display='block';
+          stopAutoRefresh();
+          loadNetworks(false);
+          return;
+        }
+        return r.json().then(function(d){
+          btn.textContent='\u{1F5D1} Delete'; btn.disabled=false;
+          setSt('net-action-status','Error: '+(d.message||d.error||'HTTP '+r.status),false);
+        });
+      })
+      .catch(function(e){ btn.textContent='\u{1F5D1} Delete'; btn.disabled=false; setSt('net-action-status','Failed: '+e.message,false); });
+    });
+
+    // Refresh
+    document.getElementById('refresh-network-btn').addEventListener('click', function() {
+      fetch('/api/networks/'+n.id).then(function(r){return r.json().then(function(d){return{ok:r.ok,data:d};});})
+      .then(function(r){ if(r.ok) showNetworkDetail(r.data); }).catch(function(){});
+    });
+  }
+
+  function updateRemaining(status, startIso, endIso) {
+    var el = document.getElementById('net-remaining'); if (!el) return;
+    if (!status) { el.textContent = '—'; return; }
+    var now = new Date();
+    if (status === 'REQUESTED' || status === 'RESERVED') {
+      if (!startIso) { el.style.color='var(--amber)'; el.textContent='Awaiting activation…'; return; }
+      var toStart = new Date(startIso) - now;
+      if (isNaN(toStart) || toStart <= 0) {
+        el.style.color='var(--amber)'; el.textContent='Awaiting activation…';
+      } else {
+        var h=Math.floor(toStart/3600000), m=Math.floor((toStart%3600000)/60000), s=Math.floor((toStart%60000)/1000);
+        el.style.color='var(--amber)';
+        el.textContent='Starts in '+(h?h+'h ':'')+pad(m)+'m '+pad(s)+'s';
+      }
+      return;
+    }
+    if (status === 'TERMINATED') {
+      el.style.color='var(--text-3)'; el.textContent='Terminated';
+      if (window._remainTimer) { clearInterval(window._remainTimer); window._remainTimer=null; }
+      return;
+    }
+    // ACTIVATED: only count down if start time has already passed
+    if (status !== 'ACTIVATED') { el.style.color='var(--text-3)'; el.textContent='—'; return; }
+    if (startIso && new Date(startIso) > now) {
+      var toStart = new Date(startIso) - now;
+      var h=Math.floor(toStart/3600000), m=Math.floor((toStart%3600000)/60000), s=Math.floor((toStart%60000)/1000);
+      el.style.color='var(--green)';
+      el.textContent='Starts in '+(h?h+'h ':'')+pad(m)+'m '+pad(s)+'s';
+      return;
+    }
+    if (!endIso) { el.style.color='var(--text-3)'; el.textContent='—'; return; }
+    var diff = new Date(endIso) - now;
+    if (isNaN(diff)) { el.style.color='var(--text-3)'; el.textContent='—'; return; }
+    if (diff <= 0) {
+      el.style.color='var(--red)'; el.textContent='Expired';
+      if (window._remainTimer) { clearInterval(window._remainTimer); window._remainTimer=null; }
+      return;
+    }
+    // Expiry warning — threshold is half total duration, capped at 10 min, floor 1 min
+    var warnThreshold = startIso ? Math.min(600000, Math.max(60000, (new Date(endIso) - new Date(startIso)) / 2)) : 600000;
+    var netId = selectedNetworkId;
+    if (netId && diff <= warnThreshold && !_expiryAlertFired[netId]) {
+      _expiryAlertFired[netId] = true;
+      var label = getDisplayName(selectedNetwork) || netId;
+      var minsLeft = Math.ceil(diff / 60000);
+      alert('Network "' + label + '" expires in ' + (minsLeft < 2 ? 'less than a minute' : minsLeft + ' minutes') + '.');
+    }
+
+    var d=Math.floor(diff/86400000), h=Math.floor((diff%86400000)/3600000),
+        m=Math.floor((diff%3600000)/60000), s=Math.floor((diff%60000)/1000);
+    el.style.color = diff <= warnThreshold ? 'var(--red)' : 'var(--green)';
+    el.textContent='Remaining: '+(d?d+'d ':'')+pad(h)+'h '+pad(m)+'m '+pad(s)+'s';
+  }
+
+  function showAreaNameAndMiniMap(area) {
+    var nameEl = document.getElementById('net-area-name');
+    if (nameEl) nameEl.textContent = area.name || area.id || 'Unknown area';
+    var mapEl = document.getElementById('net-mini-map');
+    if (!mapEl) return;
+    // Properly destroy any previous Leaflet instance before creating a new one
+    if (miniMapInstance) {
+      try { miniMapInstance.remove(); } catch(e) {}
+      miniMapInstance = null;
+    }
+    mapEl.innerHTML = '';
+    var mini = L.map(mapEl, { zoomControl: false, attributionControl: false, dragging: false, scrollWheelZoom: false, keyboard: false });
+    miniMapInstance = mini;
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(mini);
+    if (area.area) {
+      var a = area.area, type = a.areaType && a.areaType.toUpperCase();
+      if (type === 'POLYGON') {
+        var raw = a.boundary || a.coordinates || a.points || [];
+        if (raw.length) {
+          var ll = raw.map(function(c){ return Array.isArray(c)?[c[1],c[0]]:[c.latitude,c.longitude]; });
+          var poly = L.polygon(ll, {color:'#3b82f6',fillColor:'#3b82f6',fillOpacity:0.2,weight:2}).addTo(mini);
+          mini.fitBounds(poly.getBounds(), {padding:[10,10]});
+        }
+      } else if (type === 'CIRCLE') {
+        var lat=a.center&&a.center.latitude, lng=a.center&&a.center.longitude;
+        if (lat!=null&&lng!=null) {
+          var circ = L.circle([lat,lng],{radius:a.radius,color:'#3b82f6',fillColor:'#3b82f6',fillOpacity:0.2,weight:2}).addTo(mini);
+          mini.fitBounds(circ.getBounds(), {padding:[10,10]});
+        }
+      }
+    }
+    setTimeout(function(){ if (miniMapInstance) miniMapInstance.invalidateSize(); }, 200);
+  }
+
+  // ── Profile detail modal ──────────────────────────────────
+  function openProfileModal(profileId) {
+    document.getElementById('profile-modal-overlay').style.display = 'flex';
+    document.getElementById('profile-modal-title').textContent = 'Network Profile';
+    document.getElementById('profile-modal-body').innerHTML = '<div class="empty">Loading...</div>';
+    fetch('/api/profiles/network/'+profileId)
+    .then(function(r){ return r.json().then(function(d){ return {ok:r.ok,data:d}; }); })
+    .then(function(r) {
+      if (!r.ok) { document.getElementById('profile-modal-body').innerHTML='<div class="empty" style="color:#f87171;">Could not load profile.</div>'; return; }
+      var p = r.data;
+      document.getElementById('profile-modal-title').textContent = p.name || profileId;
+      var html = '';
+      html += prow('Profile Name', p.name||'\u2014');
+      if (p.id) html += prow('ID','<span style="font-family:monospace;font-size:11px;">'+p.id+'</span>');
+      if (p.maxNumberOfDevices!=null) html += prow('Maximum allowed number of devices', p.maxNumberOfDevices);
+      if (p.aggregatedUlThroughput) html += prow('Aggregated Uplink Throughput', fmtTp(p.aggregatedUlThroughput));
+      if (p.aggregatedDlThroughput) html += prow('Aggregated Downlink Throughput', fmtTp(p.aggregatedDlThroughput));
+      if (p.qosProfiles && p.qosProfiles.length) {
+        html += '<div class="dk">Available QoS Profiles</div><div style="margin-top:4px;">';
+        html += p.qosProfiles.map(function(q){ return '<span class="tag">'+q+'</span>'; }).join('');
+        html += '</div>';
+      }
+      if (p.defaultQosProfile) html += '<div class="dk">Default QoS Profile</div><div style="margin-top:4px;"><span class="tag">'+p.defaultQosProfile+'</span></div>';
+      document.getElementById('profile-modal-body').innerHTML = html;
+    })
+    .catch(function(e){ document.getElementById('profile-modal-body').innerHTML='<div class="empty" style="color:#f87171;">'+e.message+'</div>'; });
+  }
+
+  // Create Access Modal
+  function openAccessModal() {
+    if (!selectedNetwork) return;
+    // Fetch fresh network state before opening
+    fetch('/api/networks/' + selectedNetwork.id)
+    .then(function(r){ return r.json().then(function(d){ return {ok:r.ok,data:d}; }); })
+    .then(function(r){
+      if (r.ok) {
+        selectedNetwork = r.data;
+        // Update the card in the list too
+        document.querySelectorAll('.net-card').forEach(function(card){
+          if (card.dataset.netId === selectedNetwork.id) {
+            var badge = card.querySelector('.status-badge');
+            if (badge) badge.outerHTML = statusBadge(selectedNetwork.status);
+          }
+        });
+      }
+      _openAccessModalWithNetwork(selectedNetwork);
+    })
+    .catch(function(){ _openAccessModalWithNetwork(selectedNetwork); });
+  }
+
+  function _openAccessModalWithNetwork(n) {
+    // Reset status
+    var statusEl = document.getElementById('access-modal-status');
+    statusEl.style.display = 'none'; statusEl.className = 'modal-st';
+    var btn = document.getElementById('access-modal-create');
+    btn.textContent = '🔗 Create Access'; btn.disabled = false; btn.style.background = '#dc2626';
+    // Show selected network
+    var netDisp = document.getElementById('access-network-display');
+    netDisp.style.background = 'var(--accent-lt)';
+    netDisp.style.border = '1px solid var(--accent-bdr)';
+    netDisp.style.color = 'var(--text-1)';
+    var _dn = getDisplayName(n);
+    var _showId = n.id && _dn !== n.id;
+    netDisp.innerHTML =
+      '<strong style="color:var(--text-1);">' + _dn + '</strong>'
+      + (_showId ? '<div style="font-size:10px;font-family:var(--mono);color:var(--text-3);margin-top:2px;">' + n.id + '</div>' : '')
+      + (n.status ? '<div style="margin-top:4px;">' + statusBadge(n.status) + '</div>' : '');
+    // Populate QoS
+    var sel = document.getElementById('access-qos-select');
+    sel.innerHTML = '<option value="">-- Use network default --</option>';
+    if (n.networkProfileId) {
+      fetch('/api/profiles/network/' + n.networkProfileId).then(function(r){return r.json();})
+      .then(function(p) {
+        var profiles = p.qosProfiles || [];
+        if (p.defaultQosProfile && profiles.indexOf(p.defaultQosProfile) === -1) profiles.unshift(p.defaultQosProfile);
+        sel.innerHTML = '<option value="">-- Use network default' + (p.defaultQosProfile ? ' ('+p.defaultQosProfile+')' : '') + ' --</option>'
+          + profiles.map(function(q){ return '<option value="'+q+'">'+q+'</option>'; }).join('');
+      }).catch(function(){});
+    }
+    // Populate device pool — clickable cards, no checkboxes
+    var poolList  = document.getElementById('access-pool-list');
+    var poolEmpty = document.getElementById('access-pool-empty');
+    poolList.innerHTML = '';
+    if (!devicePool.length) {
+      poolList.style.display = 'none'; poolEmpty.style.display = 'block';
+    } else {
+      poolList.style.display = 'flex'; poolEmpty.style.display = 'none';
+      devicePool.forEach(function(d) {
+        // Skip devices already in network
+        if (inNetworkDeviceIds.has(d.id)) return;
+        var dot = '<div style="width:8px;height:8px;border-radius:50%;background:#94a3b8;flex-shrink:0;margin-top:2px;"></div>';
+        var card = document.createElement('div');
+        card.className = 'modal-area-item';
+        card.dataset.poolSelId = d.id;
+        card.innerHTML = '<div style="display:flex;align-items:flex-start;gap:8px;width:100%;">'
+          + dot
+          + '<div style="flex:1;">'
+          + '<div style="font-size:12px;font-weight:600;color:var(--text-1);">'+d.name+'</div>'
+          + '<div style="font-size:10px;color:var(--text-3);font-family:var(--font);">'+d.phone+'</div>'
+          + '</div></div>';
+        card.addEventListener('click', function() { card.classList.toggle('selected'); });
+        poolList.appendChild(card);
+      });
+    }
+    document.getElementById('access-modal-overlay').style.display = 'flex';
+  }
+
+  function closeAccessModal() { document.getElementById('access-modal-overlay').style.display = 'none'; }
+
+  function showAccessModalSt(msg, ok) {
+    var el = document.getElementById('access-modal-status');
+    if (!el) return;
+    el.className = 'modal-st ' + (ok ? 'ok' : 'err');
+    el.textContent = msg; el.style.display = 'block';
+  }
+
+  document.getElementById('access-modal-create').addEventListener('click', function() {
+    var btn = this;
+    if (!selectedNetwork) return;
+    var qos = document.getElementById('access-qos-select').value.trim();
+    var body = { networkId: selectedNetwork.id };
+    // Collect selected devices — one POST per device with devices:[{phoneNumber}]
+    var selectedCards = Array.from(document.querySelectorAll('#access-pool-list [data-pool-sel-id].selected'));
+    var selectedDevs = selectedCards.map(function(card) {
+      return devicePool.find(function(x){ return x.id === card.dataset.poolSelId; });
+    }).filter(Boolean);
+    if (!selectedDevs.length) {
+      showAccessModalSt('Please select at least one device from your pool.', false);
+      return;
+    }
+    btn.textContent = 'Creating...'; btn.disabled = true;
+    // Send one request per device (devices is an array per spec)
+    var promises = selectedDevs.map(function(d) {
+      var reqBody = { networkId: body.networkId, device: { phoneNumber: d.phone } };
+      return fetch('/api/accesses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(reqBody) })
+        .then(function(r){ return r.json().then(function(b){ return { ok: r.ok, status: r.status, data: b, dev: d }; }); });
+    });
+    Promise.all(promises)
+    .then(function(results) {
+      btn.disabled = false;
+      var failed    = results.filter(function(r){ return !r.ok; });
+      var succeeded = results.filter(function(r){ return r.ok; });
+      if (failed.length && !succeeded.length) {
+        btn.textContent = '🔗 Create Access'; btn.disabled = false;
+        var d = failed[0].data;
+        var detail = d.message || d.error || d.code || (typeof d === 'string' ? d : JSON.stringify(d)) || 'Unknown error';
+        showAccessModalSt('HTTP ' + failed[0].status + ': ' + detail, false);
+        return;
+      }
+      btn.textContent = '✓ Created!'; btn.style.background = '#15803d'; btn.disabled = true;
+      var ids = succeeded.map(function(r){ return r.data.id || 'N/A'; }).join(', ');
+      showAccessModalSt('✓ ' + succeeded.length + ' access(es) created!' + (failed.length ? ' (' + failed.length + ' failed)' : '') + '\nIDs: ' + ids, true);
+      // Move successfully added devices to in-network, map device to access
+      succeeded.forEach(function(r) {
+        inNetworkDeviceIds.add(r.dev.id);
+        var accessId = r.data.id;
+        if (accessId) {
+          if (!accessDeviceMap[accessId]) accessDeviceMap[accessId] = [];
+          if (accessDeviceMap[accessId].indexOf(r.dev.id) === -1)
+            accessDeviceMap[accessId].push(r.dev.id);
+          if (selectedNetwork) accessNetworkMap[accessId] = { id: selectedNetwork.id, name: getDisplayName(selectedNetwork) };
+        }
+        var respStatus = r.data.status || null;
+        if (respStatus) r.dev.networkStatus = respStatus;
+      });
+      renderPoolDevices();
+      renderInNetworkDevices();
+      if (selectedNetwork) loadAccesses(selectedNetwork.id);
+      // Start polling device statuses until they settle
+      var newAccessIds = succeeded.map(function(r){ return r.data.id; }).filter(Boolean);
+      if (newAccessIds.length) startAccessRefresh(newAccessIds);
+      setTimeout(function() {
+        closeAccessModal();
+        btn.textContent = '🔗 Create Access';
+        btn.style.background = '#dc2626';
+        btn.disabled = false;
+      }, 2500);
+    })
+    .catch(function(e) {
+      btn.textContent = '🔗 Create Access'; btn.disabled = false; btn.style.background = '#dc2626';
+      showAccessModalSt('Failed: ' + e.message, false);
+    });
+  });
+
+  document.getElementById('create-access-btn-header').addEventListener('click', openAccessModal);
+  document.getElementById('access-modal-close').addEventListener('click', closeAccessModal);
+  document.getElementById('access-modal-cancel').addEventListener('click', closeAccessModal);
+  document.getElementById('access-modal-overlay').addEventListener('click', function(e){ if(e.target===this) closeAccessModal(); });
+
+  document.getElementById('profile-modal-close').addEventListener('click', function(){ document.getElementById('profile-modal-overlay').style.display='none'; });
+
+  document.getElementById('profile-modal-cancel').addEventListener('click', function(){ document.getElementById('profile-modal-overlay').style.display='none'; });
+  document.getElementById('profile-modal-overlay').addEventListener('click', function(e){ if(e.target===this) this.style.display='none'; });
+
+  // ── Accesses  ──────────────────────────────────────────────
+  function loadAccesses(networkId, silent){
+    var list=document.getElementById('accesses-list');
+    if (!silent) {
+      list.innerHTML='<div class="empty">Loading...</div>'; clrSt('accesses-status');
+      selectedAccessId=null;
+      document.getElementById('devices-list').innerHTML='<div class="empty">Select an access to see devices.</div>';
+      document.getElementById('devices-access-label').textContent='';
+      document.getElementById('load-devices-btn').style.display='none';
+    }
+
+    fetch('/api/accesses?networkId='+networkId)
+    .then(function(r){return r.json().then(function(d){return{ok:r.ok,status:r.status,data:d};});})
+    .then(function(r){
+      if(!r.ok){if(!silent){setSt('accesses-status','HTTP '+r.status+': '+(r.data.message||r.data.error||'Error'),false);list.innerHTML='';}return;}
+      var accesses=Array.isArray(r.data)?r.data:[r.data];
+      if(!silent) setSt('accesses-status',accesses.length+' access(es)',true);
+      if(!accesses.length){if(!silent)list.innerHTML='<div class="empty">No accesses yet. Use the Create Access button to add one.</div>';return;}
+      // Preserve active selection across rebuild
+      var activeAccId = selectedAccessId;
+      list.innerHTML='';
+      accesses.forEach(function(a){buildAccessCard(a,networkId);});
+      // Restore active highlight without resetting device panel
+      if (silent && activeAccId) {
+        var activeCard = list.querySelector('[data-acc-id="'+activeAccId+'"]');
+        if (activeCard) activeCard.classList.add('active');
+      }
+      renderInNetworkDevices();
+      // Silently fetch devices for every access so the Devices panel shows
+      // correct data without requiring the user to click each access card
+      accesses.forEach(function(a) {
+        fetch('/api/accesses/'+a.id+'/devices')
+          .then(function(r){ return r.json(); })
+          .then(function(rawDevs) {
+            var apiDevices = Array.isArray(rawDevs) ? rawDevs : (rawDevs.devices || rawDevs.data || []);
+            var recent = a.recentAccessDevices || [];
+            if (a.device) recent = recent.concat([{ device: a.device, status: a.deviceStatus || a.status }]);
+            apiDevices = apiDevices.concat(recent);
+            // Deduplicate by phone
+            var seen = {};
+            apiDevices = apiDevices.filter(function(ad) {
+              var ph = ad.device && (ad.device.phoneNumber || ad.device.networkAccessIdentifier);
+              if (!ph || seen[ph]) return false;
+              seen[ph] = true; return true;
+            });
+            if (!accessDeviceMap[a.id]) accessDeviceMap[a.id] = [];
+            apiDevices.forEach(function(apiDev) {
+              var phone = apiDev.device && (apiDev.device.phoneNumber || apiDev.device.networkAccessIdentifier);
+              if (!phone) return;
+              var poolDev = devicePool.find(function(d){ return d.phone === phone; });
+              if (poolDev) {
+                inNetworkDeviceIds.add(poolDev.id);
+                if (accessDeviceMap[a.id].indexOf(poolDev.id) === -1)
+                  accessDeviceMap[a.id].push(poolDev.id);
+                if (apiDev.status) poolDev.networkStatus = apiDev.status;
+              }
+            });
+            // Update device names in access card
+            var cardDevDiv = document.getElementById('acc-dev-list-'+a.id);
+            if (cardDevDiv) {
+              var devNames = (accessDeviceMap[a.id] || []).map(function(pid) {
+                var d = devicePool.find(function(x){ return x.id === pid; });
+                return d ? '<div style="font-size:11px;color:var(--text-2);margin-top:2px;">&#128241; '+d.name+'</div>' : '';
+              }).join('');
+              cardDevDiv.innerHTML = devNames;
+            }
+            renderPoolDevices();
+            renderInNetworkDevices();
+          }).catch(function(){});
+      });
+    }).catch(function(e){if(!silent)setSt('accesses-status','Failed: '+e.message,false);});
+  }
+
+  function buildAccessCard(a, networkId){
+    var el=document.createElement('div'); el.className='acc-card';
+    var el=document.createElement('div'); el.className='acc-card'; el.dataset.accId = a.id || '';
+    accessNetworkMap[a.id] = { id: networkId, name: (selectedNetwork && selectedNetwork.id === networkId ? getDisplayName(selectedNetwork) : (networkNicknames[networkId] || networkApiNameCache[networkId] || networkId.slice(0,8)+'...')) };
+    el.innerHTML='<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">'
+      + '<div style="flex:1;min-width:0;">'
+      + '<div style="font-size:12px;font-weight:600;color:var(--text-1);">Access</div>'
+      + '<div style="font-size:10px;color:var(--text-3);font-family:var(--mono);margin-top:2px;word-break:break-all;">'+(a.id||'')+'</div>'
+      + (a.defaultQosProfile?'<div class="dk" style="margin-top:6px;margin-bottom:2px;">QoS Profile</div><div><span class="tag" style="cursor:default;">'+a.defaultQosProfile+'</span></div>':'')
+      + (a.status ? '<div style="margin-top:6px;">'+statusBadge(a.status)+'</div>' : '')
+      + '<div id="acc-dev-list-'+(a.id||'')+'" style="margin-top:6px;"></div>'
+      + '</div>'
+      + '<button data-del-access-id="'+(a.id||'')+'" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:11px;font-weight:500;padding:2px 6px;border:1px solid var(--red-bdr);border-radius:var(--radius);white-space:nowrap;" title="Delete access">&#128465; Delete</button>'
+      + '</div>';
+    el.addEventListener('click',function(e){
+      if (e.target.dataset.delAccessId) return;
+      document.querySelectorAll('.acc-card').forEach(function(c){c.classList.remove('active');});
+      el.classList.add('active');
+      selectedAccessId=a.id;
+      buildDeviceMgmt(a.id, networkId);
+      syncAccessDevices(a.id, a);
+    });
+    // Delete access — returns devices to available
+    el.querySelector('[data-del-access-id]').addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (!confirm('Delete this access?')) return;
+      function doDelete() {
+        fetch('/api/accesses/'+a.id, {method:'DELETE'})
+        .then(function(r){
+          if (r.status === 204 || r.status === 200) {
+            var devIds = accessDeviceMap[a.id] || [];
+            devIds.forEach(function(id){ inNetworkDeviceIds.delete(id); });
+            delete accessDeviceMap[a.id];
+            delete accessNetworkMap[a.id];
+            renderPoolDevices(); renderInNetworkDevices();
+            loadAccesses(networkId);
+          } else {
+            r.json().then(function(d){ alert('Error: '+(d.message||d.error||'HTTP '+r.status)); });
+          }
+        }).catch(function(e){ alert('Failed: '+e.message); });
+      }
+      // If we don't yet have the device list for this access, fetch it first
+      if (!accessDeviceMap[a.id] || !accessDeviceMap[a.id].length) {
+        fetch('/api/accesses/'+a.id+'/devices')
+        .then(function(r){ return r.json(); })
+        .then(function(rawDevs) {
+          var apiDevices = Array.isArray(rawDevs) ? rawDevs : (rawDevs.devices || rawDevs.data || []);
+          if (!accessDeviceMap[a.id]) accessDeviceMap[a.id] = [];
+          apiDevices.forEach(function(apiDev) {
+            var phone = apiDev.device && (apiDev.device.phoneNumber || apiDev.device.networkAccessIdentifier);
+            if (!phone) return;
+            var poolDev = devicePool.find(function(d){ return d.phone === phone; });
+            if (poolDev && accessDeviceMap[a.id].indexOf(poolDev.id) === -1)
+              accessDeviceMap[a.id].push(poolDev.id);
+          });
+          doDelete();
+        }).catch(function(){ doDelete(); });
+      } else {
+        doDelete();
+      }
+    });
+    document.getElementById('accesses-list').appendChild(el);
+  }
+
+  function showAccessDetail(a, apiDevices) {
+    var tab = document.querySelector('[data-panel="right2"][data-tab="access-detail"]');
+    if (tab) tab.click();
+    document.getElementById('access-detail-empty').style.display = 'none';
+    var el = document.getElementById('access-detail-content');
+    el.style.display = 'block';
+    var html = '';
+    if (a.status) html += drow('Status', statusBadge(a.status));
+    if (a.defaultQosProfile) {
+      var allQos = a.qosProfiles && a.qosProfiles.length ? a.qosProfiles : [a.defaultQosProfile];
+      html += '<div class="dk">QoS Profile</div><div style="margin-top:3px;">'
+        + allQos.map(function(q){ return '<span class="tag" style="cursor:default;">' + q + (q===a.defaultQosProfile?' (default)':'') + '</span>'; }).join(' ')
+        + '</div>';
+    } else {
+      html += '<div id="access-detail-qos-placeholder"></div>';
+    }
+
+    // Collect all devices: pool-matched first, then API-only
+    var devIds = accessDeviceMap[a.id] || [];
+    var shownPhones = {};
+    var devRows = '';
+
+    devIds.forEach(function(pid) {
+      var d = devicePool.find(function(x){ return x.id === pid; });
+      if (!d) return;
+      shownPhones[d.phone] = true;
+      var sc = {REQUESTED:'#fbbf24',GRANTED:'#22c55e',DENIED:'#f87171'};
+      var dot = '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(sc[d.networkStatus]||'#94a3b8')+';margin-right:6px;vertical-align:middle;flex-shrink:0;"></span>';
+      devRows += '<div style="display:flex;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">'
+        + dot
+        + '<div style="flex:1;min-width:0;">'
+        + '<div style="font-size:12px;font-weight:600;color:var(--text-1);">'+d.name+'</div>'
+        + '<div style="font-size:10px;color:var(--text-3);font-family:var(--font);">'+d.phone+'</div>'
+        + '</div>'
+        + (d.networkStatus ? statusBadge(d.networkStatus) : '')
+        + '</div>';
+    });
+
+    // API-only: device known to the API but not matched to a pool entry
+    if (apiDevices) {
+      apiDevices.forEach(function(apiDev) {
+        var phone = apiDev.device && (apiDev.device.phoneNumber || apiDev.device.networkAccessIdentifier);
+        if (!phone || shownPhones[phone]) return;
+        var sc2 = {REQUESTED:'#fbbf24',GRANTED:'#22c55e',DENIED:'#f87171'};
+        var dot2 = '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(sc2[apiDev.status]||'#94a3b8')+';margin-right:6px;vertical-align:middle;flex-shrink:0;"></span>';
+        devRows += '<div style="display:flex;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">'
+          + dot2
+          + '<div style="flex:1;min-width:0;">'
+          + '<div style="font-size:11px;font-family:var(--mono);color:var(--text-1);">'+phone+'</div>'
+          + '<div style="font-size:9px;color:var(--text-3);">Not in device pool</div>'
+          + '</div>'
+          + (apiDev.status ? statusBadge(apiDev.status) : '')
+          + '</div>';
+      });
+    }
+
+    if (devRows) {
+      html += '<div class="dk" style="margin-top:6px;">Assigned Devices</div>' + devRows;
+    }
+
+    if (a.stats) {
+      html += drow('Total Devices', a.stats.totalDevices);
+      html += drow('Granted', '<span style="color:#22c55e;">'+a.stats.totalGranted+'</span>');
+      html += drow('Denied',  '<span style="color:#f87171;">'+a.stats.totalDenied+'</span>');
+    }
+    el.innerHTML = html;
+
+    // Fetch QoS from the network profile when the API doesn't include it
+    if (!a.defaultQosProfile) {
+      var netId = a.networkId || (selectedNetwork && selectedNetwork.id);
+      if (netId) {
+        fetch('/api/networks/' + netId).then(function(r){ return r.json(); })
+        .then(function(net) {
+          if (!net.networkProfileId) return Promise.resolve(null);
+          return fetch('/api/profiles/network/' + net.networkProfileId).then(function(r){ return r.json(); });
+        })
+        .then(function(profile) {
+          var ph = document.getElementById('access-detail-qos-placeholder');
+          if (!ph || !profile) return;
+          var qos = (profile.qosProfiles && profile.qosProfiles.length) ? profile.qosProfiles
+                  : (profile.defaultQosProfile ? [profile.defaultQosProfile] : []);
+          if (!qos.length) { ph.remove(); return; }
+          var def = profile.defaultQosProfile;
+          ph.outerHTML = '<div class="dk">QoS Profile</div><div style="margin-top:3px;">'
+            + qos.map(function(q){ return '<span class="tag" style="cursor:default;">' + q + (q===def?' (default)':'') + '</span>'; }).join(' ')
+            + '</div>';
+        }).catch(function(){});
+      }
+    }
+  }
+
+
+  // ── Devices ───────────────────────────────────────────────
+  function syncAccessDevices(accessId, fallbackAccess) {
+    clrSt('devices-status');
+    Promise.all([
+      fetch('/api/accesses/'+accessId).then(function(r){ return r.json().then(function(d){ return {ok:r.ok,data:d}; }); }),
+      fetch('/api/accesses/'+accessId+'/devices').then(function(r){ return r.json().then(function(d){ return {ok:r.ok,data:d}; }); })
+    ]).then(function(results) {
+      var freshAccess = results[0].ok ? results[0].data : (fallbackAccess || {id: accessId});
+      var rawDevs = results[1].ok ? results[1].data : [];
+      var apiDevices = Array.isArray(rawDevs) ? rawDevs : (rawDevs.devices || rawDevs.data || []);
+
+      // Also include recentAccessDevices from the access object itself
+      var recent = freshAccess.recentAccessDevices || [];
+      if (freshAccess.device) recent = recent.concat([{ device: freshAccess.device, status: freshAccess.deviceStatus || freshAccess.status }]);
+      apiDevices = apiDevices.concat(recent);
+
+      // Deduplicate by phone number
+      var seenPhones = {};
+      apiDevices = apiDevices.filter(function(ad) {
+        var ph = ad.device && (ad.device.phoneNumber || ad.device.networkAccessIdentifier);
+        if (!ph || seenPhones[ph]) return false;
+        seenPhones[ph] = true;
+        return true;
+      });
+
+      // Match each API device to the pool by phone number; update state
+      if (!accessDeviceMap[accessId]) accessDeviceMap[accessId] = [];
+      apiDevices.forEach(function(apiDev) {
+        var phone = apiDev.device && (apiDev.device.phoneNumber || apiDev.device.networkAccessIdentifier);
+        if (!phone) return;
+        var poolDev = devicePool.find(function(d){ return d.phone === phone; });
+        if (poolDev) {
+          inNetworkDeviceIds.add(poolDev.id);
+          if (accessDeviceMap[accessId].indexOf(poolDev.id) === -1)
+            accessDeviceMap[accessId].push(poolDev.id);
+          if (apiDev.status) poolDev.networkStatus = apiDev.status;
+        }
+      });
+
+      renderPoolDevices();
+      renderInNetworkDevices();
+      showAccessDetail(freshAccess, apiDevices);
+    }).catch(function() {
+      showAccessDetail(fallbackAccess || {id: accessId}, []);
+    });
+  }
+
+  document.getElementById('load-devices-btn').addEventListener('click',function(){
+    if(selectedAccessId) syncAccessDevices(selectedAccessId);
+  });
+
+  // ── Device Pool ────────────────────────────────────────
+  function savePool() {
+    try { localStorage.setItem('dn_device_pool', JSON.stringify(devicePool)); } catch(e) {}
+  }
+
+  var devicePool = (function() {
+    try {
+      var raw = localStorage.getItem('dn_device_pool');
+      if (raw) return JSON.parse(raw);
+    } catch(e) {}
+    return [];
+  }()); // [{id, name, phone}]
+  var inNetworkDeviceIds = new Set(); // pool ids currently in an active access
+  var accessDeviceMap = {};           // accessId -> array of pool device ids
+  var accessNetworkMap = {};          // accessId -> { id, name } of the parent network
+  var profileNameCache = {};           // profileId -> name (avoid repeat fetches)
+  var areaNameCache = {};              // areaId -> name (avoid repeat fetches)
+  var accessRefreshTimer = null;
+
+  function startAccessRefresh(accessIds) {
+    stopAccessRefresh();
+    accessRefreshTimer = setInterval(function() {
+      var allSettled = true;
+      accessIds.forEach(function(accessId) {
+        var devIds = accessDeviceMap[accessId] || [];
+        var needsRefresh = devIds.some(function(pid) {
+          var d = devicePool.find(function(x){ return x.id === pid; });
+          return d && (!d.networkStatus || d.networkStatus === 'REQUESTED');
+        });
+        if (!needsRefresh) return;
+        allSettled = false;
+        // Fetch access to get device statuses
+        fetch('/api/accesses/' + accessId)
+        .then(function(r){ return r.json().then(function(d){ return {ok:r.ok,data:d}; }); })
+        .then(function(r) {
+          if (!r.ok) return;
+          var a = r.data;
+          // recentAccessDevices = [{device:{phoneNumber}, status}, ...]
+          var recentDevs = a.recentAccessDevices || [];
+          // Also check top-level device field (single-device access)
+          if (!recentDevs.length && a.device) {
+            recentDevs = [{ device: a.device, status: a.deviceStatus || a.status }];
+          }
+          if (recentDevs.length) {
+            var updated = false;
+            recentDevs.forEach(function(rd) {
+              var phone = rd.device && (rd.device.phoneNumber || rd.device.networkAccessIdentifier);
+              var devStatus = rd.status;
+              if (!phone || !devStatus) return;
+              devIds.forEach(function(pid) {
+                var d = devicePool.find(function(x){ return x.id === pid; });
+                if (d && d.phone === phone && d.networkStatus !== devStatus) {
+                  d.networkStatus = devStatus;
+                  updated = true;
+                }
+              });
+            });
+            if (updated) {
+              renderInNetworkDevices();
+              if (selectedAccessId === accessId) syncAccessDevices(accessId);
+              if (selectedNetworkId) loadAccesses(selectedNetworkId);
+            }
+          }
+        }).catch(function(){});
+      });
+      if (allSettled) stopAccessRefresh();
+    }, 15000);
+  }
+
+  function stopAccessRefresh() {
+    if (accessRefreshTimer) { clearInterval(accessRefreshTimer); accessRefreshTimer = null; }
+  }
+
+  var poolIdCounter = devicePool.length ? devicePool.reduce(function(m, d) {
+    var n = parseInt((d.id || '').replace('dev_', ''), 10);
+    return isNaN(n) ? m : Math.max(m, n);
+  }, 0) : 0;
+  var currentAccessIdForPool = null;
+  renderPoolDevices();
+
+  function renderPoolDevices() {
+    var list = document.getElementById('device-pool-list');
+
+    if (!list) return;
+
+    if (!devicePool.length) {
+      list.innerHTML = '<div class="empty">No devices yet. Click &ldquo;+ Add Device&rdquo; to build your pool.</div>';
+      var _inList = document.getElementById('in-network-device-list');
+      if (_inList) _inList.innerHTML = '<div class="empty">No devices in any network yet.</div>';
+      updateCreateAccessBtnFromPool();
+      return;
+    }
+
+    var available = devicePool.filter(function(d){ return !inNetworkDeviceIds.has(d.id); });
+    var inNetwork  = devicePool.filter(function(d){ return  inNetworkDeviceIds.has(d.id); });
+
+    // Reverse map: poolDeviceId -> [{accessId, network:{id,name}}]
+    var deviceAccessInfo = {};
+    Object.keys(accessDeviceMap).forEach(function(accId) {
+      (accessDeviceMap[accId] || []).forEach(function(devId) {
+        if (!deviceAccessInfo[devId]) deviceAccessInfo[devId] = [];
+        deviceAccessInfo[devId].push({ accessId: accId, network: accessNetworkMap[accId] || null });
+      });
+    });
+
+    function deviceCard(d, isInNetwork) {
+      var _sc = {REQUESTED:'#fbbf24',GRANTED:'#22c55e',DENIED:'#f87171'};
+      var dotColor = isInNetwork ? (_sc[d.networkStatus] || '#94a3b8') : '#94a3b8';
+      var dot = '<div style="width:8px;height:8px;border-radius:50%;background:'+dotColor+';flex-shrink:0;margin-top:2px;"></div>';
+      var selAttr = isInNetwork ? '' : ' data-card-pool-id="'+d.id+'"';
+      var rowBg   = isInNetwork ? 'background:var(--accent-lt);border-left:3px solid var(--accent);' : '';
+
+      var accessInfo = '';
+      if (isInNetwork) {
+        var infos = deviceAccessInfo[d.id] || [];
+        accessInfo = infos.map(function(info) {
+          var netName = (info.network && info.network.name) ? info.network.name : null;
+          var netId   = (info.network && info.network.id)   ? info.network.id   : null;
+          var isRealName = netName && netId && netName !== netId && netName.indexOf(netId.slice(0,8)) === -1;
+          var netLine = isRealName
+            ? '<div style="font-size:10px;color:var(--accent);font-weight:600;">' + netName + '</div>'
+            : '';
+          var netIdLine = netId
+            ? '<div style="font-size:9px;color:var(--text-3);font-family:var(--mono);">Network ID: ' + netId + '</div>'
+            : '';
+          var accIdLine = info.accessId
+            ? '<div style="font-size:9px;color:var(--text-3);font-family:var(--mono);">Access ID: ' + info.accessId + '</div>'
+            : '';
+          return '<div style="margin-top:5px;padding:5px 7px;border-radius:5px;background:rgba(37,99,235,0.08);border:1px solid var(--accent-bdr);">'
+            + netLine + netIdLine + accIdLine
+            + (d.networkStatus ? '<div style="margin-top:3px;">'+statusBadge(d.networkStatus)+'</div>' : '')
+            + '</div>';
+        }).join('');
+        if (!accessInfo) {
+          accessInfo = '<div style="margin-top:4px;"><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--accent-lt);color:var(--accent);border:1px solid var(--accent-bdr);">In Network</span></div>';
+        }
+      }
+
+      return '<div style="display:flex;align-items:flex-start;gap:8px;padding:10px 8px;border-bottom:1px solid var(--border);'+rowBg+'"'+selAttr+'>'
+        + dot
+        + '<div style="flex:1;min-width:0;">'
+        + '<div style="font-size:12px;font-weight:600;color:var(--text-1);">'+d.name+'</div>'
+        + '<div style="font-size:10px;color:var(--text-3);font-family:var(--font);">'+d.phone+'</div>'
+        + accessInfo
+        + '</div>'
+        + (!isInNetwork ? '<button data-del-id="'+d.id+'" style="background:none;border:none;color:var(--text-3);cursor:pointer;font-size:14px;padding:0 2px;flex-shrink:0;margin-top:1px;" title="Remove">\xd7</button>' : '')
+        + '</div>';
+    }
+
+    list.innerHTML = available.length
+      ? available.map(function(d){ return deviceCard(d, false); }).join('')
+      : '<div class="empty">No available devices. All devices are in a network or pool is empty.</div>';
+
+    var inList = document.getElementById('in-network-device-list');
+    if (inList) {
+      inList.innerHTML = inNetwork.length
+        ? inNetwork.map(function(d){ return deviceCard(d, true); }).join('')
+        : '<div class="empty">No devices in any network yet.</div>';
+    }
+
+    list.querySelectorAll('[data-card-pool-id]').forEach(function(row) {
+      row.addEventListener('click', function(e) { if (e.target.dataset.delId) return; });
+    });
+
+    list.querySelectorAll('[data-del-id]').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        devicePool = devicePool.filter(function(d){ return d.id !== btn.dataset.delId; });
+        inNetworkDeviceIds.delete(btn.dataset.delId);
+        savePool();
+        renderPoolDevices(); renderInNetworkDevices();
+      });
+    });
+
+    updateCreateAccessBtnFromPool();
+  }
+
+  // Render the right column: pool devices that are currently in an access for the selected network
+  function renderInNetworkDevices() {
+    var list = document.getElementById('devices-list');
+    if (!list) return;
+    // Only consider accesses belonging to the currently selected network
+    var relevantAccIds = Object.keys(accessDeviceMap).filter(function(accId) {
+      if (!selectedNetworkId) return true;
+      return accessNetworkMap[accId] && accessNetworkMap[accId].id === selectedNetworkId;
+    });
+    // Build reverse map: poolDeviceId -> [{accessId, network}] scoped to relevant accesses
+    var devNetMap = {};
+    relevantAccIds.forEach(function(accId) {
+      (accessDeviceMap[accId] || []).forEach(function(devId) {
+        if (!devNetMap[devId]) devNetMap[devId] = [];
+        devNetMap[devId].push({ accessId: accId, network: accessNetworkMap[accId] || null });
+      });
+    });
+    var inNetwork = devicePool.filter(function(d){ return devNetMap[d.id]; });
+    if (!inNetwork.length) {
+      list.innerHTML = '<div class="empty">No devices currently in any access' + (selectedNetworkId ? ' for this network' : '') + '.</div>';
+      return;
+    }
+    list.innerHTML = inNetwork.map(function(d) {
+      var _sc2 = {REQUESTED:'#fbbf24',GRANTED:'#22c55e',DENIED:'#f87171'};
+      var dot = '<div style="width:8px;height:8px;border-radius:50%;background:'+(_sc2[d.networkStatus]||'#94a3b8')+';flex-shrink:0;margin-top:2px;"></div>';
+      var infos = devNetMap[d.id] || [];
+      var infoBlocks = infos.map(function(info) {
+        var netName = (info.network && info.network.name) ? info.network.name : null;
+        var netId   = (info.network && info.network.id)   ? info.network.id   : null;
+        // Only show name if it's a real human-readable name (not just the ID or a truncated ID)
+        var isRealName = netName && netId && netName !== netId && netName.indexOf(netId.slice(0,8)) === -1;
+        var netLine = isRealName
+          ? '<div style="font-size:10px;color:var(--accent);font-weight:600;">' + netName + '</div>'
+          : '';
+        var netIdLine = netId
+          ? '<div style="font-size:9px;color:var(--text-3);font-family:var(--mono);">Network ID: ' + netId + '</div>'
+          : '';
+        var accIdLine = info.accessId
+          ? '<div style="font-size:9px;color:var(--text-3);font-family:var(--mono);">Access ID: ' + info.accessId + '</div>'
+          : '';
+        return '<div style="margin-top:5px;padding:5px 7px;border-radius:5px;background:rgba(37,99,235,0.08);border:1px solid var(--accent-bdr);">'
+          + netLine + netIdLine + accIdLine
+          + (d.networkStatus ? '<div style="margin-top:3px;">'+statusBadge(d.networkStatus)+'</div>' : '')
+          + '</div>';
+      }).join('');
+      if (!infoBlocks) {
+        infoBlocks = '<div style="margin-top:4px;"><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--accent-lt);color:var(--accent);border:1px solid var(--accent-bdr);">In Network</span></div>';
+      }
+      return '<div style="display:flex;align-items:flex-start;gap:8px;padding:10px 8px;border-bottom:1px solid var(--border);background:var(--accent-lt);border-left:3px solid var(--accent);">'
+        + dot
+        + '<div style="flex:1;min-width:0;">'
+        + '<div style="font-size:12px;font-weight:600;color:var(--text-1);">'+d.name+'</div>'
+        + '<div style="font-size:10px;color:var(--text-3);font-family:var(--font);">'+d.phone+'</div>'
+        + infoBlocks
+        + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+
+  function updateCreateAccessBtnFromPool() {
+    var cab = document.getElementById('create-access-btn-header');
+    if (!cab) return;
+    if (selectedNetwork) {
+      cab.disabled = false; cab.style.opacity = '1'; cab.style.cursor = 'pointer'; cab.style.background = '#dc2626';
+    } else {
+      cab.disabled = true; cab.style.opacity = '0.4'; cab.style.cursor = 'not-allowed';
+    }
+  }
+
+  function getSelectedPoolDevices() {
+    var selected = [];
+    document.querySelectorAll('[data-card-pool-id]').forEach(function(row) {
+      if (row.classList.contains('active')) {
+        var d = devicePool.find(function(x){ return x.id === row.dataset.cardPoolId; });
+        if (d) selected.push(d);
+      }
+    });
+    return selected;
+  }
+
+  // Add device form
+  document.getElementById('add-pool-device-btn').addEventListener('click', function() {
+    document.getElementById('pool-add-form').style.display = 'block';
+    document.getElementById('pool-dev-name').focus();
+  });
+  document.getElementById('pool-cancel-btn').addEventListener('click', function() {
+    document.getElementById('pool-add-form').style.display = 'none';
+    document.getElementById('pool-dev-name').value = '';
+    document.getElementById('pool-dev-phone').value = '';
+  });
+  document.getElementById('pool-save-btn').addEventListener('click', function() {
+    var name  = document.getElementById('pool-dev-name').value.trim();
+    var phone = document.getElementById('pool-dev-phone').value.trim();
+    if (!name || !phone) { setSt('pool-status', 'Please enter a name and phone number.', false); return; }
+    poolIdCounter++;
+    devicePool.push({ id: 'dev_'+poolIdCounter, name: name, phone: phone });
+    savePool();
+    document.getElementById('pool-add-form').style.display = 'none';
+    document.getElementById('pool-dev-name').value = '';
+    document.getElementById('pool-dev-phone').value = '';
+    clrSt('pool-status');
+    renderPoolDevices();
+  });
+
+
+  function buildDeviceMgmt(accessId, networkId) {
+    currentAccessIdForPool = accessId;
+    renderPoolDevices();
+    renderInNetworkDevices();
+  }
+
+
+  // ═══ RESERVE MODAL ══════════════════════════════════════════
+  var modalSelectedAreaId=null;
+
+  function pad(n){return n<10?'0'+n:String(n);}
+  function toDateInput(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+  function toTimeInput(d){return pad(d.getHours())+':'+pad(d.getMinutes());}
+  function getModalDateTime(dateId,timeId){
+    var d=document.getElementById(dateId).value, t=document.getElementById(timeId).value;
+    if(!d||!t) return null;
+    return new Date(d+'T'+t+':00');
+  }
+  function updateDuration(){
+    var s=getModalDateTime('modal-start-date','modal-start-time');
+    var e=getModalDateTime('modal-end-date','modal-end-time');
+    var el=document.getElementById('modal-duration');
+    if(!s||!e){el.style.display='none';return;}
+    var diff=e-s; el.style.display='block';
+    if(diff<=0){el.style.color='#f87171';el.textContent='⚠ End must be after start.';return;}
+    var h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000);
+    el.style.color='#15803d';el.textContent='⏱ Duration: '+(h?h+'h ':'')+m+'min';
+  }
+
+  function openModal(){
+    if(!selectedArea){ return; }
+    modalSelectedAreaId = selectedArea.id || null;
+
+    document.getElementById('modal-status').style.display='none';
+    document.getElementById('modal-status').className='modal-st';
+    document.getElementById('modal-profile-detail').style.display='none';
+    document.getElementById('modal-name').value='';
+    var btn=document.getElementById('modal-create-btn');
+    btn.textContent='\u26a9 Create Network'; btn.disabled=false; btn.style.background='#7c3aed';
+
+    // Show the selected area (read-only)
+    var areaDisplay = document.getElementById('modal-area-display');
+    areaDisplay.innerHTML = '<strong style="color:var(--text-1);">' + (selectedArea.name||'Unnamed Area') + '</strong>'
+      + (selectedArea.id ? '<div style="font-size:10px;font-family:monospace;color:var(--accent);margin-top:2px;">'+selectedArea.id+'</div>' : '')
+      + (selectedArea.description ? '<div style="font-size:11px;color:var(--text-3);margin-top:2px;">'+selectedArea.description+'</div>' : '');
+
+    // Load only network profiles available in this area
+    var sel=document.getElementById('modal-profile-select');
+    sel.innerHTML='<option value="">Loading profiles...</option>';
+    document.getElementById('modal-profile-detail').style.display='none';
+
+    var profileIds = (selectedArea.networkProfiles && selectedArea.networkProfiles.length)
+      ? selectedArea.networkProfiles : null;
+
+    if(profileIds){
+      // Fetch each profile to get its name
+      var promises = profileIds.map(function(pid){
+        return fetch('/api/profiles/network/'+pid).then(function(r){return r.json();}).then(function(p){return{id:pid,name:p.name||pid};}).catch(function(){return{id:pid,name:pid};});
+      });
+      Promise.all(promises).then(function(profiles){
+        sel.innerHTML='<option value="">-- Select a network profile --</option>'
+          +profiles.map(function(p){return '<option value="'+p.id+'">'+(p.name||p.id)+'</option>';}).join('');
+      });
+    } else {
+      // Fall back to loading all profiles
+      fetch('/api/profiles/network').then(function(r){return r.json();})
+      .then(function(data){
+        var profiles=Array.isArray(data)?data:[data];
+        sel.innerHTML='<option value="">-- Select a network profile --</option>'
+          +profiles.map(function(p){return '<option value="'+p.id+'">'+(p.name||p.id)+'</option>';}).join('');
+      }).catch(function(){sel.innerHTML='<option value="">Failed to load</option>';});
+    }
+
+    // Set default date/time: now and now+1h
+    var now=new Date(), end=new Date(now.getTime()+3600000);
+    document.getElementById('modal-start-date').value = toDateInput(now);
+    document.getElementById('modal-start-time').value = toTimeInput(now);
+    document.getElementById('modal-end-date').value   = toDateInput(end);
+    document.getElementById('modal-end-time').value   = toTimeInput(end);
+    updateDuration();
+
+    document.getElementById('reserve-overlay').style.display='flex';
+  }
+
+  function closeModal(){document.getElementById('reserve-overlay').style.display='none';}
+
+  function showModalSt(msg,ok){
+    var el=document.getElementById('modal-status');
+    el.className='modal-st '+(ok?'ok':'err'); el.textContent=msg; el.style.display='block';
+  }
+
+  document.getElementById('modal-profile-select').addEventListener('change',function(){
+    var pid=this.value, detailEl=document.getElementById('modal-profile-detail');
+    if(!pid){detailEl.style.display='none';return;}
+    detailEl.style.display='block'; detailEl.textContent='Loading...';
+    fetch('/api/profiles/network/'+pid).then(function(r){return r.json();})
+    .then(function(p){
+      var html='';
+      if(p.maxNumberOfDevices!=null) html+='<span style="margin-right:12px;">Max devices: <strong style="color:var(--text-1);">'+p.maxNumberOfDevices+'</strong></span>';
+      if(p.aggregatedUlThroughput) html+='<span style="margin-right:12px;">\u2191 UL: <strong style="color:var(--text-1);">'+fmtTp(p.aggregatedUlThroughput)+'</strong></span>';
+      if(p.aggregatedDlThroughput) html+='<span>\u2193 DL: <strong style="color:var(--text-1);">'+fmtTp(p.aggregatedDlThroughput)+'</strong></span>';
+      if(p.qosProfiles&&p.qosProfiles.length) html+='<div style="margin-top:4px;">QoS: '+p.qosProfiles.map(function(q){return '<span style="display:inline-block;font-size:10px;padding:1px 6px;border-radius:4px;background:var(--green-lt);color:var(--green);margin:1px;">'+q+'</span>';}).join('')+'</div>';
+      detailEl.innerHTML=html||'<span>No details available</span>';
+    }).catch(function(){detailEl.textContent='Could not load details.';});
+  });
+
+  ['modal-start-date','modal-start-time','modal-end-date','modal-end-time'].forEach(function(id){
+    document.getElementById(id).addEventListener('change',updateDuration);
+  });
+
+  document.getElementById('modal-create-btn').addEventListener('click',function(){
+    var btn=this;
+    var profileId=document.getElementById('modal-profile-select').value;
+    var startDt=getModalDateTime('modal-start-date','modal-start-time');
+    var endDt=getModalDateTime('modal-end-date','modal-end-time');
+    var nameVal=document.getElementById('modal-name').value.trim();
+    if(!profileId){showModalSt('Please select a network profile.',false);return;}
+    if(!modalSelectedAreaId){showModalSt('Service area not set.',false);return;}
+    if(!startDt||!endDt){showModalSt('Please set start and end date/time.',false);return;}
+    if(endDt<=startDt){showModalSt('End time must be after start time.',false);return;}
+    var body={networkProfileId:profileId,serviceAreaId:modalSelectedAreaId,serviceTime:{start:startDt.toISOString(),end:endDt.toISOString()}};
+    // nameVal is a local nickname only — NOT sent to the API
+    btn.textContent='Creating...'; btn.disabled=true;
+    fetch('/api/networks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(function(r){return r.json().then(function(d){return{ok:r.ok,status:r.status,data:d};});})
+    .then(function(r){
+      btn.disabled=false;
+      if(!r.ok){btn.textContent='\u26a9 Create Network';showModalSt('HTTP '+r.status+': '+(r.data.message||r.data.error||'Error'),false);return;}
+      var netId=r.data.id||'N/A', netStatus=r.data.status||'N/A';
+      if(nameVal && netId!=='N/A') { networkNicknames[netId]=nameVal; saveNetworkNicknames(); }
+      var dispName=nameVal?(' — “'+nameVal+'”'):'';
+      btn.textContent='\u2713 Created!'; btn.style.background='#15803d'; btn.disabled=true;
+      showModalSt('\u2713 Network reserved!'+dispName+'\nID: '+netId+'\nStatus: '+netStatus,true);
+      setTimeout(function(){closeModal();btn.textContent='\u26a9 Create Network';btn.style.background='#7c3aed';btn.disabled=false;},4000);
+    }).catch(function(e){btn.textContent='\u26a9 Create Network';btn.disabled=false;showModalSt('Failed: '+e.message,false);});
+  });
+
+  document.getElementById('reserve-btn').addEventListener('click',openModal);
+  document.getElementById('modal-close-btn').addEventListener('click',closeModal);
+  document.getElementById('modal-cancel-btn').addEventListener('click',closeModal);
+  document.getElementById('reserve-overlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+  // ═══ DRAW MODE ════════════════════════════════════════════
+  var drawMode=null, drawing=false, drawPoints=[], drawMarkers=[], drawPolyline=null, drawPolygon=null, MAX_PTS=15;
+
+  function setMode(mode){
+    resetDraw(); drawMode=mode; drawing=true;
+    document.getElementById('mode-point-btn').classList.toggle('on',mode==='point');
+    document.getElementById('mode-polygon-btn').classList.toggle('on',mode==='polygon');
+    document.getElementById('map').classList.add('draw-mode');
+    document.getElementById('draw-hint').textContent=mode==='point'?'Click on the map to place a point.':'Click to add points (3\u201315). Close when done.';
+  }
+
+  function resetDraw(){
+    drawMarkers.forEach(function(m){map.removeLayer(m);}); drawMarkers=[]; drawPoints=[];
+    if(drawPolyline){map.removeLayer(drawPolyline);drawPolyline=null;}
+    if(drawPolygon){map.removeLayer(drawPolygon);drawPolygon=null;}
+    ['undo-btn','close-polygon-btn','point-count','draw-validation','coords-wrap'].forEach(function(id){document.getElementById(id).style.display='none';});
+    document.getElementById('search-wrap').style.display='none';
+    document.getElementById('extra-filters').style.display='none';
+    document.getElementById('search-at-btn').style.display='none';
+    document.getElementById('search-overlapping-btn').style.display='none';
+    document.getElementById('search-covering-btn').style.display='none';
+    if(!drawMode){document.getElementById('map').classList.remove('draw-mode');document.getElementById('draw-hint').textContent='Choose a mode then click the map.';}
+  }
+
+  function redrawPoly(){
+    if(drawPolyline){map.removeLayer(drawPolyline);drawPolyline=null;}
+    if(drawPoints.length<2) return;
+    drawPolyline=L.polyline(drawPoints.map(function(p){return[p.lat,p.lng];}),{color:'#f59e0b',weight:2,dashArray:'5,5'}).addTo(map);
+  }
+
+  function addDM(pt,idx){
+    var m=L.circleMarker([pt.lat,pt.lng],{radius:6,color:'#f59e0b',fillColor:'#fbbf24',fillOpacity:1,weight:2}).addTo(map);
+    m.bindTooltip(String(idx+1),{permanent:true,direction:'top',offset:[0,-8]});
+    m.on('mousedown',function(e){
+      map.dragging.disable(); var i=drawMarkers.indexOf(m);
+      map.on('mousemove',function drag(ev){drawPoints[i]={lat:ev.latlng.lat,lng:ev.latlng.lng};m.setLatLng(ev.latlng);redrawPoly();updateCoords();updateSearchJSON();});
+      map.once('mouseup',function(){map.dragging.enable();map.off('mousemove',drag);});
+      L.DomEvent.stopPropagation(e);
+    });
+    return m;
+  }
+
+  function updateCoords(){
+    if(!drawPoints.length||drawMode==='point'){document.getElementById('coords-wrap').style.display='none';return;}
+    document.getElementById('coords-wrap').style.display='block';
+    document.getElementById('coords-table').innerHTML=drawPoints.map(function(p,i){
+      return '<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid #2d3748;color:var(--text-3);"><span style="color:var(--accent);min-width:18px;">'+(i+1)+'</span><span>'+p.lat.toFixed(5)+'</span><span>'+p.lng.toFixed(5)+'</span></div>';
+    }).join('');
+  }
+
+  function updateValidation(){
+    var el=document.getElementById('draw-validation');
+    if(!drawPoints.length||drawMode==='point'){el.style.display='none';return;}
+    el.style.display='block';
+    if(drawPoints.length<3){el.style.cssText='display:block;font-size:11px;padding:5px 8px;border-radius:4px;background:#2d1b0a;color:#fbbf24;border:1px solid #92400e;';el.textContent='Need at least 3 points.';}
+    else{el.style.cssText='display:block;font-size:11px;padding:5px 8px;border-radius:4px;background:#14532d;color:#15803d;border:1px solid #16a34a;';el.textContent=drawPoints.length+' points \u2014 ready to close.';}
+  }
+
+  function getExtraFilters(){
+    var ex={};
+    var n=document.getElementById('filter-name').value.trim();
+    var p=document.getElementById('filter-profile-id').value.trim();
+    var q=document.getElementById('filter-qos-name').value.trim();
+    if(n) ex.byName=n; if(p) ex.byNetworkProfileId=p; if(q) ex.byQosProfileName=q;
+    return ex;
+  }
+
+  function updateSearchJSON(){
+    if(drawMode==='point'&&drawPoints.length===1){
+      document.getElementById('search-wrap').style.display='flex';
+      document.getElementById('extra-filters').style.display='flex';
+      document.getElementById('search-at-btn').style.display='block';
+      document.getElementById('search-overlapping-btn').style.display='none';
+      document.getElementById('search-covering-btn').style.display='none';
+    } else if(drawMode==='polygon'&&drawPoints.length>=3){
+      document.getElementById('search-wrap').style.display='flex';
+      document.getElementById('extra-filters').style.display='flex';
+      document.getElementById('search-at-btn').style.display='none';
+      document.getElementById('search-overlapping-btn').style.display='block';
+      document.getElementById('search-covering-btn').style.display='block';
+    } else {
+      document.getElementById('search-wrap').style.display='none';
+      document.getElementById('extra-filters').style.display='none';
+    }
+  }
+
+  function doSearch(geoBody,btn,label){
+    var body=Object.assign({},geoBody,getExtraFilters());
+    btn.textContent='Searching...'; btn.disabled=true; clrSt('areas-status');
+    fetch('/api/areas/retrieve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(function(r){return r.json().then(function(d){return{ok:r.ok,status:r.status,data:d};});})
+    .then(function(r){
+      btn.textContent=label; btn.disabled=false;
+      if(!r.ok){setSt('areas-status','HTTP '+r.status+': '+(r.data.message||r.data.error||'Error'),false);return;}
+      var areas=Array.isArray(r.data)?r.data:[r.data];
+      setSt('areas-status',areas.length+' area(s) found',true);
+      displayAreas(areas); showAll();
+      document.querySelector('[data-panel="right1"][data-tab="areas"]').click();
+    }).catch(function(e){btn.textContent=label;btn.disabled=false;setSt('areas-status','Failed: '+e.message,false);});
+  }
+
+  map.on('click',function(e){
+    if(!drawing||!drawMode) return;
+    if(drawMode==='point'){
+      drawMarkers.forEach(function(m){map.removeLayer(m);}); drawMarkers=[];
+      drawPoints=[{lat:e.latlng.lat,lng:e.latlng.lng}];
+      drawMarkers.push(addDM(drawPoints[0],0));
+      document.getElementById('draw-hint').textContent='Point placed. Drag to adjust.';
+      updateSearchJSON(); return;
+    }
+    if(drawPoints.length>=MAX_PTS) return;
+    var pt={lat:e.latlng.lat,lng:e.latlng.lng};
+    drawPoints.push(pt); drawMarkers.push(addDM(pt,drawPoints.length-1));
+    redrawPoly(); updateCoords(); updateValidation(); updateSearchJSON();
+    document.getElementById('undo-btn').style.display='block';
+    document.getElementById('close-polygon-btn').style.display=drawPoints.length>=3?'block':'none';
+    document.getElementById('point-count').style.display='block';
+    document.getElementById('point-count').textContent=drawPoints.length+' / '+MAX_PTS+' points';
+  });
+
+  document.getElementById('mode-point-btn').addEventListener('click',function(){setMode('point');});
+  document.getElementById('mode-polygon-btn').addEventListener('click',function(){setMode('polygon');});
+
+  document.getElementById('undo-btn').addEventListener('click',function(){
+    if(!drawPoints.length) return;
+    map.removeLayer(drawMarkers.pop()); drawPoints.pop();
+    redrawPoly(); updateCoords(); updateValidation(); updateSearchJSON();
+    document.getElementById('undo-btn').style.display=drawPoints.length?'block':'none';
+    document.getElementById('close-polygon-btn').style.display=drawPoints.length>=3?'block':'none';
+    if(drawPoints.length) document.getElementById('point-count').textContent=drawPoints.length+' / '+MAX_PTS+' points';
+    else document.getElementById('point-count').style.display='none';
+  });
+
+  document.getElementById('close-polygon-btn').addEventListener('click',function(){
+    if(drawPoints.length<3) return;
+    if(drawPolyline){map.removeLayer(drawPolyline);drawPolyline=null;}
+    drawPolygon=L.polygon(drawPoints.map(function(p){return[p.lat,p.lng];}),{color:'#f59e0b',fillColor:'#f59e0b',fillOpacity:0.15,weight:2}).addTo(map);
+    drawing=false; document.getElementById('map').classList.remove('draw-mode');
+    document.getElementById('close-polygon-btn').style.display='none';
+    document.getElementById('draw-validation').style.display='none';
+    document.getElementById('draw-hint').textContent='Polygon complete. Drag points to adjust.';
+    updateSearchJSON();
+  });
+
+  document.getElementById('clear-draw-btn').addEventListener('click',function(){
+    resetDraw();
+    if(drawMode){drawing=true;document.getElementById('map').classList.add('draw-mode');
+    document.getElementById('draw-hint').textContent=drawMode==='point'?'Click on the map to place a point.':'Click to add points (3\u201315). Close when done.';}
+  });
+
+  document.getElementById('search-at-btn').addEventListener('click',function(){
+    if(!drawPoints.length) return;
+    doSearch({atLocation:{latitude:+drawPoints[0].lat.toFixed(6),longitude:+drawPoints[0].lng.toFixed(6)}},this,'\uD83D\uDCCD Find areas at location');
+  });
+  document.getElementById('search-overlapping-btn').addEventListener('click',function(){
+    if(drawPoints.length<3) return;
+    var b=drawPoints.map(function(p){return{latitude:+p.lat.toFixed(6),longitude:+p.lng.toFixed(6)};});
+    doSearch({overlappingArea:{areaType:'POLYGON',boundary:b}},this,'\u2B20 Find overlapping areas');
+  });
+  document.getElementById('search-covering-btn').addEventListener('click',function(){
+    if(drawPoints.length<3) return;
+    var b=drawPoints.map(function(p){return{latitude:+p.lat.toFixed(6),longitude:+p.lng.toFixed(6)};});
+    doSearch({coveringArea:{areaType:'POLYGON',boundary:b}},this,'\u25EF Find covering areas');
+  });
+
+  // \u2500\u2500 Home tab \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  var homeMap = L.map('home-map').setView([46.2, 6.15], 10);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors', maxZoom: 19
+  }).addTo(homeMap);
+  L.Control.geocoder({ defaultMarkGeocode: false, placeholder: 'Search place…' })
+    .on('markgeocode', function(e) {
+      var c = e.geocode.center;
+      homeSetLocation(c.lat, c.lng);
+      homeMap.setView(c, 13);
+    })
+    .addTo(homeMap);
+
+  // "Use My Location" control — same as areas map
+  (function() {
+    var LocateControl = L.Control.extend({
+      options: { position: 'topright' },
+      onAdd: function() {
+        var btn = L.DomUtil.create('button', 'leaflet-locate-btn');
+        btn.innerHTML = '&#128205; Use My Location';
+        L.DomEvent.disableClickPropagation(btn);
+        L.DomEvent.on(btn, 'click', function() {
+          if (!navigator.geolocation) return;
+          btn.textContent = 'Locating…'; btn.disabled = true;
+          navigator.geolocation.getCurrentPosition(function(pos) {
+            btn.innerHTML = '&#128205; Use My Location'; btn.disabled = false;
+            homeSetLocation(pos.coords.latitude, pos.coords.longitude);
+            homeMap.setView([pos.coords.latitude, pos.coords.longitude], 13);
+          }, function() {
+            btn.innerHTML = '&#128205; Use My Location'; btn.disabled = false;
+            homeShowStatus('Could not get your location. Click on the map instead.', false);
+          });
+        });
+        return btn;
+      }
+    });
+    new LocateControl().addTo(homeMap);
+
+  }());
+
+  var homeMarker = null;
+  var homeSelectedArea = null;
+  var homeSelectedProfileId = null;
+  var homeSelectedProfileName = null;
+  var homeSelectedQosProfile = null;
+  var homeCreatedNetworkId = null;
+  var homeCreatedAccessId = null;
+  var _homeNetLastStatus = null;
+  var homeNetworkPollTimer = null;
+  var homeAccessPollTimer = null;
+
+  function homeSetLocation(lat, lng) {
+    var latlng = L.latLng(lat, lng);
+    if (homeMarker) {
+      homeMarker.setLatLng(latlng);
+    } else {
+      homeMarker = L.marker(latlng, { draggable: true }).addTo(homeMap);
+      homeMarker.on('dragend', function() {
+        var pos = homeMarker.getLatLng();
+        homeSetLocation(pos.lat, pos.lng);
+      });
+    }
+    homeMap.panTo(latlng);
+    document.getElementById('home-location-display').textContent =
+      'Lat: ' + lat.toFixed(6) + '  Lng: ' + lng.toFixed(6);
+    homeSearchAreas(lat, lng);
+  }
+
+  function homeSearchAreas(lat, lng) {
+    var list = document.getElementById('home-profiles-list');
+    list.innerHTML = '<div class="empty">Loading profiles\u2026</div>';
+    homeSelectedArea = null;
+    homeSelectedProfileId = null;
+    homeSelectedProfileName = null;
+    homeSelectedQosProfile = null;
+    document.getElementById('home-qos-section').style.display = 'none';
+    homeUpdateObtainBtn();
+    fetch('/api/areas/retrieve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ atLocation: { latitude: +lat.toFixed(6), longitude: +lng.toFixed(6) } })
+    })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(r) {
+      if (!r.ok) { list.innerHTML = '<div class="empty" style="color:var(--red);">Could not load areas.</div>'; return; }
+      var areas = Array.isArray(r.data) ? r.data : [r.data];
+      // Collect all unique profile IDs with their area
+      var profileMap = {};  // profileId -> area
+      areas.forEach(function(area) {
+        if (area.networkProfiles && area.networkProfiles.length) {
+          area.networkProfiles.forEach(function(pid) {
+            if (!profileMap[pid]) profileMap[pid] = area;
+          });
+        }
+      });
+      var profileIds = Object.keys(profileMap);
+      if (!profileIds.length) {
+        list.innerHTML = '<div class="empty">No network profiles available at this location.</div>';
+        return;
+      }
+      // Fetch profile details for display
+      list.innerHTML = '<div class="empty">Loading profile details\u2026</div>';
+      var promises = profileIds.map(function(pid) {
+        return fetch('/api/profiles/network/' + pid)
+          .then(function(r) { return r.json(); })
+          .then(function(p) { return { id: pid, area: profileMap[pid], profile: p }; })
+          .catch(function() { return { id: pid, area: profileMap[pid], profile: null }; });
+      });
+      Promise.all(promises).then(function(results) {
+        list.innerHTML = '';
+        results.forEach(function(item) {
+          var p = item.profile;
+          var name = (p && p.name) ? p.name : item.id.slice(0, 12) + '\u2026';
+          var detail = '';
+          if (p) {
+            if (p.aggregatedDlThroughput) detail += '\u2193 DL: ' + fmtTp(p.aggregatedDlThroughput) + '  ';
+            if (p.aggregatedUlThroughput) detail += '\u2191 UL: ' + fmtTp(p.aggregatedUlThroughput);
+            if (p.maxNumberOfDevices != null) detail += (detail ? '  ' : '') + 'Max devices: ' + p.maxNumberOfDevices;
+          }
+          var el = document.createElement('div');
+          el.className = 'home-profile-item';
+          el.dataset.profileId = item.id;
+          el.dataset.areaId = item.area.id || '';
+          el.innerHTML =
+            '<div style="flex:1;">' +
+            '<div class="home-profile-name">' + name + '</div>' +
+            (detail ? '<div class="home-profile-detail">' + detail + '</div>' : '') +
+            '</div>';
+          el.addEventListener('click', function() {
+            list.querySelectorAll('.home-profile-item').forEach(function(x) { x.classList.remove('selected'); });
+            el.classList.add('selected');
+            homeSelectedProfileId = item.id;
+            homeSelectedProfileName = (item.profile && item.profile.name) || null;
+            homeSelectedArea = item.area;
+            homeSelectedQosProfile = null;
+            homeRenderQosProfiles(item.profile);
+            homeUpdateObtainBtn();
+            // Show profile properties as a popup layer on the map
+            try {
+              var prof = item.profile || null;
+              var content = '<div style="min-width:220px;">' + '<div class="pcname">' + (prof && prof.name ? prof.name : item.id) + '</div>';
+              if (prof) {
+                if (prof.maxNumberOfDevices != null) content += '<div>Max devices: ' + prof.maxNumberOfDevices + '</div>';
+                if (prof.aggregatedDlThroughput) content += '<div>↓ DL: ' + fmtTp(prof.aggregatedDlThroughput) + '</div>';
+                if (prof.aggregatedUlThroughput) content += '<div>↑ UL: ' + fmtTp(prof.aggregatedUlThroughput) + '</div>';
+                if (prof.qosProfiles && prof.qosProfiles.length) {
+                  content += '<div style="margin-top:6px;">QoS: ' + prof.qosProfiles.map(function(q){ return '<span style="display:inline-block;font-size:11px;padding:2px 6px;border-radius:6px;background:var(--accent-lt);color:var(--accent);margin:1px;">'+q+'</span>'; }).join('') + '</div>';
+                }
+              }
+              content += '</div>';
+              var latlng = (typeof homeMarker !== 'undefined' && homeMarker) ? homeMarker.getLatLng() : homeMap.getCenter();
+              L.popup({ maxWidth: 320 }).setLatLng(latlng).setContent(content).openOn(homeMap);
+            } catch (e) { console.error('Failed to show profile popup', e); }
+          });
+          list.appendChild(el);
+        });
+      });
+    })
+    .catch(function() { list.innerHTML = '<div class="empty" style="color:var(--red);">Failed to load.</div>'; });
+  }
+
+  function homeRenderQosProfiles(profile) {
+    var section = document.getElementById('home-qos-section');
+    var list = document.getElementById('home-qos-list');
+    var profiles = (profile && profile.qosProfiles) ? profile.qosProfiles.slice() : [];
+    var def = profile && profile.defaultQosProfile;
+    if (!profiles.length && !def) { section.style.display = 'none'; return; }
+    if (def && profiles.indexOf(def) === -1) profiles.unshift(def);
+    section.style.display = 'block';
+    list.innerHTML = '';
+    profiles.forEach(function(qname) {
+      var isDefault = qname === def;
+      var el = document.createElement('div');
+      el.className = 'home-profile-item' + (isDefault ? ' selected' : '');
+      el.dataset.qosName = qname;
+      el.innerHTML = '<div style="flex:1;"><div class="home-profile-name">' + qname +
+        (isDefault ? ' <span style="font-size:10px;color:var(--green);font-weight:400;">(default)</span>' : '') +
+        '</div></div>';
+      if (isDefault) homeSelectedQosProfile = qname;
+      el.addEventListener('click', function() {
+        list.querySelectorAll('.home-profile-item').forEach(function(x) { x.classList.remove('selected'); });
+        el.classList.add('selected');
+        homeSelectedQosProfile = qname;
+      });
+      list.appendChild(el);
+    });
+  }
+
+  function homeUpdateObtainBtn() {
+    var phone = document.getElementById('home-phone').value.trim();
+    var until = document.getElementById('home-until').value;
+    var ok = homeSelectedProfileId && homeSelectedArea && phone && until;
+    document.getElementById('home-obtain-btn').disabled = !ok;
+  }
+
+  function homeShowStatus(msg, ok) {
+    var el = document.getElementById('home-status');
+    el.className = 'home-st ' + (ok ? 'ok' : 'err');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function homeHideStatus() {
+    document.getElementById('home-status').style.display = 'none';
+  }
+
+  function fmtStatus(st) {
+    if (!st) return '\u2014';
+    return '<span class="status-badge status-' + st + '">' + st + '</span>';
+  }
+
+  var _homeRemainTimer = null;
+
+  function homeUpdateRemaining(status, startIso, endIso) {
+    var el = document.getElementById('home-net-remaining'); if (!el) return;
+    var now = new Date();
+    if (status === 'REQUESTED' || status === 'RESERVED') {
+      var toStart = startIso ? new Date(startIso) - now : -1;
+      if (!startIso || isNaN(toStart) || toStart <= 0) {
+        el.style.color = 'var(--amber)'; el.textContent = 'Awaiting activation\u2026';
+      } else {
+        var h=Math.floor(toStart/3600000), m=Math.floor((toStart%3600000)/60000), s=Math.floor((toStart%60000)/1000);
+        el.style.color = 'var(--amber)';
+        el.textContent = 'Starts in ' + (h ? h+'h ' : '') + pad(m)+'m '+pad(s)+'s';
+      }
+      return;
+    }
+    if (status === 'TERMINATED') {
+      el.style.color = 'var(--text-3)'; el.textContent = 'Terminated';
+      if (_homeRemainTimer) { clearInterval(_homeRemainTimer); _homeRemainTimer = null; }
+      return;
+    }
+    if (status !== 'ACTIVATED') { el.style.color = 'var(--text-3)'; el.textContent = '\u2014'; return; }
+    if (!endIso) { el.style.color = 'var(--text-3)'; el.textContent = '\u2014'; return; }
+    var diff = new Date(endIso) - now;
+    if (isNaN(diff) || diff <= 0) {
+      el.style.color = 'var(--red)'; el.textContent = 'Expired';
+      if (_homeRemainTimer) { clearInterval(_homeRemainTimer); _homeRemainTimer = null; }
+      return;
+    }
+    var warnThreshold = startIso ? Math.min(600000, Math.max(60000, (new Date(endIso) - new Date(startIso)) / 2)) : 600000;
+    if (homeCreatedNetworkId && diff <= warnThreshold && !_expiryAlertFired[homeCreatedNetworkId]) {
+      _expiryAlertFired[homeCreatedNetworkId] = true;
+      var minsLeft = Math.ceil(diff / 60000);
+      alert('Your dedicated network expires in ' + (minsLeft < 2 ? 'less than a minute' : minsLeft + ' minutes') + '.');
+    }
+    var d=Math.floor(diff/86400000), h=Math.floor((diff%86400000)/3600000),
+        m=Math.floor((diff%3600000)/60000), s=Math.floor((diff%60000)/1000);
+    el.style.color = diff <= warnThreshold ? 'var(--red)' : 'var(--green)';
+    el.textContent = 'Remaining: ' + (d ? d+'d ' : '') + pad(h)+'h '+pad(m)+'m '+pad(s)+'s';
+  }
+
+  function homeRenderNetworkCard(net) {
+    var el = document.getElementById('home-network-card');
+    if (_homeRemainTimer) { clearInterval(_homeRemainTimer); _homeRemainTimer = null; }
+    if (!net) { el.innerHTML = ''; return; }
+    if (_homeNetLastStatus && _homeNetLastStatus !== 'ACTIVATED' && net.status === 'ACTIVATED') {
+      alert('Your dedicated network is now ACTIVATED.');
+    }
+    _homeNetLastStatus = net.status || null;
+    var st = net.serviceTime;
+    el.innerHTML =
+      '<div class="home-card-title">&#128246; Dedicated Network</div>' +
+      '<div class="dk">Status</div><div class="dv">' + fmtStatus(net.status) + '</div>' +
+      '<div class="dk">Network ID</div><div class="dv" style="font-size:11px;font-family:var(--mono);word-break:break-all;">' + (net.id || '\u2014') + '</div>' +
+      (function() {
+        var pid = net.networkProfileId || homeSelectedProfileId;
+        var pname = homeSelectedProfileName || (pid ? pid.slice(0,8)+'\u2026' : null);
+        return pname ? '<div class="dk">Network Profile</div><div class="dv"><span class="tag" id="home-net-profile-tag" data-profile-id="' + (pid||'') + '" style="cursor:pointer;">' + pname + ' \u2197</span></div>' : '';
+      }()) +
+      (st ? '<div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-top:10px;"><div><div class="dk" style="margin-top:0;">Valid until</div><div class="dv">' + fmtDate(st.end) + '</div></div><div><div class="dk" style="margin-top:0;">Remaining Time</div><div class="dv"><span id="home-net-remaining">\u2014</span></div></div></div>' : '') +
+      '<button class="btn-red-solid" id="home-del-net-btn" style="margin-top:12px;' + (net.status === 'TERMINATED' ? 'opacity:0.4;cursor:not-allowed;" disabled' : '"') + '>Delete Network</button>';
+    if (st) {
+      homeUpdateRemaining(net.status, st.start, st.end);
+      _homeRemainTimer = setInterval(function() {
+        homeUpdateRemaining(net.status, st.start, st.end);
+      }, 1000);
+    }
+    var profileTag = document.getElementById('home-net-profile-tag');
+    if (profileTag && profileTag.dataset.profileId) {
+      profileTag.addEventListener('click', function() { openProfileModal(profileTag.dataset.profileId); });
+    }
+    var btn = document.getElementById('home-del-net-btn');
+    if (btn && net.status !== 'TERMINATED') {
+      btn.addEventListener('click', function() {
+        btn.textContent = 'Deleting\u2026'; btn.disabled = true;
+        fetch('/api/networks/' + net.id, { method: 'DELETE' })
+        .then(function(r) {
+          if (r.ok || r.status === 404) {
+            homeStopPolling();
+            _homeNetLastStatus = null;
+            homeCreatedNetworkId = null;
+            homeCreatedAccessId = null;
+            document.getElementById('home-cards-row').style.display = 'none';
+            homeShowStatus('Network deleted.', true);
+          } else {
+            btn.textContent = 'Delete Network'; btn.disabled = false;
+          }
+        }).catch(function() { btn.textContent = 'Delete Network'; btn.disabled = false; });
+      });
+    }
+  }
+
+  function homeRenderAccessCard(acc) {
+    var el = document.getElementById('home-access-card');
+    if (!acc) { el.innerHTML = ''; return; }
+    var phone = acc.device && (acc.device.phoneNumber || acc.device.networkAccessIdentifier) || '\u2014';
+    el.innerHTML =
+      '<div class="home-card-title">&#128241; Device Access</div>' +
+      '<div class="dk">Status</div><div class="dv">' + fmtStatus(acc.status) + '</div>' +
+      '<div class="dk">Access ID</div><div class="dv" style="font-size:11px;font-family:var(--mono);word-break:break-all;">' + (acc.id || '\u2014') + '</div>' +
+      '<div class="dk">Phone Number</div><div class="dv">' + phone + '</div>' +
+      (function() {
+        var qos = acc.defaultQosProfile || acc.qosProfile || homeSelectedQosProfile;
+        return qos ? '<div class="dk">QoS Profile</div><div class="dv"><span class="tag" style="cursor:default;">' + qos + '</span></div>' : '';
+      }()) +
+      '<button class="btn-red-solid" id="home-del-acc-btn" style="margin-top:12px;">Delete Access</button>';
+    var btn = document.getElementById('home-del-acc-btn');
+    if (btn) {
+      btn.addEventListener('click', function() {
+        btn.textContent = 'Deleting\u2026'; btn.disabled = true;
+        fetch('/api/accesses/' + acc.id, { method: 'DELETE' })
+        .then(function(r) {
+          if (r.ok || r.status === 404) {
+            clearInterval(homeAccessPollTimer); homeAccessPollTimer = null;
+            homeCreatedAccessId = null;
+            homeRenderAccessCard(null);
+          } else {
+            btn.textContent = 'Delete Access'; btn.disabled = false;
+          }
+        }).catch(function() { btn.textContent = 'Delete Access'; btn.disabled = false; });
+      });
+    }
+  }
+
+  function homeStartPolling(netId, accId) {
+    homeStopPolling();
+    function pollNetwork() {
+      if (!netId) return;
+      fetch('/api/networks/' + netId).then(function(r) { return r.json(); }).then(function(net) {
+        homeRenderNetworkCard(net);
+        var slow = false;
+        if (net.status === 'TERMINATED') {
+          slow = true;
+        } else if (net.status === 'ACTIVATED' && net.serviceTime && net.serviceTime.end) {
+          var now = Date.now();
+          var end = new Date(net.serviceTime.end).getTime();
+          var diff = end - now;
+          var total = net.serviceTime.start ? (end - new Date(net.serviceTime.start).getTime()) : 600000;
+          var warnThreshold = Math.min(600000, Math.max(60000, total / 2));
+          slow = diff > warnThreshold; // fast once within threshold or past expiry
+        } else if (net.status === 'ACTIVATED') {
+          slow = true; // activated with no service time
+        }
+        homeNetworkPollTimer = setTimeout(pollNetwork, slow ? 30000 : 5000);
+      }).catch(function() {
+        homeNetworkPollTimer = setTimeout(pollNetwork, 5000);
+      });
+    }
+    function pollAccess() {
+      if (!accId) return;
+      fetch('/api/accesses/' + accId).then(function(r) { return r.json(); }).then(function(acc) {
+        homeRenderAccessCard(acc);
+        var settled = acc.status === 'GRANTED' || acc.status === 'DENIED';
+        homeAccessPollTimer = setTimeout(pollAccess, settled ? 30000 : 5000);
+      }).catch(function() {
+        homeAccessPollTimer = setTimeout(pollAccess, 5000);
+      });
+    }
+    homeNetworkPollTimer = setTimeout(pollNetwork, 5000);
+    if (accId) homeAccessPollTimer = setTimeout(pollAccess, 5000);
+  }
+
+  function homeStopPolling() {
+    clearTimeout(homeNetworkPollTimer); homeNetworkPollTimer = null;
+    clearTimeout(homeAccessPollTimer); homeAccessPollTimer = null;
+    clearInterval(_homeRemainTimer); _homeRemainTimer = null;
+  }
+
+  homeMap.on('click', function(e) {
+    homeSetLocation(e.latlng.lat, e.latlng.lng);
+  });
+
+  ['home-phone', 'home-until'].forEach(function(id) {
+    document.getElementById(id).addEventListener('input', homeUpdateObtainBtn);
+    document.getElementById(id).addEventListener('change', homeUpdateObtainBtn);
+  });
+
+  // Set default "until" time to 1 hour from now
+  (function() {
+    var d = new Date(Date.now() + 3600000);
+    var pad = function(n) { return String(n).padStart(2, '0'); };
+    document.getElementById('home-until').value =
+      d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) +
+      'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }());
+
+  document.getElementById('home-obtain-btn').addEventListener('click', function() {
+    var btn = this;
+    if (!homeSelectedProfileId || !homeSelectedArea) { homeShowStatus('Please select a network profile.', false); return; }
+    var phone = document.getElementById('home-phone').value.trim();
+    if (!phone) { homeShowStatus('Please enter a phone number.', false); return; }
+    var untilVal = document.getElementById('home-until').value;
+    if (!untilVal) { homeShowStatus('Please set the "until" time.', false); return; }
+    var endDt = new Date(untilVal);
+    var startDt = new Date();
+    if (endDt <= startDt) { homeShowStatus('End time must be in the future.', false); return; }
+
+    btn.textContent = 'Creating network\u2026'; btn.disabled = true;
+    homeHideStatus();
+    homeStopPolling();
+    _homeNetLastStatus = null;
+
+    var netBody = {
+      networkProfileId: homeSelectedProfileId,
+      serviceAreaId: homeSelectedArea.id,
+      serviceTime: { start: startDt.toISOString(), end: endDt.toISOString() }
+    };
+
+    fetch('/api/networks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(netBody) })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, status: r.status, data: d }; }); })
+    .then(function(r) {
+      if (!r.ok) {
+        btn.textContent = '\u26A1 Obtain Connectivity Quality NOW'; btn.disabled = false;
+        homeShowStatus('Network creation failed (HTTP ' + r.status + '): ' + (r.data.message || r.data.error || 'Unknown error'), false);
+        return;
+      }
+      var net = r.data;
+      homeCreatedNetworkId = net.id;
+      document.getElementById('home-cards-row').style.display = 'flex';
+      homeRenderNetworkCard(net);
+      homeRenderAccessCard(null);
+
+      btn.textContent = 'Creating access\u2026';
+      var accBody = { networkId: net.id, device: { phoneNumber: phone } };
+      return fetch('/api/accesses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(accBody) })
+      .then(function(r2) { return r2.json().then(function(d) { return { ok: r2.ok, status: r2.status, data: d }; }); })
+      .then(function(r2) {
+        btn.textContent = '\u26A1 Obtain Connectivity Quality NOW'; btn.disabled = false;
+        if (!r2.ok) {
+          homeShowStatus('Network created but access failed (HTTP ' + r2.status + '): ' + (r2.data.message || r2.data.error || 'Unknown error'), false);
+          homeStartPolling(homeCreatedNetworkId, null);
+          return;
+        }
+        homeCreatedAccessId = r2.data.id;
+        homeRenderAccessCard(r2.data);
+        homeShowStatus('\u2713 Network and access created successfully.', true);
+        homeStartPolling(homeCreatedNetworkId, homeCreatedAccessId);
+      });
+    })
+    .catch(function(e) {
+      btn.textContent = '\u26A1 Obtain Connectivity Quality NOW'; btn.disabled = false;
+      homeShowStatus('Request failed: ' + e.message, false);
+    });
+  });
+
+  // Try geolocation on load
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(pos) {
+      homeSetLocation(pos.coords.latitude, pos.coords.longitude);
+      homeMap.setView([pos.coords.latitude, pos.coords.longitude], 13);
+    });
+  }
+
+});
+
+</script>
+<script>
+  (function pollSandboxHealth() {
+    fetch('/api/sandbox-health')
+      .then(function(r){ return r.json(); })
+      .then(function(data) {
+        ['areas','profiles','networks','accesses'].forEach(function(key) {
+          var dot = document.getElementById('sdot-'+key);
+          if (dot) dot.className = 'sandbox-dot ' + (data[key] && data[key].ok ? 'ok' : 'err');
+        });
+      })
+      .catch(function() {
+        ['areas','profiles','networks','accesses'].forEach(function(key) {
+          var dot = document.getElementById('sdot-'+key);
+          if (dot) dot.className = 'sandbox-dot err';
+        });
+      });
+    setTimeout(pollSandboxHealth, 60000);
+  }());
+</script>
+</body>
+</html>

@@ -1,0 +1,657 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: Using QoS Booking
+meta:
+  id: wrk_549f36dd81fe4ffdb6355e6ea6b3a6cf
+  created: 1778666243512
+  modified: 1778666243512
+  description: ""
+collection:
+  - name: Device QoS Booking
+    meta:
+      id: fld_2cbaa2dec68d4f87b86906147cb64208
+      created: 1778666482962
+      modified: 1778666558561
+      sortKey: -1778666490597
+      description: Manage the booking of QoS
+    children:
+      - url: "{{ _.base_url }}/device-qos-bookings"
+        name: Sets a new booking of QoS for a device
+        meta:
+          id: req_bf3854181b60487f924e85395661d4f7
+          created: 1778666482980
+          modified: 1778687546258
+          isPrivate: false
+          description: >
+            Triggers a new booking to assign certain QoS Profile to certain
+            device.
+
+
+            - If the booking is completed synchronously, the response will be
+            201 with `status` = `SCHEDULED`.
+
+            - If the booking request is accepted but not yet completed, the
+            response will be 201 with `status` = `REQUESTED`.
+
+            - If the operator determines synchronously that the booking request
+            cannot be fulfilled, the response will be 201 with `status` =
+            `UNAVAILABLE`.
+
+
+            - If the request includes a notification callback, the client will
+            receive a `status-changed` event with the outcome of the process.
+            The event will be sent also for synchronous operations.
+
+
+            **NOTES:**
+
+            - When the booking status becomes `UNAVAILABLE`, the QoS Booking
+            resource is not immediately released, but will get deleted
+            automatically, at earliest 360 seconds after.
+
+
+            This behavior allows clients which are not receiving notification
+            events but are polling, to get the booking status information.
+
+            - The access token may be either 2-legged or 3-legged. See
+            "Identifying the device from the access token" for further
+            information
+              - When the API is invoked using a two-legged access token, the subject will be identified from the optional `device` object, which therefore MUST be provided.
+              - When a three-legged access token is used however, this optional identifier MUST NOT be provided, as the subject will be uniquely identified from the access token.
+          sortKey: -1778666483086
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "qosProfile": "QOS_L",
+              "device": {
+                "phoneNumber": "+123456789",
+                "networkAccessIdentifier": "123456789@domain.com",
+                "ipv4Address": {
+                  "publicAddress": "203.0.113.0",
+                  "privateAddress": "203.0.113.0",
+                  "publicPort": 59765
+                },
+                "ipv6Address": "2001:db8:85a3:8d3:1319:8a2e:370:7344"
+              },
+              "startTime": "2024-06-01T12:00:00Z",
+              "duration": 3600,
+              "sink": "https://application-server.com/notifications",
+              "sinkCredential": {
+                "credentialType": "ACCESSTOKEN",
+                "accessToken": "c9876-4321-a",
+                "accessTokenExpiresUtc": "2024-06-01T13:30:00Z",
+                "accessTokenType": "bearer"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+            disabled: false
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/device-qos-bookings/{{ _.bookingId }}"
+        name: Get QoS Booking information
+        meta:
+          id: req_d68c1a39ab514e06a1e030ca224c7329
+          created: 1778666482984
+          modified: 1778666598024
+          isPrivate: false
+          description: >
+            Querying for QoS Booking information details
+
+
+            **NOTES:**
+
+            - The access token may be either 2-legged or 3-legged.
+
+            - If a 3-legged access token is used, the subject associated with
+            the QoS Booking must also be associated with the access token.
+
+            - The QoS Booking must have been created by the same API client
+            given in the access token.
+          sortKey: -1778666482985.5
+        method: GET
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/device-qos-bookings/{{ _.bookingId }}"
+        name: Deletes a QoS Booking
+        meta:
+          id: req_1f7585548166444685f35aa60a860d9d
+          created: 1778666482985
+          modified: 1778666482985
+          isPrivate: false
+          description: >
+            Release resources related to a QoS Booking.
+
+
+            If the notification callback is provided and the booking status was
+            `SCHEDULED` or `AVAILABLE`, when the deletion is completed, the
+            client will receive, in addition to the response, a
+            `BOOKING_STATUS_CHANGED` event with
+
+            - `status` as `UNAVAILABLE` and
+
+            - `statusInfo` as `DELETE_REQUESTED`
+
+            There will be no notification event if the `status` was already
+            `UNAVAILABLE`.
+
+
+            **NOTES:**
+
+            - The access token may be either 2-legged or 3-legged.
+
+            - If a 3-legged access token is used, the subject associated with
+            the QoS Booking must also be associated with the access token.
+
+            - The QoS Booking must have been created by the same API client
+            given in the access token.
+          sortKey: -1778666482985
+        method: DELETE
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/retrieve-device-qos-bookings"
+        name: Gets the QoS Booking for a device
+        meta:
+          id: req_abd038a4ab4e42bcb0b9ebc492609ecf
+          created: 1778666482986
+          modified: 1778687569044
+          isPrivate: false
+          description: >
+            Querying for QoS Booking resource information details for a device.
+
+
+            **NOTES:**
+
+            - The access token may be either 2-legged or 3-legged.
+              - If a 3-legged access token is used, the subject associated with the QoS Booking must also be associated with the access token.  In this case the optional `device` parameter MUST NOT be provided in the request.
+              - If a 2-legged access token is used, the device parameter must be provided and identify a device.
+            - The QoS Booking must have been created by the same API client
+            given in the access token.
+
+            - If no QoS booking is found for the requested device, an empty
+            array is returned.
+
+            - This call uses the POST method instead of GET to comply with the
+            CAMARA Commonalities guidelines for sending sensitive or complex
+            data in API calls. Since the device field may contain personally
+            identifiable information, it should not be sent via GET.
+          sortKey: -1778666482986
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "device": {
+                "phoneNumber": "+123456789",
+                "networkAccessIdentifier": "123456789@domain.com",
+                "ipv4Address": {
+                  "publicAddress": "203.0.113.0",
+                  "privateAddress": "203.0.113.0",
+                  "publicPort": 59765
+                },
+                "ipv6Address": "2001:db8:85a3:8d3:1319:8a2e:370:7344"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+            disabled: false
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: QoS Booking
+    meta:
+      id: fld_284c7eb90037462f8fdfc50477732c48
+      created: 1778666493040
+      modified: 1778666536399
+      sortKey: -1778666493142
+      description: Book and manage QoS for multiple devices in advance
+    children:
+      - url: "{{ _.base_url }}/qos-bookings"
+        name: This operation reserves required QoS in advance up to a certain number of
+          devices in certain serviceArea and time slot. The devices have to be
+          attached with a subsequent operation.
+        meta:
+          id: req_e5cf4e7d0519438a8ddc34e432393f38
+          created: 1778666493043
+          modified: 1778687340200
+          isPrivate: false
+          description: >
+            This operation reserves a Quality of Service (QoS) booking for a
+            specified number of devices, service area, and scheduled
+            time/duration.
+
+            Devices can be assigned to the booking at any time after the
+            reservation is successful and before the scheduled end-time.
+
+            - `Pre-assigned devices :` These devices will be automatically
+            provisioned and activated with the requested QoS profile exactly
+            when the scheduled start time arrives.
+
+            - `Late-assigned devices:` Devices assigned after the schedule
+            starts (but before it ends) will be provisioned and activated with
+            the requested QoS profile immediately upon assignment.
+
+            This operation will return with the following responses:
+
+            - `HTTP 201 (status: SUCCESSFUL):` The operator was able to confirm
+            the booking immediately.
+
+            - `HTTP 202 (status: PENDING).  :` The operator is unable to confirm
+            immediately, and the booking status is pending. A subsequent
+            notification will be sent to confirm the final status, if available.
+
+            - `HTTP 4xx (Failure Condition) :` The operator determined that the
+            booking is unavailable. The response will include specific status
+            codes and descriptions detailing the error.
+
+            - Respective `statusInfo` contains additional information under
+            certain conditions.
+          sortKey: -1778666493144
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "qosProfile": "QOS_L",
+              "device": {
+                "phoneNumber": "+123456789",
+                "networkAccessIdentifier": "123456789@domain.com",
+                "ipv4Address": {
+                  "publicAddress": "203.0.113.0",
+                  "privateAddress": "203.0.113.0",
+                  "publicPort": 59765
+                },
+                "ipv6Address": "2001:db8:85a3:8d3:1319:8a2e:370:7344"
+              },
+              "startTime": "2024-06-01T12:00:00Z",
+              "duration": 3600,
+              "sink": "https://application-server.com/notifications",
+              "sinkCredential": {
+                "credentialType": "ACCESSTOKEN",
+                "accessToken": "c9876-4321-a",
+                "accessTokenExpiresUtc": "2024-06-01T13:30:00Z",
+                "accessTokenType": "bearer"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+            disabled: false
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/qos-bookings/{{ _.bookingId }}"
+        name: This operation cancels an existing QoS Booking and release the associated
+          resources.
+        meta:
+          id: req_408ddedc3d65455e88124a20be10f19a
+          created: 1778666493044
+          modified: 1778666493044
+          isPrivate: false
+          description: >
+            This operation cancels and deletes a specific QoS booking using its
+            unique identifier and releases the resources related to that
+            booking. It supports both synchronous and asynchronous processing.
+
+            Constraints & Notes:
+              - The Quality of Service (QoS) booking must have been created by the same API client identified in the access token.
+              - The SUCCESSFUL and FAILURE conditions for a deletion are dependent on the operator's specific implementation.
+              - Operators SHOULD properly document their `Booking Cancellation` behavior with clear policies and the respective terms and conditions.
+            Response Scenarios:
+              - `HTTP 200 (status: SUCCESSFUL):` The booking was deleted immediately (synchronous success).
+              - `HTTP 202 (status: PENDING).  :` The request has been accepted for processing, but the deletion is not yet complete (asynchronous processing). A subsequent notification will be sent to confirm the final status.
+              - `HTTP 4xx (Failure Condition) :` The request failed, and an appropriate HTTP 4xx error code is returned with a specific status and description.
+          sortKey: -1778666493044
+        method: DELETE
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/qos-bookings/{{ _.bookingId }}"
+        name: Get the Booking information for a given QoS Booking identified by
+          `bookingId`.
+        meta:
+          id: req_8398f5fa934b4959b4141b177e800f96
+          created: 1778666493044
+          modified: 1778666493044
+          isPrivate: false
+          description: >
+            This operation is synchronous and retrieves the details of an
+            existing Quality of Service (QoS) booking using its unique
+            identifier (`bookingId`). This `bookingId` is the identifier
+            returned by the initial booking operation upon successful creation.
+
+            Response Scenarios:
+              - `HTTP 200 (status: SUCCESSFUL):` The booking details are successfully retrieved and returned in the response body along with the remaining number of devices still can be assigned to the booking.
+              - `HTTP 4xx (Failure Condition) :` The request failed, and an appropriate HTTP 4xx error code is returned with a specific status and description.
+          sortKey: -1778666493044
+        method: GET
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: Device Assignment
+    meta:
+      id: fld_4ac5b8aff5de4f6baa64ec4c41e2e322
+      created: 1778666493042
+      modified: 1778666568587
+      sortKey: -1778666488052
+      description: Manage the assignment of devices for a given QoS Booking
+    children:
+      - url: "{{ _.base_url }}/qos-bookings/{{ _.bookingId }}/devices/assign"
+        name: Assign one or more devices to an existing QoS Booking identified by
+          `bookingId`
+        meta:
+          id: req_539c34625faf412cb4137b04638ba7ec
+          created: 1778666493044
+          modified: 1778687584539
+          isPrivate: false
+          description: >
+            This endpoint allows the end user to assign one or more devices to
+            the existing QoS Booking.
+
+            - If the assignment is successful for all the devices, the call will
+            return 201 success code with status `SUCCESSFUL` and the network is
+            available for the said devices to connect and use them at the
+            requested time
+
+            - If the assignment request failed for some reason, this call we be
+            retured with 4xx error code with appropirate status codes
+
+            - This is an asynchronous call,  and status = `PENDING` if the
+            network is still working on your request. A callback will come with
+            appropriate status.
+
+            - If the network could not assign all the requested devices, then
+            status = `PARTIAL_SUCCESS` and the `statusInfo` will have additional
+            information.
+
+            - If a 2-legged access token is used, then the device details SHOULD
+            BE provided as part of the input, and the output will return the
+            array of actually assigned devices.
+
+            - If a 3-legged access token is used, then the device information
+            are identified from the access token, so only one device is
+            implicitly assigned, and the return value may not contain the
+            assigned device information
+          sortKey: -1778666493146
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "device": {
+                "phoneNumber": "+123456789",
+                "networkAccessIdentifier": "123456789@domain.com",
+                "ipv4Address": {
+                  "publicAddress": "203.0.113.0",
+                  "privateAddress": "203.0.113.0",
+                  "publicPort": 59765
+                },
+                "ipv6Address": "2001:db8:85a3:8d3:1319:8a2e:370:7344"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+            disabled: false
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/qos-bookings/{{ _.bookingId }}/devices"
+        name: Get the list of devices assigned to an existing QoS Booking
+        meta:
+          id: req_0a45d1c04d3e40d6ba64ad5e38e8c8fe
+          created: 1778666493045
+          modified: 1778666575311
+          isPrivate: false
+          description: >
+            This endpoint allows the end user to retrieve the list of devices
+            assigned to the existing QoS Booking.
+
+            - status = `SUCCESSFUL` if the operation is successful
+
+            - status = `FAILURE`  if the operation is unsuccessful then the
+            `statusInfo` will have more information.
+
+            - GET may not return the identifying details of all the devices
+            assigned to the booking. There are certain situations, identifying
+            details of certain devices can't be disclosed because of privacy
+            laws, jurisdiction restrictions, and some legal requirements.
+              In such a situation the operator SHOULD properly communicate this to the API consumer that device identifiers of certain devices are not disclosed. `statusInfo` = `DEVICE_DISCLOSURE_POLICY_APPLIED`
+            - The API consumer can determine; how many devices are actually in
+            the booking from 'bookingDetails'; but may not know the identifying
+            details of all those devices.
+
+            - A classic example is: Some of the devices are assigned using a
+            3-legged access token; Or a booking is made in one jurisdiction and
+            the actual usage is happening in another jurisdiction which has
+            several privacy restrictions.
+          sortKey: -1778666493096
+        method: GET
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/qos-bookings/{{ _.bookingId }}/devices/release"
+        name: Release one or more devices from the given QoS Booking
+        meta:
+          id: req_6fa23a60a12a4f1cb550d7c73b8296f9
+          created: 1778666493045
+          modified: 1778687639512
+          isPrivate: false
+          description: >
+            This endpoint will release one or more assigned devices. The timing
+            of the release depends on the current status:
+
+
+            - `Before the scheduled time:` The release will be mostly immediate.
+
+            - `After the scheduled time (devices active):` The release may take
+            time as the system needs to free up associated resources.
+
+             A callback notification will be sent once the devices are successfully released, provided one is registered with the device assignment. This endpoint functions in both synchronous and asynchronous modes.
+            - If the device is assigned using 3-legged access token:
+              - If the device is active, then release can happen in the same way.
+              - If the device has failed for some reason, and the device information is not known, then the device can't be released from booking.
+            - This call uses the POST method to comply with the CAMARA
+            Commonalities guidelines for sending sensitive or complex data in
+            API calls. Since the device field may contain personally
+            identifiable information, it should not be sent via DELETE.
+          sortKey: -1778666493045
+        method: DELETE
+        body:
+          mimeType: application/json
+          text: ""
+        headers:
+          - name: Content-Type
+            value: application/json
+            disabled: false
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/qos-bookings/retrieve"
+        name: Retrieves all the bookings that corresponds to a device
+        meta:
+          id: req_e39fc35983fb43dcbc52fac86e3a80b0
+          created: 1778666493046
+          modified: 1778687377603
+          isPrivate: false
+          description: >
+            Querying for QoS Booking resource information details for a device.
+
+            **NOTES:**
+
+            - The access token may be either 2-legged or 3-legged.
+              - If a 3-legged access token is used, the subject associated with the QoS Booking must also be associated with the access token.  In this case the optional `device` parameter MUST NOT be provided in the request.
+              - If a 2-legged access token is used, the device parameter must be provided and identify a device.
+            - The QoS Booking must have been created by the same API client
+            given in the access token.
+
+            - If no QoS booking is found for the requested device, an empty
+            array is returned.
+
+            - This call uses the POST method to comply with the CAMARA
+            Commonalities guidelines for sending sensitive or complex data in
+            API calls. Since the device field may contain personally
+            identifiable information, it should not be sent via GET.
+          sortKey: -1778666493046
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "device": {
+                "phoneNumber": "+123456789",
+                "networkAccessIdentifier": "123456789@domain.com",
+                "ipv4Address": {
+                  "publicAddress": "203.0.113.0",
+                  "publicPort": 59765
+                },
+                "ipv6Address": "2001:db8:85a3:8d3:1319:8a2e:370:7344"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+            disabled: false
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_3e6ce4061ba6c690e4bdfa7d58fde7da7e29458e
+    created: 1778666243567
+    modified: 1778666243567
+environments:
+  name: Base Environment
+  meta:
+    id: env_3e6ce4061ba6c690e4bdfa7d58fde7da7e29458e
+    created: 1778666243522
+    modified: 1778666493013
+    isPrivate: false
+  data:
+    base_url: "{{ _.scheme }}://{{ _.host }}{{ _.base_path }}"
+  subEnvironments:
+    - name: OpenAPI env localhost:9091
+      meta:
+        id: env_052af593eb1f47e492c555af0ca23d77
+        created: 1778666482956
+        modified: 1778666482956
+        isPrivate: false
+        sortKey: 1778666482956
+      data:
+        scheme: http
+        base_path: /qos-booking/vwip
+        host: localhost:9091
+        bearerToken: bearerToken
+    - name: OpenAPI env localhost:9091
+      meta:
+        id: env_0044ac38108848c5abb7d873cf909822
+        created: 1778666493039
+        modified: 1778666493039
+        isPrivate: false
+        sortKey: 1778666493039
+      data:
+        scheme: http
+        base_path: /qos-booking-and-assignment/vwip
+        host: localhost:9091
+        bearerToken: bearerToken
