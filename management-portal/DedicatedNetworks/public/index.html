@@ -577,11 +577,9 @@ https://hub.5g-mag.com/Getting-Started/OFFICIAL_5G-MAG_Public_License_v1.0.pdf
       </div>
 
       <div>
-        <div class="modal-step">2 &mdash; Default QoS Profile <span style="color:var(--text-3);font-size:10px;text-transform:none;letter-spacing:0;">(optional)</span></div>
-        <select class="modal-select" id="access-qos-select">
-          <option value="">-- Use network default --</option>
-        </select>
-        <div style="font-size:10px;color:var(--text-3);margin-top:4px;">Leave blank to inherit the network's default QoS profile.</div>
+        <div class="modal-step">2 &mdash; QoS Profiles <span style="color:var(--text-3);font-size:10px;text-transform:none;letter-spacing:0;">(optional)</span></div>
+        <div id="access-qos-checklist" style="display:flex;flex-direction:column;gap:4px;max-height:150px;overflow-y:auto;"></div>
+        <div style="font-size:10px;color:var(--text-3);margin-top:4px;">Select one or more QoS profiles. Leave all unchecked to inherit the network's default QoS profile. The first checked profile is used as the default.</div>
       </div>
 
       <div>
@@ -1539,16 +1537,28 @@ window.addEventListener('load', function () {
       '<strong style="color:var(--text-1);">' + _dn + '</strong>'
       + (_showId ? '<div style="font-size:10px;font-family:var(--mono);color:var(--text-3);margin-top:2px;">' + n.id + '</div>' : '')
       + (n.status ? '<div style="margin-top:4px;">' + statusBadge(n.status) + '</div>' : '');
-    // Populate QoS
-    var sel = document.getElementById('access-qos-select');
-    sel.innerHTML = '<option value="">-- Use network default --</option>';
+    // Populate QoS checklist
+    var qosList = document.getElementById('access-qos-checklist');
+    qosList.innerHTML = '<div class="empty">No QoS profiles available for this network.</div>';
     if (n.networkProfileId) {
       fetch('/api/profiles/network/' + n.networkProfileId).then(function(r){return r.json();})
       .then(function(p) {
         var profiles = p.qosProfiles || [];
         if (p.defaultQosProfile && profiles.indexOf(p.defaultQosProfile) === -1) profiles.unshift(p.defaultQosProfile);
-        sel.innerHTML = '<option value="">-- Use network default' + (p.defaultQosProfile ? ' ('+p.defaultQosProfile+')' : '') + ' --</option>'
-          + profiles.map(function(q){ return '<option value="'+q+'">'+q+'</option>'; }).join('');
+        if (!profiles.length) return;
+        qosList.innerHTML = '';
+        profiles.forEach(function(q, i) {
+          var row = document.createElement('label');
+          row.className = 'modal-area-item';
+          row.dataset.qosSelId = q;
+          var isDefault = q === p.defaultQosProfile;
+          row.innerHTML = '<input type="checkbox" value="' + q + '" style="flex-shrink:0;" />'
+            + '<span style="flex:1;font-size:12px;">' + q + (isDefault ? ' <span style="color:var(--text-3);font-size:10px;">(network default)</span>' : '') + '</span>';
+          row.querySelector('input').addEventListener('change', function() {
+            row.classList.toggle('selected', this.checked);
+          });
+          qosList.appendChild(row);
+        });
       }).catch(function(){});
     }
     // Populate device pool — clickable cards, no checkboxes
@@ -1591,7 +1601,7 @@ window.addEventListener('load', function () {
   document.getElementById('access-modal-create').addEventListener('click', function() {
     var btn = this;
     if (!selectedNetwork) return;
-    var qos = document.getElementById('access-qos-select').value.trim();
+    var qosProfiles = Array.from(document.querySelectorAll('#access-qos-checklist input[type="checkbox"]:checked')).map(function(cb){ return cb.value; });
     var body = { networkId: selectedNetwork.id };
     // Collect selected devices — one POST per device with devices:[{phoneNumber}]
     var selectedCards = Array.from(document.querySelectorAll('#access-pool-list [data-pool-sel-id].selected'));
@@ -1606,6 +1616,10 @@ window.addEventListener('load', function () {
     // Send one request per device (devices is an array per spec)
     var promises = selectedDevs.map(function(d) {
       var reqBody = { networkId: body.networkId, device: { phoneNumber: d.phone } };
+      if (qosProfiles.length) {
+        reqBody.qosProfiles = qosProfiles;
+        reqBody.defaultQosProfile = qosProfiles[0];
+      }
       return fetch('/api/accesses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(reqBody) })
         .then(function(r){ return r.json().then(function(b){ return { ok: r.ok, status: r.status, data: b, dev: d }; }); });
     });
