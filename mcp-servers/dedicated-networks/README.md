@@ -141,6 +141,42 @@ Then **restart Claude Desktop**.
 
 ---
 
+## Configure OpenCode
+
+[OpenCode](https://opencode.ai) reads MCP server definitions from an `opencode.json` (or `opencode.jsonc`) config file:
+
+- **Project-level**: `opencode.json` in your project root (highest precedence).
+- **Global**: `~/.config/opencode/opencode.json`.
+
+Add the following block (create the file if it does not exist):
+
+```json
+{
+  "mcp": {
+    "camara-dedicated-networks": {
+      "type": "local",
+      "command": [
+        "python",
+        "C:\\path\\to\\camara-dedicated-networks-mcp-python\\server.py"
+      ],
+      "enabled": true,
+      "environment": {
+        "CAMARA_API_ROOT": "https://your-api-server.example.com",
+        "CAMARA_ACCESS_TOKEN": "your-bearer-token-here"
+      }
+    }
+  }
+}
+```
+
+> **Replace** `CAMARA_API_ROOT` with the real URL of your CAMARA API server.
+> **Replace** `CAMARA_ACCESS_TOKEN` with your bearer token.
+> On macOS/Linux, use a forward-slash path (e.g. `/path/to/camara-dedicated-networks-mcp-python/server.py`) and, if needed, point `command` at your `python3` binary.
+
+Restart OpenCode (or run `opencode` again) to pick up the new server. Tools then become available with the `camara-dedicated-networks_` prefix, e.g. `camara-dedicated-networks_camara_list_profiles`.
+
+---
+
 ## Environment variables
 
 | Variable | Description | Default |
