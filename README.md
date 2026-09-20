@@ -1,4 +1,7 @@
-<h1 align="center">CAMARA APIs Examples</h1>
+<p align="center">
+  <img src=".github/banner.svg" width="100%" alt="Reference Tools · CAMARA Connectivity Quality Management: CAMARA API Tools and Examples">
+</p>
+
 <p align="center">
   <a href="#"><img src="https://img.shields.io/badge/Status-Under_Development-yellow" alt="Under Development"></a>
   <a href="#"><!-- a href="https://github.com/5G-MAG/rt-camara-examples/releases/latest" --><img src="https://img.shields.io/badge/Version-No%20release%20yet-orange" alt="Version"><!-- img src="https://img.shields.io/github/v/release/5G-MAG/rt-camara-examples?label=Version" alt="Version" --></a>
