@@ -36,13 +36,13 @@ Accesses, Profiles), plus a one-click Quick Booking shortcut.
 See the [portal README](./management-portal/DedicatedNetworks/README.md) for what it does and
 how to run it.
 
-### MCP Server — Dedicated Networks (AI tool)
+### MCP Server — Dedicated Networks
 
-A Python MCP server exposing the same 4 CAMARA Dedicated Networks APIs as tools an AI agent can
-call directly. Maintained separately, not part of this repository:
-[aaronmontilla/camara-dedicated-networks-mcp](https://github.com/aaronmontilla/camara-dedicated-networks-mcp)
-— see its [README](https://github.com/aaronmontilla/camara-dedicated-networks-mcp/blob/master/README.md)
-for setup and the available tools.
+A Python [MCP](https://modelcontextprotocol.io/) server exposing the same 4 CAMARA Dedicated
+Networks APIs as tools an AI assistant (such as Claude Desktop) can call directly.
+
+See the [server README](./mcp-servers/dedicated-networks/README.md) for installation,
+configuration and the available tools.
 
 ### Insomnia Collections
 
@@ -53,13 +53,3 @@ Ready-to-import API collections for [Insomnia](https://insomnia.rest/):
 | [`Insomnia_Using_DedicatedNetworks.yaml`](./insomnia/Insomnia_Using_DedicatedNetworks.yaml) | Dedicated Networks, Profiles, Accesses |
 | [`Insomnia_Using_QoSBooking.yaml`](./insomnia/Insomnia_Using_QoSBooking.yaml) | QoS Booking |
 | [`Insomnia_Using_QualityonDemand.yaml`](./insomnia/Insomnia_Using_QualityonDemand.yaml) | Quality on Demand |
-
-### MCP Servers
-
-[Model Context Protocol](https://modelcontextprotocol.io/) servers that let AI assistants (such as Claude Desktop) call CAMARA APIs directly as tools.
-
-#### Dedicated Networks
-
-A Python MCP server exposing the four CAMARA Dedicated Networks APIs (Networks, Network Profiles, Device Accesses and Service Areas) as **12 tools**, plus **4 guided workflow prompts**. It lets an assistant discover profiles and service areas, reserve and monitor dedicated networks, and grant or revoke device access through natural language.
-
-See the [server README](./mcp-servers/dedicated-networks/README.md) for installation and configuration instructions.
