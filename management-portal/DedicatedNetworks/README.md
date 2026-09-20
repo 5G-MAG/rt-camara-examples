@@ -1,25 +1,7 @@
-<h1 align="center">Dedicated Networks Portal</h1>
-<p align="center">
-  A guided, browser-based portal for the CAMARA Dedicated Networks APIs — Areas, Networks,
-  Accesses and Profiles — plus a one-click Quick Booking shortcut.
-</p>
+# Dedicated Networks Portal
 
-<p align="center">
-  <img alt="Status: Under Development"
-    src="https://img.shields.io/badge/Status-Under_Development-yellow">
-  <img alt="Version"
-    src="https://img.shields.io/badge/Version-No%20release%20yet-orange">
-  <a href="../../LICENSE"><img alt="License: 5G-MAG Public License v1.0"
-    src="https://img.shields.io/badge/License-5G--MAG%20PL%20v1.0-blue"></a>
-</p>
-
-<p align="center">
-  <a href="https://github.com/5G-MAG/rt-camara-examples">Repository</a> &nbsp;&middot;&nbsp;
-  <a href="https://github.com/5G-MAG/rt-camara-examples/issues">Issues</a> &nbsp;&middot;&nbsp;
-  <a href="https://www.5g-mag.com/contributing">Contributing</a>
-</p>
-
----
+A guided, browser-based portal for the CAMARA Dedicated Networks APIs — Areas, Networks,
+Accesses and Profiles — plus a one-click Quick Booking shortcut.
 
 ## At a glance
 
