@@ -19,6 +19,8 @@ rt-camara-examples/
     Insomnia_Using_DedicatedNetworks.yaml
     Insomnia_Using_QoSBooking.yaml
     Insomnia_Using_QualityonDemand.yaml
+  mcp-servers/
+    dedicated-networks/       Python MCP server for Dedicated Networks APIs
 ```
 
 ## Contents
@@ -48,3 +50,13 @@ Ready-to-import API collections for [Insomnia](https://insomnia.rest/):
 | [`Insomnia_Using_DedicatedNetworks.yaml`](./insomnia/Insomnia_Using_DedicatedNetworks.yaml) | Dedicated Networks, Profiles, Accesses |
 | [`Insomnia_Using_QoSBooking.yaml`](./insomnia/Insomnia_Using_QoSBooking.yaml) | QoS Booking |
 | [`Insomnia_Using_QualityonDemand.yaml`](./insomnia/Insomnia_Using_QualityonDemand.yaml) | Quality on Demand |
+
+### MCP Servers
+
+[Model Context Protocol](https://modelcontextprotocol.io/) servers that let AI assistants (such as Claude Desktop) call CAMARA APIs directly as tools.
+
+#### Dedicated Networks
+
+A Python MCP server exposing the four CAMARA Dedicated Networks APIs (Networks, Network Profiles, Device Accesses and Service Areas) as **12 tools**, plus **4 guided workflow prompts**. It lets an assistant discover profiles and service areas, reserve and monitor dedicated networks, and grant or revoke device access through natural language.
+
+See the [server README](./mcp-servers/dedicated-networks/README.md) for installation and configuration instructions.
