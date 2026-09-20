@@ -1,7 +1,4 @@
-<p align="center">
-  <img src=".github/banner.svg" width="100%" alt="5G-MAG rt-camara-examples, Management Portal: Dedicated Networks Portal">
-</p>
-
+<h1 align="center">Dedicated Networks Portal</h1>
 <p align="center">
   A guided, browser-based portal for the CAMARA Dedicated Networks APIs — Areas, Networks,
   Accesses and Profiles — plus a one-click Quick Booking shortcut.
