@@ -25,21 +25,21 @@ rt-camara-examples/
 
 ## Contents
 
-### Management Portal
+### Management Portal — Dedicated Networks
 
-#### Dedicated Networks
+A guided, browser-based portal for the CAMARA Dedicated Networks APIs (Areas, Networks,
+Accesses, Profiles), plus a one-click Quick Booking shortcut.
 
-A browser-based portal for managing CAMARA Dedicated Networks. It provides a Node.js/Express backend that proxies authenticated CAMARA API calls, and a single-page frontend for:
+See the [portal README](./management-portal/DedicatedNetworks/README.md) for what it does and
+how to run it.
 
-- Browsing available service areas on an interactive map
-- Viewing network profiles and QoS properties
-- Creating, monitoring and deleting dedicated networks
-- Managing device access to a network
-- Real-time status updates with adaptive polling (5 s while transitioning or near expiry, 30 s when stable)
-- Alerts on network activation, expiry and termination
-- One-click home tab for immediate connectivity quality provisioning
+### MCP Server — Dedicated Networks (AI tool)
 
-See the [portal README](./management-portal/DedicatedNetworks/README.md) for setup instructions.
+A Python MCP server exposing the same 4 CAMARA Dedicated Networks APIs as tools an AI agent can
+call directly. Maintained separately, not part of this repository:
+[aaronmontilla/camara-dedicated-networks-mcp](https://github.com/aaronmontilla/camara-dedicated-networks-mcp)
+— see its [README](https://github.com/aaronmontilla/camara-dedicated-networks-mcp/blob/master/README.md)
+for setup and the available tools.
 
 ### Insomnia Collections
 
