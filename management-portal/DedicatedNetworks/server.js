@@ -9,6 +9,7 @@ const accessesRouter = require('./routes/accesses');
 const profilesRouter = require('./routes/profiles');
 const sessionsRouter = require('./routes/sessions');
 const webhooksRouter = require('./routes/webhooks');
+const configRouter   = require('./routes/config');
 
 const app  = express();
 const PORT = process.env.PORT || 3555;
@@ -30,6 +31,7 @@ app.use('/api/profiles', profilesRouter);
 app.use('/api/sessions', sessionsRouter);
 app.use('/webhooks',     webhooksRouter);  // CAMARA posts here
 app.use('/api/webhooks', webhooksRouter);  // frontend polls here
+app.use('/api/config',   configRouter);
 
 // ── Health check ────────────────────────────────────────────
 app.get('/health', (req, res) => {

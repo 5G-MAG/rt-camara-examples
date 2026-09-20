@@ -1,51 +1,113 @@
-# 5G-MAG · CAMARA Dedicated Networks Management Portal
+<p align="center">
+  <img src=".github/banner.svg" width="100%" alt="5G-MAG rt-camara-examples, Management Portal: Dedicated Networks Portal">
+</p>
 
-A browser-based management portal for [CAMARA Dedicated Networks APIs](https://github.com/camaraproject/ConnectivityQualityManagement). It provides a Node.js/Express backend that proxies authenticated CAMARA API calls, and a single-page frontend for the full dedicated network lifecycle.
+<p align="center">
+  A guided, browser-based portal for the CAMARA Dedicated Networks APIs — Areas, Networks,
+  Accesses and Profiles — plus a one-click Quick Booking shortcut.
+</p>
 
-## Features
+<p align="center">
+  <img alt="Status: Under Development"
+    src="https://img.shields.io/badge/Status-Under_Development-yellow">
+  <img alt="Version"
+    src="https://img.shields.io/badge/Version-No%20release%20yet-orange">
+  <a href="../../LICENSE"><img alt="License: 5G-MAG Public License v1.0"
+    src="https://img.shields.io/badge/License-5G--MAG%20PL%20v1.0-blue"></a>
+</p>
 
-- **Service areas** — browse available areas on an interactive map with polygon overlays
-- **Network profiles** — view available profiles and their QoS properties via a modal
-- **Create networks** — reserve a dedicated network for a selected area, profile and time window
-- **Monitor status** — real-time status updates with adaptive polling (5 s while transitioning or near expiry, 30 s when stable)
-- **Device access** — create and manage device access grants within a network
-- **QoS sessions** — book and manage Quality on Demand sessions per device
-- **Alerts** — automatic prompts on network activation and on approaching expiry; polling continues at 5 s until the network reaches TERMINATED
-- **Webhook notifications** — receives inbound CAMARA notifications and surfaces them in the UI
-- **Home tab** — one-click flow to obtain connectivity quality immediately (create network + access in a single form)
-- **Offline-ready** — Leaflet and geocoder assets are bundled locally; no CDN dependency at runtime
+<p align="center">
+  <a href="https://github.com/5G-MAG/rt-camara-examples">Repository</a> &nbsp;&middot;&nbsp;
+  <a href="https://github.com/5G-MAG/rt-camara-examples/issues">Issues</a> &nbsp;&middot;&nbsp;
+  <a href="https://www.5g-mag.com/contributing">Contributing</a>
+</p>
 
-## Quick start
+---
 
-### 1. Configure credentials
+## At a glance
+
+|  |  |
+|---|---|
+| **Implements** | [CAMARA Dedicated Networks APIs](https://github.com/camaraproject/DedicatedNetworks) — Areas, Networks, Accesses and Profiles |
+| **Code type** | Reference implementation: a Node.js/Express backend that proxies authenticated CAMARA API calls, plus a dependency-light single-page frontend |
+| **Part of** | [rt-camara-examples](https://github.com/5G-MAG/rt-camara-examples), alongside the Insomnia collections for CAMARA APIs |
+
+## Introduction
+
+The portal walks a user through the full dedicated-network lifecycle as one guided flow —
+**Areas → Network → Access → Devices** — where each stage is disabled with a one-line reason
+until its prerequisite is done, and exercises the full parameter surface of its CAMARA API rather
+than a cut-down subset. A **Quick Booking** tab sits alongside it for the one-click case (pick a
+point on the map, set a phone number and a time window, get a network + access in one request);
+both share the same state, so a network booked via Quick Booking shows up already unlocked in
+Devices.
+
+- **Service areas** — search by point, drawn circle or polygon (overlapping/covering), or by
+  name / network-profile / QoS-profile filters, combinable
+- **Networks** — reserve by network profile *or* QoS profile, for a chosen area and time window,
+  with optional callback (webhook) configuration
+- **Accesses & Devices** — grant a local device identity access to a network; a full lifecycle
+  tracker shows every possible status as a row of badges, with the current one highlighted, so
+  progress is never ambiguous
+- **Live status** — adaptive polling (fast while transitioning or near expiry, slow once stable)
+- **Dark mode**, offline-bundled map assets, no CDN dependency at runtime
+
+The UI reuses the shared 5G-MAG reference-tools look — the same `blue-bar.css` and `style.css`
+vocabulary as `rt-mbs-application-provider` / `rt-media-server` (copied, not reinvented): a
+blue-bar header, `.card` / `.badge` / `.form-row` throughout, native `<dialog>` / `confirm()`,
+and a single toast.
+
+> **Sandbox note:** the CAMARA Dedicated Networks sandbox this portal talks to implements an
+> older Accesses shape than the current `camaraproject/DedicatedNetworks` spec — one device per
+> Access (`{networkId, device, id, status, statusInfo}`), with no working
+> `GET/POST .../devices*` endpoints (confirmed empirically; see `public/js/modules/api.js`). To
+> give more than one device access to a network, the portal creates one Access per device rather
+> than using the newer bulk `devices[]` endpoints. If a sandbox with the newer shape is used
+> instead, `routes/accesses.js` already has pass-through routes ready for it.
+
+## Specification
+
+Implements the 4 sub-APIs published in
+[camaraproject/DedicatedNetworks](https://github.com/camaraproject/DedicatedNetworks):
+Areas, Networks, Accesses and Profiles.
+
+## Install dependencies
+
+Node.js LTS and npm — no other system packages required.
+
+## Downloading
 
 ```bash
-cp .env.example .env
-# Edit .env — fill in CLIENT_ID, CLIENT_SECRET, TOKEN_URL and the API base URLs
+cd ~
+git clone https://github.com/5G-MAG/rt-camara-examples.git
+cd rt-camara-examples/management-portal/DedicatedNetworks
 ```
 
-### 2. Install dependencies
+## Building
+
+No build step — plain Node.js on the backend, vanilla JS/CSS served as static files on the
+frontend.
+
+## Installing
 
 ```bash
 npm install
 ```
 
-### 3. Start the server
+## Running
 
 ```bash
+cp .env.example .env
+# fill in CLIENT_ID, CLIENT_SECRET, TOKEN_URL and the 4 CAMARA API base URLs
 node server.js
 ```
 
-Open **http://localhost:3001** in your browser.
+Open **http://localhost:3001**.
 
-### 4. (Optional) Expose for webhook notifications
+## Configuration
 
-```bash
-npx localtunnel --port 3001
-# Copy the tunnel URL into .env as SINK_BASE_URL and restart the server
-```
-
-## Environment variables
+All configuration is via `.env` (copied from `.env.example`); the OAuth2 credentials and CAMARA
+base URLs can also be viewed and edited live from the portal's own **Config** tab.
 
 | Variable | Description |
 |----------|-------------|
@@ -56,59 +118,51 @@ npx localtunnel --port 3001
 | `NETWORKS_URL` | Base URL for the Dedicated Network API |
 | `PROFILES_URL` | Base URL for the Dedicated Network Profiles API |
 | `ACCESSES_URL` | Base URL for the Dedicated Network Accesses API |
-| `QOD_URL` | Base URL for the Quality on Demand API |
+| `QOD_URL` | Base URL for the Quality on Demand API (used by the separate, unexposed Sessions route) |
 | `PORT` | Server port (default: 3001) |
 | `SINK_BASE_URL` | Public base URL for inbound webhook notifications |
 
-## Project structure
+For webhook notifications during local development, expose the server with a tunnel first:
+
+```bash
+npx localtunnel --port 3001
+# copy the tunnel URL into .env as SINK_BASE_URL and restart
+```
+
+## Development
 
 ```
 management-portal/DedicatedNetworks/
-  .env.example              All required environment variables (no secrets)
-  server.js                 Express entry point (port 3001)
+  server.js                 Express entry point
   public/
-    index.html              Single-page portal UI
-    5gmag.png               Logo (replace to customise)
-    lib/                    Locally bundled Leaflet and geocoder assets
-      leaflet.js / .css
-      Control.Geocoder.js / .css
-      images/               Map marker and layer icons
-  routes/
-    areas.js                GET /api/areas, POST /api/areas/retrieve
-    networks.js             CRUD /api/networks
-    accesses.js             CRUD /api/accesses + device management
-    profiles.js             GET /api/profiles/network, /api/profiles/qos
-    sessions.js             CRUD /api/sessions
-    webhooks.js             POST /webhooks (inbound), GET /api/webhooks/notifications
-  services/
-    tokenService.js         OAuth2 token cache with auto-refresh
-    apiService.js           Authenticated fetch wrapper
-    webhookService.js       Inbound notification store
+    index.html              Shell: blue-bar header, tab-nav, per-tab <main> panels
+    blue-bar.css             5G-MAG header component, copied verbatim from the reference tools
+    style.css                 Shared 5G-MAG look (cards/badges/forms/toast/dark mode)
+    js/
+      app.js                  Entry point (type="module"): tabs, theme toggle, toast, health dots
+      modules/
+        wizard.js               Shared Guided-Setup / Quick-Booking state + tab locking
+        api.js                   Fetch wrappers to /api/*
+        polling.js               One adaptive-pace polling utility for every tab
+        uiCommon.js               Formatting, badge helpers, lifecycle tracker
+        callbackConfig.js         Shared sink/sinkCredential form fragment
+        devicePool.js             Local device-identity pool
+        stageAreas.js / stageNetwork.js / stageAccess.js / stageDevices.js
+        quickBooking.js           Quick Booking tab
+    lib/                     Locally bundled Leaflet + geocoder (no CDN at runtime)
+  routes/                    areas.js, networks.js, accesses.js, profiles.js, config.js,
+                             sessions.js (QoD, unexposed in the UI), webhooks.js
+  services/                  tokenService.js (OAuth2 cache), apiService.js, webhookService.js
 ```
 
-## API routes
+No automated test suite yet; verification has been manual/exploratory against the live sandbox.
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | /api/areas/retrieve | Retrieve service areas |
-| GET | /api/areas/:id | Get a specific area |
-| GET | /api/networks | List networks |
-| POST | /api/networks | Create network |
-| GET | /api/networks/:id | Get network |
-| DELETE | /api/networks/:id | Delete network |
-| GET | /api/accesses | List accesses |
-| POST | /api/accesses | Create access |
-| GET | /api/accesses/:id | Get access |
-| DELETE | /api/accesses/:id | Delete access |
-| GET | /api/accesses/:id/devices | List devices in access |
-| POST | /api/accesses/:id/devices/add | Add devices to access |
-| POST | /api/accesses/:id/devices/remove | Remove devices from access |
-| GET | /api/profiles/network | List network profiles |
-| GET | /api/profiles/qos | List QoS profiles |
-| POST | /api/sessions | Create QoS session |
-| GET | /api/sessions/:id | Get session |
-| DELETE | /api/sessions/:id | Delete session |
-| POST | /api/sessions/:id/extend | Extend session |
-| POST | /webhooks/:resource | Inbound notifications from CAMARA |
-| GET | /api/webhooks/notifications | Poll notifications (frontend) |
-| GET | /health | Server and environment health check |
+## Contributing
+
+Contributions are welcome. How to raise an issue, fork the repository and open a pull request,
+and the Contributor License Agreement required before code can be merged, are described at
+<https://www.5g-mag.com/contributing>.
+
+## License
+
+Distributed under the 5G-MAG Public License v1.0. See [LICENSE](../../LICENSE).
