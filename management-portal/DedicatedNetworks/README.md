@@ -54,14 +54,6 @@ vocabulary as `rt-mbs-application-provider` / `rt-media-server` (copied, not rei
 blue-bar header, `.card` / `.badge` / `.form-row` throughout, native `<dialog>` / `confirm()`,
 and a single toast.
 
-> **Sandbox note:** the CAMARA Dedicated Networks sandbox this portal talks to implements an
-> older Accesses shape than the current `camaraproject/DedicatedNetworks` spec — one device per
-> Access (`{networkId, device, id, status, statusInfo}`), with no working
-> `GET/POST .../devices*` endpoints (confirmed empirically; see `public/js/modules/api.js`). To
-> give more than one device access to a network, the portal creates one Access per device rather
-> than using the newer bulk `devices[]` endpoints. If a sandbox with the newer shape is used
-> instead, `routes/accesses.js` already has pass-through routes ready for it.
-
 ## Specification
 
 Implements the 4 sub-APIs published in
