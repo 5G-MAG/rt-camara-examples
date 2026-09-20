@@ -1,15 +1,7 @@
-# Dedicated Networks Portal
+# CAMARA Dedicated Networks API Portal
 
 A guided, browser-based portal for the CAMARA Dedicated Networks APIs — Areas, Networks,
 Accesses and Profiles — plus a one-click Quick Booking shortcut.
-
-## At a glance
-
-|  |  |
-|---|---|
-| **Implements** | [CAMARA Dedicated Networks APIs](https://github.com/camaraproject/DedicatedNetworks) — Areas, Networks, Accesses and Profiles |
-| **Code type** | Reference implementation: a Node.js/Express backend that proxies authenticated CAMARA API calls, plus a dependency-light single-page frontend |
-| **Part of** | [rt-camara-examples](https://github.com/5G-MAG/rt-camara-examples), alongside the Insomnia collections for CAMARA APIs |
 
 ## Introduction
 
