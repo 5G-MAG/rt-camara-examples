@@ -18,8 +18,8 @@ homeStartPolling).
  *   returns the pace to use for the *next* tick: 'fast' while the resource
  *   is still transitioning or near an expiry threshold, 'slow' once stable
  *   but still worth watching (e.g. ACTIVATED, waiting on natural expiry),
- *   'stop' once nothing will ever change again (e.g. TERMINATED, or every
- *   device settled GRANTED/DENIED).
+ *   'stop' once nothing will ever change again (e.g. TERMINATED, or a
+ *   DENIED device access; GRANTED can still become DENIED).
  * @param {{fastMs?: number, slowMs?: number}} opts
  * @returns {{stop(): void}}
  */

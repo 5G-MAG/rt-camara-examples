@@ -224,7 +224,7 @@ export function initQuickBooking() {
         if (!r.ok) return 'fast';
         renderAccessCard(r.data);
         wizard.setAccess(r.data);
-        return (r.data.status === 'GRANTED' || r.data.status === 'DENIED') ? 'stop' : 'fast';
+        return r.data.status === 'DENIED' ? 'stop' : r.data.status === 'GRANTED' ? 'slow' : 'fast';
       }, { fastMs: 5000, slowMs: 30000 });
     }
   }
