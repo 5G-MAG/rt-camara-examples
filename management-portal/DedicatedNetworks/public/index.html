@@ -84,8 +84,8 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
     </div>
     <div class="section-panel">
       <div class="section-panel-title">4. Devices</div>
-      <p class="form-hint">Build a local pool of device identities and attach more of them to the current network, one access per device.</p>
-      <p class="form-hint"><strong>Expected:</strong> each attached device shows its access status.</p>
+      <p class="form-hint">Create devices by phone number (MSISDN), then pick one from the drop-down to give it access to the current network.</p>
+      <p class="form-hint"><strong>Expected:</strong> each device lists every access it is part of, on any network, with its status.</p>
     </div>
     <div class="section-panel">
       <div class="section-panel-title">Shortcut: Quick Booking (a sub-case of steps 1 to 3)</div>
@@ -240,35 +240,34 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
   <p class="card-parent-label" id="devices-context-chip"></p>
 
   <div class="card">
-    <div class="card-title">Device Pool</div>
-    <p class="subtitle" style="margin-bottom:0.8rem;">Create device identities here any time, then attach them to a network below.</p>
+    <div class="card-title">Create device</div>
+    <p class="subtitle" style="margin-bottom:0.8rem;">A device is identified by its phone number (MSISDN). Devices are kept in this browser; the Accesses API has no device list of its own.</p>
+    <div class="form-row"><label class="form-label" for="pool-dev-phone">Phone number (MSISDN)</label><input id="pool-dev-phone" type="tel" placeholder="+41799445408"/></div>
+    <div class="form-row"><label class="form-label" for="pool-dev-name">Name <span class="form-hint" style="display:inline;">(optional)</span></label><input id="pool-dev-name" type="text" placeholder="e.g. Camera 1"/></div>
     <div class="toolbar" style="justify-content:flex-start;">
-      <button class="btn btn-primary btn-sm" id="add-pool-device-btn">+ Add Device</button>
-    </div>
-    <div id="pool-add-form" hidden>
-      <div class="form-row"><label class="form-label" for="pool-dev-name">Name</label><input id="pool-dev-name" type="text" placeholder="e.g. Camera 1"/></div>
-      <div class="form-row"><label class="form-label" for="pool-dev-phone">Phone number</label><input id="pool-dev-phone" type="text" placeholder="+41799445408"/></div>
-      <details class="advanced-fields">
-        <summary>Other identifiers</summary>
-        <div class="form-row"><label class="form-label" for="pool-dev-naid">Network access identifier</label><input id="pool-dev-naid" type="text" placeholder="device@domain"/></div>
-        <div class="form-row"><label class="form-label" for="pool-dev-ip">IPv4/IPv6 address</label><input id="pool-dev-ip" type="text" placeholder="203.0.113.1"/></div>
-      </details>
-      <div class="toolbar" style="justify-content:flex-start;">
-        <button class="btn btn-primary btn-sm" id="pool-save-btn">Save</button>
-        <button class="btn btn-ghost btn-sm" id="pool-cancel-btn">Cancel</button>
-      </div>
+      <button class="btn btn-primary btn-sm" id="pool-save-btn">Create device</button>
     </div>
     <p class="status-line" id="pool-status"></p>
-    <div id="device-pool-list"></div>
   </div>
 
   <div class="card">
-    <div class="card-title">Attached to Network</div>
+    <div class="card-title">Give a device access to the current network</div>
     <div id="devices-no-network-msg">
-      <p class="empty-hint">Select or create a network (Network tab) to attach pool devices to it.</p>
+      <p class="empty-hint">Select or create a network (Network tab) to give a device access to it.</p>
+    </div>
+    <div id="devices-attach-form" hidden>
+      <div class="form-row"><label class="form-label" for="devices-attach-select">Device (MSISDN)</label><select id="devices-attach-select"></select></div>
+      <div class="toolbar" style="justify-content:flex-start;">
+        <button class="btn btn-primary btn-sm" id="devices-attach-btn">Create access</button>
+      </div>
     </div>
     <p class="status-line" id="devices-action-status"></p>
-    <div id="attached-devices-list"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Devices and their accesses</div>
+    <p class="form-hint" style="margin-bottom:0.8rem;">A device can be part of more than one access, for example one on each of two networks.</p>
+    <div id="device-pool-list"></div>
   </div>
 </main>
 

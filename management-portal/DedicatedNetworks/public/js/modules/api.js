@@ -56,6 +56,8 @@ export const Api = {
   // confirmed empirically against the live sandbox. To give a device
   // access to a network, create a separate Access per device instead.
   listAccesses: networkId => req(`/api/accesses?networkId=${encodeURIComponent(networkId)}`),
+  // No filter: every access of this API consumer, across networks.
+  listAllAccesses: () => req('/api/accesses'),
   createAccess: body => req('/api/accesses', { method: 'POST', body }),
   getAccess: id => req(`/api/accesses/${id}`),
   deleteAccess: id => req(`/api/accesses/${id}`, { method: 'DELETE' }),
