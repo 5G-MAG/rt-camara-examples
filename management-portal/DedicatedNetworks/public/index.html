@@ -50,7 +50,7 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
     <button id="tabbtn-network" class="tab-btn" type="button" data-tab="network" role="tab" aria-selected="false" aria-controls="tab-network" disabled title="Select an area first">2. Network</button>
     <button id="tabbtn-access" class="tab-btn" type="button" data-tab="access" role="tab" aria-selected="false" aria-controls="tab-access" disabled title="Create a network first">3. Access</button>
     <button id="tabbtn-devices" class="tab-btn" type="button" data-tab="devices" role="tab" aria-selected="false" aria-controls="tab-devices">4. Devices</button>
-    <button id="tabbtn-quick" class="tab-btn" type="button" data-tab="quick" role="tab" aria-selected="false" aria-controls="tab-quick">Quick Booking</button>
+    <button id="tabbtn-quick" class="tab-btn" type="button" data-tab="quick" role="tab" aria-selected="false" aria-controls="tab-quick" title="Shortcut: steps 1 to 3 in one form">Shortcut: Quick Booking</button>
     <button id="tabbtn-config" class="tab-btn" type="button" data-tab="config" role="tab" aria-selected="false" aria-controls="tab-config">Config</button>
   </nav>
 </header>
@@ -86,6 +86,11 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
       <div class="section-panel-title">4. Devices</div>
       <p class="form-hint">Build a local pool of device identities and attach more of them to the current network, one access per device.</p>
       <p class="form-hint"><strong>Expected:</strong> each attached device shows its access status.</p>
+    </div>
+    <div class="section-panel">
+      <div class="section-panel-title">Shortcut: Quick Booking (a sub-case of steps 1 to 3)</div>
+      <p class="form-hint">Once you know the full path, Quick Booking runs one narrow case of it in a single form: the area is the one found at the location you click, the network uses the profile you pick and runs from now until the time you set, and one access is created for one phone number. Area search options, a later start time, QoS-only networks and more devices are only available in the full path.</p>
+      <p class="form-hint"><strong>Expected:</strong> the network and access it creates are the same objects the full path creates, and they appear in the Network, Access and Devices tabs afterwards.</p>
     </div>
     <div class="toolbar" style="justify-content:flex-start;">
       <button class="btn btn-primary" id="guide-start-btn">Start with 1. Areas &rarr;</button>
@@ -271,6 +276,7 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
 <main class="main map-layout" id="tab-quick" role="tabpanel" aria-labelledby="tabbtn-quick" hidden>
   <div class="map-sidebar" style="width:360px;min-width:320px;">
     <p class="subtitle">Immediate Connectivity Quality</p>
+    <p class="form-hint">Shortcut for one case of steps 1 to 3: area at your location, network from now until the time you set, access for one phone number. See &ldquo;Start here&rdquo;.</p>
     <div class="form-row">
       <label class="form-label">Your location</label>
       <p class="form-hint" id="home-location-display">Click on the map or use &ldquo;Use My Location&rdquo;.</p>
