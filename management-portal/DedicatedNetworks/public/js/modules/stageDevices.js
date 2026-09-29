@@ -7,24 +7,29 @@ For full license terms please see the LICENSE file distributed with this
 program. If this file is missing then the license can be retrieved from
 https://hub.5g-mag.com/Getting-Started/OFFICIAL_5G-MAG_Public_License_v1.0.pdf
 
-Stage 4 — Devices. Create device identities and attach them to the network
-from Stage 2/3. This sandbox has no devices/add|remove endpoint (confirmed
-empirically — see api.js) — "attaching" a device means creating another
-one-device Access on the same network (exactly what Stage 3 did for the
-first device); "detaching" means deleting that Access.
+Stage 4 — Devices. Create a device (phone number / MSISDN), pick one from a
+drop-down to give it access to the current network, and see every access
+each device is part of. This sandbox has no devices/add|remove endpoint
+(confirmed empirically, see api.js), so giving a device access means creating
+another one-device Access on the network (exactly what Stage 3 did for the
+first device), and removing it means deleting that Access.
 
-The Device Pool itself never locks — it's just local identities, not tied to
-a network — only the "Attached to Network" section needs a network to exist.
+The accesses listed per device come from GET /accesses with no filter, i.e.
+every access of this API consumer on any network, so a device that is part
+of two accesses (for example one per network) shows both.
+
+Creating devices never locks; only giving one access needs a network.
 */
 
 import { Api } from './api.js';
-import { setSt, clrSt, escapeHtml, deviceTracker } from './uiCommon.js';
+import { setSt, clrSt, escapeHtml, statusBadge } from './uiCommon.js';
 import { wizard } from './wizard.js';
 import { loadPool, addToPool, savePool, toApiDevice, matchesApiDevice, identifierLine } from './devicePool.js';
 
 export function initStageDevices(nav) {
   let pool = loadPool();
-  let accesses = []; // every Access (= one device) under wizard.network
+  let accesses = []; // every Access of this API consumer, on any network
+  const networkNames = {}; // network id -> name, for labelling accesses
 
   wizard.onChange(() => { if (!document.getElementById('tab-devices').hidden) render(); });
 
@@ -33,128 +38,134 @@ export function initStageDevices(nav) {
     // Stage 3's quick-add writes to the same localStorage-backed pool.
     pool = loadPool();
     const chip = document.getElementById('devices-context-chip');
-    const noNetMsg = document.getElementById('devices-no-network-msg');
     clrSt('devices-action-status');
-    if (!wizard.network) {
-      chip.textContent = 'No network selected yet — you can still build your device pool below.';
-      noNetMsg.hidden = false;
-      accesses = [];
-      document.getElementById('attached-devices-list').innerHTML = '';
-      renderPool();
-      return;
-    }
-    chip.innerHTML = `Network <strong>${escapeHtml(wizard.network.name || wizard.network.id)}</strong> &mdash; one Access is created per device on this sandbox.`;
-    noNetMsg.hidden = true;
+    document.getElementById('devices-no-network-msg').hidden = !!wizard.network;
+    document.getElementById('devices-attach-form').hidden = !wizard.network;
+    chip.innerHTML = wizard.network
+      ? `Current network <strong>${escapeHtml(wizard.network.name || wizard.network.id)}</strong>; one Access is created per device on this sandbox.`
+      : 'No network selected yet; you can still create devices below.';
     await refreshAccesses();
-    renderPool();
   }
 
   async function refreshAccesses() {
-    const r = await Api.listAccesses(wizard.network.id);
+    const [r, n] = await Promise.all([Api.listAllAccesses(), Api.listNetworks()]);
     accesses = r.ok ? (Array.isArray(r.data) ? r.data : [r.data]) : [];
-    renderAttached();
+    if (!r.ok) setSt('devices-action-status', 'Could not load accesses: HTTP ' + r.status, false);
+    if (n.ok && Array.isArray(n.data)) n.data.forEach(x => { if (x && x.id) networkNames[x.id] = x.name || ''; });
+    renderAttachSelect();
+    renderDevices();
   }
 
-  function renderAttached() {
-    const el = document.getElementById('attached-devices-list');
-    if (!accesses.length) { el.innerHTML = '<p class="empty-hint">No devices attached yet.</p>'; return; }
-    el.innerHTML = accesses.map(a => {
-      const id = (a.device && (a.device.phoneNumber || a.device.networkAccessIdentifier)) || 'unknown';
-      const poolMatch = pool.find(p => matchesApiDevice(p, a.device));
-      return `<div class="toolbar" style="justify-content:space-between;align-items:flex-start;margin-top:0;margin-bottom:0.6rem;padding-bottom:0.6rem;border-bottom:1px solid var(--border);">
-        <div>
-          <span class="field-name">${escapeHtml(poolMatch ? poolMatch.name : id)}</span>
-          <div class="field-key">${escapeHtml(id)}</div>
-          ${deviceTracker(a.status, a.statusInfo)}
-        </div>
-        <button class="btn btn-danger btn-sm" data-detach-access="${a.id}">Detach</button>
-      </div>`;
+  function onCurrentNetwork(d) {
+    return !!wizard.network && accesses.some(a => a.networkId === wizard.network.id && matchesApiDevice(d, a.device));
+  }
+
+  function renderAttachSelect() {
+    const sel = document.getElementById('devices-attach-select');
+    const withPhone = pool.filter(d => d.phone);
+    sel.innerHTML = '<option value="">-- Pick a device --</option>' + withPhone.map(d => {
+      const already = onCurrentNetwork(d);
+      return `<option value="${d.id}" ${already ? 'disabled' : ''}>${escapeHtml(d.phone)}${d.name && d.name !== d.phone ? ' (' + escapeHtml(d.name) + ')' : ''}${already ? ' - already has an access on this network' : ''}</option>`;
     }).join('');
+  }
+
+  document.getElementById('devices-attach-btn').addEventListener('click', async function () {
+    const btn = this;
+    const d = pool.find(x => x.id === document.getElementById('devices-attach-select').value);
+    if (!wizard.network) return;
+    if (!d) { setSt('devices-action-status', 'Pick a device first.', false); return; }
+    btn.textContent = '…'; btn.disabled = true;
+    const r = await Api.createAccess({ networkId: wizard.network.id, device: toApiDevice(d) });
+    btn.textContent = 'Create access'; btn.disabled = false;
+    if (r.ok) {
+      setSt('devices-action-status', 'Access created.', true);
+      window.showToast('Access created.', 'success');
+      await refreshAccesses();
+    } else {
+      const msg = 'Create access failed: ' + (r.data.message || r.data.error || 'HTTP ' + r.status);
+      setSt('devices-action-status', msg, false);
+      window.showToast(msg, 'error');
+      console.error('Create access failed', r);
+    }
+  });
+
+  function accessRow(a) {
+    const isCurrent = wizard.network && a.networkId === wizard.network.id;
+    const netLabel = networkNames[a.networkId] || (a.networkId ? a.networkId.slice(0, 8) + '…' : 'unknown network');
+    return `<div class="toolbar" style="justify-content:space-between;margin:0.2rem 0;">
+        <span>${escapeHtml(netLabel)}${isCurrent ? ' <span class="form-hint" style="display:inline;">(current network)</span>' : ''} ${statusBadge(a.status)}</span>
+        <button class="btn btn-danger btn-sm" data-detach-access="${a.id}">Delete access</button>
+      </div>`;
+  }
+
+  function deviceBlock(title, idLine, devAccesses, delId) {
+    return `<div style="margin-bottom:0.6rem;padding-bottom:0.6rem;border-bottom:1px solid var(--border);">
+        <div class="toolbar" style="justify-content:space-between;margin:0;">
+          <div><span class="field-name">${escapeHtml(title)}</span><div class="field-key">${idLine}</div></div>
+          ${delId ? `<button class="btn btn-ghost btn-sm" data-del-id="${delId}" title="Remove from this browser's device list">&times;</button>` : ''}
+        </div>
+        ${devAccesses.length ? devAccesses.map(accessRow).join('') : '<p class="form-hint">Not part of any access.</p>'}
+      </div>`;
+  }
+
+  function renderDevices() {
+    const el = document.getElementById('device-pool-list');
+    const matched = new Set();
+    let html = pool.map(d => {
+      const devAccesses = accesses.filter(a => matchesApiDevice(d, a.device));
+      devAccesses.forEach(a => matched.add(a.id));
+      return deviceBlock(d.name || d.phone, identifierLine(d), devAccesses, d.id);
+    }).join('');
+    // Accesses whose device was never created in this browser (e.g. made
+    // from another machine) are still shown, grouped by device identifier.
+    const others = {};
+    accesses.filter(a => !matched.has(a.id)).forEach(a => {
+      const id = (a.device && (a.device.phoneNumber || a.device.networkAccessIdentifier || a.device.ipv6Address || (a.device.ipv4Address && a.device.ipv4Address.publicAddress))) || 'unknown device';
+      (others[id] = others[id] || []).push(a);
+    });
+    html += Object.keys(others).map(id => deviceBlock(id, 'not in this browser&rsquo;s device list', others[id], null)).join('');
+    el.innerHTML = html || '<p class="empty-hint">No devices yet. Create one above.</p>';
+
     el.querySelectorAll('[data-detach-access]').forEach(btn => btn.addEventListener('click', async () => {
       if (!confirm('This deletes the device’s access to the network. Continue?')) return;
       btn.textContent = '…'; btn.disabled = true;
       const r = await Api.deleteAccess(btn.dataset.detachAccess);
       if (r.status === 204 || r.ok) {
-        setSt('devices-action-status', 'Device detached.', true);
-        window.showToast('Device detached.', 'success');
+        setSt('devices-action-status', 'Access deleted.', true);
+        window.showToast('Access deleted.', 'success');
         await refreshAccesses();
       } else {
-        const msg = 'Detach failed: ' + (r.data.message || r.data.error || 'HTTP ' + r.status);
+        const msg = 'Delete failed: ' + (r.data.message || r.data.error || 'HTTP ' + r.status);
         setSt('devices-action-status', msg, false);
         window.showToast(msg, 'error');
-        console.error('Detach failed', r);
-        btn.textContent = 'Detach'; btn.disabled = false;
+        console.error('Delete access failed', r);
+        btn.textContent = 'Delete access'; btn.disabled = false;
       }
-    }));
-  }
-
-  function renderPool() {
-    const el = document.getElementById('device-pool-list');
-    if (!pool.length) { el.innerHTML = '<p class="empty-hint">No devices yet. Click &ldquo;+ Add Device&rdquo; to build your pool.</p>'; return; }
-    el.innerHTML = pool.map(d => {
-      const isAttached = accesses.some(a => matchesApiDevice(d, a.device));
-      return `<div class="toolbar" style="justify-content:space-between;margin-top:0;margin-bottom:0.4rem;padding-bottom:0.4rem;border-bottom:1px solid var(--border);">
-        <div>
-          <span class="field-name">${escapeHtml(d.name)}</span>
-          <div class="field-key">${identifierLine(d)}</div>
-        </div>
-        <div>
-          ${isAttached
-            ? '<span class="badge badge-success">Attached</span>'
-            : wizard.network
-              ? `<button class="btn btn-primary btn-sm" data-attach-id="${d.id}">Attach</button>`
-              : '<span class="form-hint" style="display:inline;">Select a network to attach</span>'}
-          <button class="btn btn-ghost btn-sm" data-del-id="${d.id}" title="Remove from pool">&times;</button>
-        </div>
-      </div>`;
-    }).join('');
-    el.querySelectorAll('[data-attach-id]').forEach(btn => btn.addEventListener('click', async () => {
-      const d = pool.find(x => x.id === btn.dataset.attachId);
-      btn.textContent = '…'; btn.disabled = true;
-      const r = await Api.createAccess({ networkId: wizard.network.id, device: toApiDevice(d) });
-      if (r.ok) {
-        setSt('devices-action-status', 'Device attached.', true);
-        window.showToast('Device attached.', 'success');
-        await refreshAccesses();
-      } else {
-        const msg = 'Attach failed: ' + (r.data.message || r.data.error || 'HTTP ' + r.status);
-        setSt('devices-action-status', msg, false);
-        window.showToast(msg, 'error');
-        console.error('Attach failed', r);
-      }
-      btn.textContent = 'Attach'; btn.disabled = false;
-      renderPool();
     }));
     el.querySelectorAll('[data-del-id]').forEach(btn => btn.addEventListener('click', () => {
-      const isAttached = accesses.some(a => matchesApiDevice(pool.find(x => x.id === btn.dataset.delId), a.device));
-      if (isAttached && !confirm('This device still has an access on the API side. Remove it from your local pool anyway? (It stays attached on the API side.)')) return;
-      pool = pool.filter(d => d.id !== btn.dataset.delId);
+      const d = pool.find(x => x.id === btn.dataset.delId);
+      const inAccess = accesses.some(a => matchesApiDevice(d, a.device));
+      if (inAccess && !confirm('This device is still part of an access on the API side. Remove it from this browser anyway? (Its accesses are not deleted.)')) return;
+      pool = pool.filter(x => x.id !== btn.dataset.delId);
       savePool(pool);
-      renderPool();
+      renderAttachSelect();
+      renderDevices();
     }));
   }
 
-  // ── Add-to-pool form ──
-  document.getElementById('add-pool-device-btn').addEventListener('click', () => {
-    document.getElementById('pool-add-form').hidden = false;
-    document.getElementById('pool-dev-name').focus();
-  });
-  document.getElementById('pool-cancel-btn').addEventListener('click', clearPoolForm);
-  function clearPoolForm() {
-    document.getElementById('pool-add-form').hidden = true;
-    ['pool-dev-name', 'pool-dev-phone', 'pool-dev-naid', 'pool-dev-ip'].forEach(id => document.getElementById(id).value = '');
-  }
+  // ── Create device form ──
   document.getElementById('pool-save-btn').addEventListener('click', () => {
-    const name = document.getElementById('pool-dev-name').value.trim();
     const phone = document.getElementById('pool-dev-phone').value.trim();
-    const naid = document.getElementById('pool-dev-naid').value.trim();
-    const ip = document.getElementById('pool-dev-ip').value.trim();
-    if (!name) { setSt('pool-status', 'Please enter a name.', false); return; }
-    if (!phone && !naid && !ip) { setSt('pool-status', 'Provide at least one identifier (phone, NAID, or IP).', false); return; }
-    addToPool(pool, { name, phone, naid, ip });
-    clearPoolForm();
-    clrSt('pool-status');
-    renderPool();
+    const name = document.getElementById('pool-dev-name').value.trim();
+    if (!phone) { setSt('pool-status', 'Enter the phone number (MSISDN).', false); return; }
+    // PhoneNumber pattern from the Accesses API definition (E.164 with a leading '+').
+    if (!/^\+[1-9][0-9]{4,14}$/.test(phone)) { setSt('pool-status', 'Use international format with a leading +, e.g. +41799445408.', false); return; }
+    if (pool.some(d => d.phone === phone)) { setSt('pool-status', 'A device with this phone number already exists.', false); return; }
+    addToPool(pool, { name: name || phone, phone });
+    ['pool-dev-phone', 'pool-dev-name'].forEach(id => { document.getElementById(id).value = ''; });
+    setSt('pool-status', 'Device created.', true);
+    renderAttachSelect();
+    renderDevices();
   });
 
   return {
