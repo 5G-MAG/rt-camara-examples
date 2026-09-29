@@ -50,7 +50,7 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
     <button id="tabbtn-network" class="tab-btn" type="button" data-tab="network" role="tab" aria-selected="false" aria-controls="tab-network" disabled title="Select an area first">2. Network</button>
     <button id="tabbtn-access" class="tab-btn" type="button" data-tab="access" role="tab" aria-selected="false" aria-controls="tab-access" disabled title="Create a network first">3. Access</button>
     <button id="tabbtn-devices" class="tab-btn" type="button" data-tab="devices" role="tab" aria-selected="false" aria-controls="tab-devices">4. Devices</button>
-    <button id="tabbtn-quick" class="tab-btn" type="button" data-tab="quick" role="tab" aria-selected="false" aria-controls="tab-quick" title="Shortcut: steps 1 to 3 in one form">Shortcut: Quick Booking</button>
+    <button id="tabbtn-quick" class="tab-btn" type="button" data-tab="quick" role="tab" aria-selected="false" aria-controls="tab-quick" title="Shortcut: tabs 1 to 3 in one form">Shortcut: Quick Booking</button>
     <button id="tabbtn-config" class="tab-btn" type="button" data-tab="config" role="tab" aria-selected="false" aria-controls="tab-config">Config</button>
   </nav>
 </header>
@@ -63,32 +63,33 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
 
   <div class="card" id="guide-workflow">
     <div class="card-title">How to use this portal</div>
+    <p class="form-hint">The portal follows the Dedicated Networks workflow described on 5g-mag.com, <a href="https://www.5g-mag.com/tech/network-apis/content-production/using-dedicated-networks" target="_blank" rel="noopener">Using CAMARA APIs: Dedicated Networks for Content Production</a>. Each step is done by the <span class="badge badge-reserved">ASP</span> (Application Service Provider, the media application using this portal) or the <span class="badge badge-neutral">CSP</span> (Communication Service Provider, the network operator behind the API).</p>
     <div class="section-panel">
-      <div class="section-panel-title">Before you start: Config</div>
-      <p class="form-hint">Enter the CAMARA API base URLs and OAuth2 credentials. The four dots in the top bar turn green when each API answers.</p>
+      <div class="section-panel-title">0. Pre-conditions</div>
+      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <span class="badge badge-neutral">CSP</span> <strong>0</strong> On-boarding: sign up, access credentials, and the network profiles and service areas agreed with the operator.<br><em>In the portal:</em> enter the CAMARA API base URLs and OAuth2 credentials in <strong>Config</strong>. The four dots in the top bar turn green when each API answers.</p>
     </div>
     <div class="section-panel">
-      <div class="section-panel-title">1. Areas</div>
-      <p class="form-hint">Load or search the service areas where a dedicated network can be offered (by point, circle, polygon, name or profile). Pick one and click &ldquo;Use This Area&rdquo;.</p>
-      <p class="form-hint"><strong>Expected:</strong> a list of areas on the map; the Network tab unlocks once an area is picked.</p>
+      <div class="section-panel-title">1. Before using the network</div>
+      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>1.0a</strong> Discover the available network profiles (optional).<br><em>In the portal:</em> the profiles are listed in <strong>2. Network</strong>, and <strong>1. Areas</strong> can filter areas by profile.</p>
+      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>1.0b</strong> Discover the available network service areas (optional).<br><em>In the portal:</em> <strong>1. Areas</strong>: search by point, circle, polygon, name or profile, pick one and click &ldquo;Use This Area&rdquo;.</p>
+      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>1.1</strong> Request the reservation of a dedicated network.<br><em>In the portal:</em> <strong>2. Network</strong>: choose a network profile (or a QoS profile) and the service time.</p>
+      <p class="form-hint"><span class="badge badge-neutral">CSP</span> <strong>1.2</strong> The operator assesses the request and changes its status.<br><em>In the portal:</em> <strong>2. Network</strong> shows the status: REQUESTED, then RESERVED outside the service time and ACTIVATED during it.</p>
+      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>1.3</strong> Request device access to the dedicated network.<br><em>In the portal:</em> <strong>4. Devices</strong> (create devices by phone number and give one access to the network) or <strong>3. Access</strong>. The access starts as REQUESTED; the operator grants or denies it.</p>
     </div>
     <div class="section-panel">
-      <div class="section-panel-title">2. Network</div>
-      <p class="form-hint">Request a network in that area: choose a network profile (or a QoS profile) and the service time (start and end).</p>
-      <p class="form-hint"><strong>Expected:</strong> the network starts as REQUESTED; once the provider commits it, it is RESERVED outside the service time and ACTIVATED during it, and finally TERMINATED. The Access tab unlocks once a network exists.</p>
+      <div class="section-panel-title">2. During operation</div>
+      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>2.1</strong> Request device access, also while the network is running.<br><em>In the portal:</em> <strong>4. Devices</strong> and <strong>3. Access</strong> work at any time.</p>
+      <p class="form-hint"><span class="badge badge-neutral">CSP</span> <strong>2.2</strong> The dedicated network is active and available.<br><em>In the portal:</em> <strong>2. Network</strong> shows ACTIVATED.</p>
+      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>2.3</strong> The device connects and uses the dedicated network.<br><em>In the portal:</em> on the device itself; its access must be GRANTED and the network ACTIVATED.</p>
+      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>2.4</strong> Assign new devices and remove existing ones while the network is active.<br><em>In the portal:</em> give access in <strong>4. Devices</strong>; &ldquo;Delete&rdquo; an access in <strong>3. Access</strong> or <strong>4. Devices</strong>.</p>
     </div>
     <div class="section-panel">
-      <div class="section-panel-title">3. Access</div>
-      <p class="form-hint">Give a device permission to use the network: pick a device, optionally restrict its QoS profiles, and create the access.</p>
-      <p class="form-hint"><strong>Expected:</strong> the access starts as REQUESTED; the provider then grants or denies it. The device can only use the network while its access is GRANTED and the network is ACTIVATED.</p>
+      <div class="section-panel-title">3. Dismantling</div>
+      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>3.1a</strong> Delete the device accesses and the dedicated network.<br><em>In the portal:</em> &ldquo;Delete&rdquo; in <strong>3. Access</strong> or <strong>4. Devices</strong>, and in <strong>2. Network</strong>.</p>
+      <p class="form-hint"><span class="badge badge-neutral">CSP</span> <strong>3.1b</strong> Or the operator tears the network down.<br><em>In the portal:</em> <strong>2. Network</strong> shows TERMINATED.</p>
     </div>
     <div class="section-panel">
-      <div class="section-panel-title">4. Devices</div>
-      <p class="form-hint">Create devices by phone number (MSISDN), then pick one from the drop-down to give it access to the current network.</p>
-      <p class="form-hint"><strong>Expected:</strong> each device lists every access it is part of, on any network, with its status.</p>
-    </div>
-    <div class="section-panel">
-      <div class="section-panel-title">Shortcut: Quick Booking (a sub-case of steps 1 to 3)</div>
+      <div class="section-panel-title">Shortcut: Quick Booking (a sub-case of steps 1.0b to 1.3)</div>
       <p class="form-hint">Once you know the full path, Quick Booking runs one narrow case of it in a single form: the area is the one found at the location you click, the network uses the profile you pick and runs from now until the time you set, and one access is created for one phone number. Area search options, a later start time, QoS-only networks and more devices are only available in the full path.</p>
       <p class="form-hint"><strong>Expected:</strong> the network and access it creates are the same objects the full path creates, and they appear in the Network, Access and Devices tabs afterwards.</p>
     </div>
@@ -275,7 +276,7 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
 <main class="main map-layout" id="tab-quick" role="tabpanel" aria-labelledby="tabbtn-quick" hidden>
   <div class="map-sidebar" style="width:360px;min-width:320px;">
     <p class="subtitle">Immediate Connectivity Quality</p>
-    <p class="form-hint">Shortcut for one case of steps 1 to 3: area at your location, network from now until the time you set, access for one phone number. See &ldquo;Start here&rdquo;.</p>
+    <p class="form-hint">Shortcut for one case of tabs 1 to 3 (workflow steps 1.0b to 1.3): area at your location, network from now until the time you set, access for one phone number. See &ldquo;Start here&rdquo;.</p>
     <div class="form-row">
       <label class="form-label">Your location</label>
       <p class="form-hint" id="home-location-display">Click on the map or use &ldquo;Use My Location&rdquo;.</p>
