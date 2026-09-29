@@ -233,14 +233,15 @@ export function initStageAccess(nav) {
 
   function startAccessPolling(a) {
     stopPolling();
-    if (a.status === 'GRANTED' || a.status === 'DENIED') return;
+    // DENIED is final; GRANTED can still become DENIED, so keep watching it.
+    if (a.status === 'DENIED') return;
     poller = startPolling(async () => {
       const r = await Api.getAccess(a.id);
       if (!r.ok) return 'fast';
       Object.assign(a, r.data);
       const trackerEl = document.getElementById('access-tracker');
       if (trackerEl) trackerEl.innerHTML = deviceTracker(a.status, a.statusInfo);
-      return (a.status === 'GRANTED' || a.status === 'DENIED') ? 'stop' : 'fast';
+      return a.status === 'DENIED' ? 'stop' : a.status === 'GRANTED' ? 'slow' : 'fast';
     }, { fastMs: 5000, slowMs: 20000 });
   }
 

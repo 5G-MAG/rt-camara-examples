@@ -120,21 +120,30 @@ export function networkTracker(status) {
 }
 
 /**
- * Renders a device's access lifecycle (REQUESTED→GRANTED, with DENIED as a
- * failure branch reachable from either state). `reason` is the optional
- * DeviceStatusInfo/statusInfo object ({code, message}) from the API.
+ * Renders a device's access lifecycle: all three DeviceAccessStatus values
+ * (REQUESTED, GRANTED, DENIED), DENIED being reachable from either of the
+ * other two. `statusInfo` is the API's DeviceAccessStatusInfo, whose
+ * `reason` ({code, message}) says why the status changed; the
+ * ACCESS_REVOKED and ACCESS_FAILED codes mean the access had been GRANTED
+ * before it became DENIED (DedicatedNetworks_GeneralDescription.md, "States
+ * of device access to the network").
  */
-export function deviceTracker(status, reason) {
+const DENIED_AFTER_GRANT = ['ACCESS_REVOKED', 'ACCESS_FAILED'];
+export function deviceTracker(status, statusInfo) {
+  const reason = statusInfo && statusInfo.reason;
   if (status === 'DENIED') {
     const reasonTxt = reason && (REASON_TEXT[reason.code] || reason.message);
+    const wasGranted = !!reason && DENIED_AFTER_GRANT.includes(reason.code);
     return '<div class="lifecycle-row">'
-      + DEVICE_STEPS.map(s => badge(s.key, s.meaning, 'past')).join('')
+      + badge(DEVICE_STEPS[0].key, DEVICE_STEPS[0].meaning, 'past')
+      + badge(DEVICE_STEPS[1].key, DEVICE_STEPS[1].meaning, wasGranted ? 'past' : 'future')
       + badge(DEVICE_DENIED.key, reasonTxt || DEVICE_DENIED.meaning, 'current')
-      + '</div>';
+      + '</div>'
+      + (reason ? `<p class="form-hint">Reason: ${escapeHtml(reason.code || '')}${reason.message ? ' (' + escapeHtml(reason.message) + ')' : ''}</p>` : '');
   }
   const idx = DEVICE_STEPS.findIndex(s => s.key === status);
   return '<div class="lifecycle-row">' + DEVICE_STEPS.map((s, i) => {
     const position = i < idx ? 'past' : i === idx ? 'current' : 'future';
     return badge(s.key, s.meaning, position);
-  }).join('') + '</div>';
+  }).join('') + badge(DEVICE_DENIED.key, DEVICE_DENIED.meaning, 'future') + '</div>';
 }
