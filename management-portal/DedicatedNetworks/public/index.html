@@ -45,6 +45,7 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
 
 <header class="header">
   <nav class="tab-nav" role="tablist">
+    <button id="tabbtn-guide" class="tab-btn" type="button" data-tab="guide" role="tab" aria-selected="false" aria-controls="tab-guide">Start here</button>
     <button id="tabbtn-areas" class="tab-btn active" type="button" data-tab="areas" role="tab" aria-selected="true" aria-controls="tab-areas">1. Areas</button>
     <button id="tabbtn-network" class="tab-btn" type="button" data-tab="network" role="tab" aria-selected="false" aria-controls="tab-network" disabled title="Select an area first">2. Network</button>
     <button id="tabbtn-access" class="tab-btn" type="button" data-tab="access" role="tab" aria-selected="false" aria-controls="tab-access" disabled title="Create a network first">3. Access</button>
@@ -55,6 +56,42 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
 </header>
 
 <div id="toast" role="status" aria-live="polite" hidden></div>
+
+<!-- ═══ TAB: GUIDE (landing) ═══ -->
+<main class="main" id="tab-guide" role="tabpanel" aria-labelledby="tabbtn-guide" style="max-width:800px;" hidden>
+  <p class="subtitle">This portal walks through the four CAMARA Dedicated Networks APIs in the order they depend on each other: find a service area, reserve a network in it, then give devices access to that network. Each tab unlocks once the one before it has what it needs.</p>
+
+  <div class="card" id="guide-workflow">
+    <div class="card-title">How to use this portal</div>
+    <div class="section-panel">
+      <div class="section-panel-title">Before you start: Config</div>
+      <p class="form-hint">Enter the CAMARA API base URLs and OAuth2 credentials. The four dots in the top bar turn green when each API answers.</p>
+    </div>
+    <div class="section-panel">
+      <div class="section-panel-title">1. Areas</div>
+      <p class="form-hint">Load or search the service areas where a dedicated network can be offered (by point, circle, polygon, name or profile). Pick one and click &ldquo;Use This Area&rdquo;.</p>
+      <p class="form-hint"><strong>Expected:</strong> a list of areas on the map; the Network tab unlocks once an area is picked.</p>
+    </div>
+    <div class="section-panel">
+      <div class="section-panel-title">2. Network</div>
+      <p class="form-hint">Request a network in that area: choose a network profile (or a QoS profile) and the service time (start and end).</p>
+      <p class="form-hint"><strong>Expected:</strong> the network starts as REQUESTED; once the provider commits it, it is RESERVED outside the service time and ACTIVATED during it, and finally TERMINATED. The Access tab unlocks once a network exists.</p>
+    </div>
+    <div class="section-panel">
+      <div class="section-panel-title">3. Access</div>
+      <p class="form-hint">Give a device permission to use the network: pick a device, optionally restrict its QoS profiles, and create the access.</p>
+      <p class="form-hint"><strong>Expected:</strong> the access starts as REQUESTED; the provider then grants or denies it. The device can only use the network while its access is GRANTED and the network is ACTIVATED.</p>
+    </div>
+    <div class="section-panel">
+      <div class="section-panel-title">4. Devices</div>
+      <p class="form-hint">Build a local pool of device identities and attach more of them to the current network, one access per device.</p>
+      <p class="form-hint"><strong>Expected:</strong> each attached device shows its access status.</p>
+    </div>
+    <div class="toolbar" style="justify-content:flex-start;">
+      <button class="btn btn-primary" id="guide-start-btn">Start with 1. Areas &rarr;</button>
+    </div>
+  </div>
+</main>
 
 <!-- ═══ TAB: AREAS ═══ -->
 <main class="main map-layout" id="tab-areas" role="tabpanel" aria-labelledby="tabbtn-areas">
