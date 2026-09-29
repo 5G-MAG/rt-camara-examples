@@ -8,18 +8,24 @@ Accesses and Profiles — plus a one-click Quick Booking shortcut.
 The portal walks a user through the full dedicated-network lifecycle as one guided flow —
 **Areas → Network → Access → Devices** — where each stage is disabled with a one-line reason
 until its prerequisite is done, and exercises the full parameter surface of its CAMARA API rather
-than a cut-down subset. A **Quick Booking** tab sits alongside it for the one-click case (pick a
-point on the map, set a phone number and a time window, get a network + access in one request);
-both share the same state, so a network booked via Quick Booking shows up already unlocked in
-Devices.
+than a cut-down subset. A **Start here** tab, shown on a first visit, follows the Dedicated Networks workflow on
+[5g-mag.com](https://www.5g-mag.com/tech/network-apis/content-production/using-dedicated-networks)
+(pre-conditions, before using the network, during operation, dismantling), marks who performs each
+step (application provider or operator) and names the tab that does it. After the four stages,
+**Shortcut: Quick Booking** covers one narrow case of tabs 1 to 3 in a single form (pick a point on the map, set a phone number and a time window, get a
+network and an access in one request); both share the same state, so a network booked through the
+shortcut shows up already unlocked in Devices.
 
 - **Service areas** — search by point, drawn circle or polygon (overlapping/covering), or by
   name / network-profile / QoS-profile filters, combinable
 - **Networks** — reserve by network profile *or* QoS profile, for a chosen area and time window,
   with optional callback (webhook) configuration
-- **Accesses & Devices** — grant a local device identity access to a network; a full lifecycle
-  tracker shows every possible status as a row of badges, with the current one highlighted, so
-  progress is never ambiguous
+- **Accesses** — grant a device access to a network; the tracker always shows the three access
+  states the API defines (REQUESTED, GRANTED, DENIED), highlights the current one and, for a
+  denied access, shows the reason code and message
+- **Devices** — create devices by phone number (MSISDN; kept in the browser, since the Accesses
+  API has no device list), give one access to the current network from a drop-down, and see
+  every access each device is part of, on any network
 - **Live status** — adaptive polling (fast while transitioning or near expiry, slow once stable)
 - **Dark mode**, offline-bundled map assets, no CDN dependency at runtime
 
