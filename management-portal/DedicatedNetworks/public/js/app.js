@@ -59,6 +59,7 @@ window.addEventListener('load', () => {
   // never at its own init time.
   const nav = { goTo: tab => goTo(tab) };
   const controllers = {
+    guide: { activate() {}, deactivate() {} },
     areas: initStageAreas(nav),
     network: initStageNetwork(nav),
     access: initStageAccess(nav),
@@ -70,7 +71,7 @@ window.addEventListener('load', () => {
   // built at any time, independently of where a user is in the guided flow;
   // only *attaching* a pool device to a network still requires one to exist,
   // which stageDevices.js itself checks and explains inline.
-  const ALWAYS_UNLOCKED = ['areas', 'quick', 'config', 'devices'];
+  const ALWAYS_UNLOCKED = ['guide', 'areas', 'quick', 'config', 'devices'];
 
   function goTo(tab) {
     if (!ALWAYS_UNLOCKED.includes(tab) && !wizard.isUnlocked(tab)) return;
@@ -84,6 +85,7 @@ window.addEventListener('load', () => {
     controllers[tab].activate();
   }
   document.querySelectorAll('.tab-btn').forEach(t => t.addEventListener('click', () => goTo(t.dataset.tab)));
+  document.getElementById('guide-start-btn').addEventListener('click', () => goTo('areas'));
 
   function updateTabLocks() {
     const unlocked = wizard.unlockedStages();
@@ -139,10 +141,11 @@ window.addEventListener('load', () => {
   }());
 
   // ── Boot: restore any previous Area/Network/Access, land on the furthest
-  // unlocked tab so a reload doesn't lose place. ──
+  // unlocked tab so a reload doesn't lose place. With nothing restored yet,
+  // land on the guide instead. ──
   wizard.hydrate().then(() => {
     updateTabLocks();
     const unlocked = wizard.unlockedStages();
-    goTo(unlocked[unlocked.length - 1]);
+    goTo(unlocked.length > 1 ? unlocked[unlocked.length - 1] : 'guide');
   });
 });
