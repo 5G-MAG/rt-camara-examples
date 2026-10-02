@@ -34,6 +34,14 @@ from camara.tools.accesses  import register_access_tools
 from camara.tools.areas     import register_area_tools
 from camara.prompts         import register_prompts
 from camara.ui              import build_apps_extension
+from camara.geo             import GEOJSON_LINK_RULE
+
+# Sent to the host at initialisation, so it applies to every tool and prompt.
+SERVER_INSTRUCTIONS = (
+    "CAMARA Dedicated Networks: reserve dedicated network slices, manage device "
+    "access, and browse profiles and service areas.\n\n"
+    "Service areas: " + GEOJSON_LINK_RULE
+)
 
 # ── Create the MCP server instance ────────────────────────────────────────────
 # The Apps extension is fixed at construction time, so it's built first and
@@ -46,6 +54,7 @@ ENABLE_MAP_PICKER = False
 
 mcp = FastMCP(
     "CAMARA Dedicated Networks",
+    instructions=SERVER_INSTRUCTIONS,
     extensions=[build_apps_extension()] if ENABLE_MAP_PICKER else [],
 )
 

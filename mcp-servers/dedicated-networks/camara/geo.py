@@ -3,14 +3,19 @@ camara/geo.py
 ─────────────
 Pure geometry helpers for service-area geometry.
 
-Used by camara_pick_location to compute a bounding box the map view can
-fit(), without pulling in a full GIS dependency. No network calls, no
+Used by the area tools to attach geojson.io links to every service area they
+return, and by camara_pick_location to compute a bounding box the map view
+can fit(), without pulling in a full GIS dependency. No network calls, no
 CAMARA-specific formatting — just plain dicts in, plain dicts out, so this
 is straightforward to unit test.
 
 Exported:
-  area_bounds(area)       → bbox of one area's geometry, or None if malformed
-  combined_bounds(areas)  → bbox covering every area, or None if there are none
+  area_bounds(area)          → bbox of one area's geometry, or None if malformed
+  combined_bounds(areas)     → bbox covering every area, or None if there are none
+  area_geojson_url(area)     → geojson.io link for one area, or None if malformed
+  combined_geojson_url(areas)→ geojson.io link drawing all areas, or None
+  with_geojson_url(area)     → area dict + 'geojsonUrl' (or 'geojsonNote' if malformed)
+  GEOJSON_LINK_RULE          → instruction telling the model to always show the link
 """
 
 import json
@@ -20,6 +25,18 @@ from urllib.parse import quote
 
 # Meters per degree of latitude (~constant on Earth's surface).
 _METERS_PER_DEGREE = 111_320.0
+
+
+# Single source of truth for the rule the model must follow. Reused verbatim in
+# the server instructions and in the workflow prompts; tool docstrings restate it.
+GEOJSON_LINK_RULE = (
+    "Whenever you show the user a service area (its name, id or geometry), "
+    "include that area's GeoJSON map link ('geojsonUrl' in JSON, 'GeoJSON map' "
+    "in Markdown) in your reply, copied in full and unmodified. The only "
+    "exception is when you already gave that exact link in your immediately "
+    "preceding message. If an area has 'geojsonNote' instead of a link, tell "
+    "the user that no map link is available for it."
+)
 
 
 class Bounds(TypedDict):
@@ -163,6 +180,25 @@ def area_geojson_url(area: Dict[str, Any]) -> Optional[str]:
     """geojson.io URL visualising one area, or None if its geometry is unusable."""
     feature = area_to_geojson(area)
     return geojson_url(feature) if feature else None
+
+
+# Shown in place of a link when an area's geometry cannot be drawn, so the
+# absence is explicit rather than silent.
+GEOJSON_UNAVAILABLE_NOTE = "No GeoJSON link: this area's geometry is missing or malformed."
+
+
+def with_geojson_url(area: Dict[str, Any]) -> Dict[str, Any]:
+    """Copy of the area plus 'geojsonUrl', or 'geojsonNote' if it cannot be drawn."""
+    url = area_geojson_url(area)
+    if url:
+        return {**area, "geojsonUrl": url}
+    return {**area, "geojsonNote": GEOJSON_UNAVAILABLE_NOTE}
+
+
+def combined_geojson_url(areas: List[Dict[str, Any]]) -> Optional[str]:
+    """geojson.io URL drawing every drawable area at once, or None if there are none."""
+    collection = areas_to_geojson(areas)
+    return geojson_url(collection) if collection["features"] else None
 
 
 def combined_bounds(areas: List[Dict[str, Any]]) -> Optional[Bounds]:

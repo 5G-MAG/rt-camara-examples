@@ -49,7 +49,10 @@ def test_returns_areas_bounds_and_tile_url(monkeypatch):
 
     result = json.loads(asyncio.run(tool(PickLocationInput())))
 
-    assert result["areas"] == [CIRCLE_AREA]
+    assert len(result["areas"]) == 1
+    assert {k: v for k, v in result["areas"][0].items() if k != "geojsonUrl"} == CIRCLE_AREA
+    assert result["areas"][0]["geojsonUrl"].startswith("https://geojson.io/")
+    assert result["geojsonUrl"].startswith("https://geojson.io/")
     assert result["bounds"] is not None
     assert result["tileUrl"] == picker_module.MAP_TILE_URL
     assert "center" not in result

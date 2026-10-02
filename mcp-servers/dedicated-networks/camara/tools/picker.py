@@ -22,7 +22,7 @@ from mcp.server.apps import Apps
 
 from camara.client import api_request, handle_error
 from camara.config import MAP_TILE_URL
-from camara.geo import combined_bounds
+from camara.geo import combined_bounds, combined_geojson_url, with_geojson_url
 from camara.models import PickLocationInput
 
 AREA_PICKER_URI = "ui://camara/area-picker"
@@ -63,9 +63,14 @@ def register_picker_tool(apps: Apps) -> None:
 
         Returns:
             JSON with: areas (same objects camara_retrieve_service_areas
-            returns), bounds (bounding box of all areas' geometry, so the map
-            can fit them), center/zoom (only present if the caller gave them),
-            and tileUrl.
+            returns, each with its 'geojsonUrl' or 'geojsonNote'), geojsonUrl
+            (one link drawing all areas), bounds (bounding box of all areas'
+            geometry, so the map can fit them), center/zoom (only present if
+            the caller gave them), and tileUrl.
+
+        IMPORTANT: whenever you present an area to the user, also show its
+        GeoJSON map link, copied in full and unmodified. Skip it only if you
+        gave that exact link in your immediately preceding message.
 
         Use when:
             - "I want a dedicated network, let me point at the location on a map"
@@ -85,10 +90,13 @@ def register_picker_tool(apps: Apps) -> None:
             )
 
             result: Dict[str, Any] = {
-                "areas": areas,
+                "areas": [with_geojson_url(a) for a in areas],
                 "bounds": combined_bounds(areas),
                 "tileUrl": MAP_TILE_URL,
             }
+            all_url = combined_geojson_url(areas)
+            if all_url:
+                result["geojsonUrl"] = all_url
             if params.latitude is not None and params.longitude is not None:
                 result["center"] = {"latitude": params.latitude, "longitude": params.longitude}
             if params.zoom is not None:
