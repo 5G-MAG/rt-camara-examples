@@ -409,7 +409,7 @@ Searches for service areas using geographic and/or profile filters. All filters 
 | `byQosProfileName` | string | No | Only areas supporting this QoS profile name. |
 | `response_format` | `markdown` \| `json` | No | Output format. Default: `markdown`. |
 
-**Returns** — Each area contains `id`, `name`, `description`, `area` geometry, `networkProfiles`, and `qosProfiles`, plus a geojson.io URL to view it (see [Visualizing service areas](#visualizing-service-areas-geojson)).
+**Returns** — Each area contains `id`, `name`, `description`, `area` geometry, `networkProfiles`, and `qosProfiles`, plus a geojson.io URL to view it (`geojsonUrl`, or `geojsonNote` if the geometry cannot be drawn). See [Visualizing service areas](#visualizing-service-areas-geojson).
 
 ---
 
@@ -460,12 +460,35 @@ map hosting needed. The GeoJSON is embedded in the URL itself.
 | Tool | Where the URL appears |
 |---|---|
 | `camara_get_area` | Markdown: `GeoJSON map: [View area](…)` line. JSON: `geojsonUrl` field on the area. |
-| `camara_retrieve_service_areas` | Markdown: one link per area. JSON: `geojsonUrl` on each area, plus a top-level `geojsonUrl` showing **all** returned areas together. |
+| `camara_retrieve_service_areas` | Markdown: one link per area, plus an "All areas on one map" link when there are several. JSON: `geojsonUrl` on each area, plus a top-level `geojsonUrl` showing **all** returned areas together. |
+| `camara_pick_location` (when enabled) | JSON: `geojsonUrl` on each area, plus a top-level `geojsonUrl` for all of them. |
 
 Notes:
 - GeoJSON has no circle type, so `CIRCLE` areas are approximated by a 64-point polygon.
-- Areas with missing or malformed geometry get no URL.
-- Areas with many vertices produce long URLs (the whole GeoJSON is in the link).
+- Areas with missing or malformed geometry get no URL. Instead they carry a
+  `geojsonNote` field (JSON) or an "unavailable" line (Markdown), so the absence
+  is always explicit.
+- Areas with many vertices produce long URLs (the whole GeoJSON is in the link):
+  roughly 12,700 characters for a 500-vertex polygon.
+
+### Making sure the link reaches the user
+
+The server attaches the link to every area it returns, but the assistant still
+has to relay it. To make that reliable, the rule is stated in three places:
+
+1. **Server instructions** — sent to the host when the connection is
+   initialised, so they apply to every tool and prompt.
+2. **Tool descriptions** of `camara_retrieve_service_areas`, `camara_get_area`
+   and `camara_pick_location`.
+3. **Workflow prompts** `dedicated_network_workflow` and
+   `discover_profiles_and_areas`.
+
+The rule: whenever an area is shown to the user, include its GeoJSON link, copied
+in full and unmodified — unless that exact link was given in the immediately
+preceding message. Instructions can only guide the assistant, not force it, so
+this is a strong nudge rather than a hard guarantee.
+
+The wording lives in one place, `GEOJSON_LINK_RULE` in `camara/geo.py`.
 
 ---
 
@@ -583,7 +606,8 @@ camara/
   models.py                 Pydantic input models shared across tools.
   formatters.py             Turns API JSON responses into readable Markdown.
   geo.py                    Geometry helpers: bounding boxes and GeoJSON /
-                            geojson.io URL generation for service areas.
+                            geojson.io URL generation for service areas, plus
+                            the rule telling the assistant to show the link.
   ui.py, tools/picker.py    Interactive map picker (currently disabled).
   prompts.py                Registers the four workflow guidance prompts.
   tools/

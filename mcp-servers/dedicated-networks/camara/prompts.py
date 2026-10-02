@@ -60,6 +60,11 @@ your target location.  You can filter by:
 Keep the `id` of the matching area — you will pass it as `serviceAreaId`
 when creating the network.
 
+**Always show the user each area's GeoJSON map link** (`geojsonUrl` /
+"GeoJSON map"), copied in full and unmodified, whenever you present an area.
+Skip it only if you gave that exact link in your immediately preceding message.
+If an area has a `geojsonNote` instead, tell the user no map link is available.
+
 ### 1.2  Reserve the Dedicated Network
 
 Use **`camara_create_network`** with:
@@ -181,6 +186,11 @@ Call **`camara_retrieve_service_areas`** with one or more filters:
 
 From the results, save the **`id`** of the area that covers your target location.
 This becomes the `serviceAreaId` for `camara_create_network`.
+
+**Always show the user each area's GeoJSON map link** (`geojsonUrl` /
+"GeoJSON map"), copied in full and unmodified, whenever you present an area.
+Skip it only if you gave that exact link in your immediately preceding message.
+If an area has a `geojsonNote` instead, tell the user no map link is available.
 
 ## Next step
 
