@@ -14,6 +14,8 @@ between dedicated-network.yaml and dedicated-network-accesses.yaml.
 Collapsed by default via the shared .advanced-fields <details> pattern.
 */
 
+import { Api } from './api.js';
+
 const CRED_FIELDS = {
   PLAIN: [
     { id: 'identifier', label: 'Identifier', type: 'text' },
@@ -38,7 +40,7 @@ export function renderCallbackConfig(container, idPrefix) {
       <div class="form-row">
         <label class="form-label" for="${idPrefix}-sink">Sink URL</label>
         <input type="text" id="${idPrefix}-sink" placeholder="https://example.com/webhook" />
-        <p class="form-hint">Optional — leave blank to use this portal's default webhook receiver.</p>
+        <p class="form-hint" id="${idPrefix}-sink-hint">Optional. Leave blank for this portal's default receiver.</p>
       </div>
       <div class="form-row">
         <label class="form-label" for="${idPrefix}-cred-type">Sink credential</label>
@@ -68,6 +70,14 @@ export function renderCallbackConfig(container, idPrefix) {
     `).join('');
   }
   credTypeSel.addEventListener('change', () => renderFields(credTypeSel.value));
+
+  const hintEl = container.querySelector(`#${idPrefix}-sink-hint`);
+  Api.getConfig().then(r => {
+    const base = r.ok ? String(r.data.SINK_BASE_URL || '').replace(/\/+$/, '') : '';
+    hintEl.textContent = base && !base.includes('undefined')
+      ? `Optional. Leave blank to send events to this portal at ${base}.`
+      : 'Optional. SINK_BASE_URL is not set, so leaving this blank means no callbacks.';
+  });
 
   return {
     reset() {

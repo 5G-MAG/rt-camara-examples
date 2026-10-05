@@ -21,9 +21,16 @@ import { wizard } from './wizard.js';
 import { startPolling } from './polling.js';
 import { renderCallbackConfig } from './callbackConfig.js';
 import { loadPool, addToPool, toApiDevice, identifierLine } from './devicePool.js';
+import { eventRef, mountCallbackPanel, subscribeCallbacks } from './callbackLog.js';
 
 export function initStageAccess(nav) {
   let poller = null;
+
+  mountCallbackPanel(document.getElementById('access-callbacks'), 'accesses');
+  subscribeCallbacks(ev => {
+    const { accessId } = eventRef(ev);
+    if (poller && accessId && wizard.access && accessId === wizard.access.id) poller.now();
+  });
 
   wizard.onChange(() => { if (!document.getElementById('tab-access').hidden) render(); });
 
