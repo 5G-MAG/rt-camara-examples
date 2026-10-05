@@ -21,6 +21,7 @@ import {
 import { wizard } from './wizard.js';
 import { startPolling } from './polling.js';
 import { renderCallbackConfig } from './callbackConfig.js';
+import { eventRef, mountCallbackPanel, subscribeCallbacks } from './callbackLog.js';
 
 function loadJSON(key, fallback) { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch (_) { return fallback; } }
 function saveJSON(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (_) {} }
@@ -29,6 +30,12 @@ export function initStageNetwork(nav) {
   let poller = null;
   let miniMap = null;
   const nicknames = loadJSON('dn_network_nicknames', {}); // networkId -> local nickname
+
+  mountCallbackPanel(document.getElementById('network-callbacks'), 'networks');
+  subscribeCallbacks(ev => {
+    const { networkId } = eventRef(ev);
+    if (poller && networkId && wizard.network && networkId === wizard.network.id) poller.now();
+  });
 
   function displayName(n) { return (n && (nicknames[n.id] || n.name)) || (n && n.id) || 'Unnamed'; }
 
