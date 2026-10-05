@@ -63,6 +63,7 @@ export const Api = {
   deleteAccess: id => req(`/api/accesses/${id}`, { method: 'DELETE' }),
 
   sandboxHealth: () => req('/api/sandbox-health'),
+  notifications: () => req('/api/webhooks/notifications'),
 
   // Config
   getConfig: () => req('/api/config'),

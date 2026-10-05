@@ -21,6 +21,7 @@ import { initStageAccess } from './modules/stageAccess.js';
 import { initStageDevices } from './modules/stageDevices.js';
 import { initQuickBooking } from './modules/quickBooking.js';
 import { initStageConfig } from './modules/stageConfig.js';
+import { startCallbackLog } from './modules/callbackLog.js';
 
 window.addEventListener('load', () => {
 
@@ -67,6 +68,7 @@ window.addEventListener('load', () => {
     quick: initQuickBooking(nav),
     config: initStageConfig()
   };
+  startCallbackLog();
   // Devices is always reachable — the local device pool (identities) can be
   // built at any time, independently of where a user is in the guided flow;
   // only *attaching* a pool device to a network still requires one to exist,

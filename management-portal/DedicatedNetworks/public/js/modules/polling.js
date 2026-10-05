@@ -21,24 +21,33 @@ homeStartPolling).
  *   'stop' once nothing will ever change again (e.g. TERMINATED, or a
  *   DENIED device access; GRANTED can still become DENIED).
  * @param {{fastMs?: number, slowMs?: number}} opts
- * @returns {{stop(): void}}
+ * @returns {{stop(): void, now(): void}}
  */
 export function startPolling(tick, { fastMs = 5000, slowMs = 30000 } = {}) {
   let timer = null;
   let stopped = false;
+  let busy = false;
 
   async function run() {
-    if (stopped) return;
+    if (stopped || busy) return;
+    busy = true;
     let pace = 'slow';
     try {
       pace = await tick();
     } catch (_) {
       pace = 'fast'; // transient network error — retry soon rather than going quiet
+    } finally {
+      busy = false;
     }
     if (stopped || pace === 'stop') return;
+    clearTimeout(timer);
     timer = setTimeout(run, pace === 'fast' ? fastMs : slowMs);
   }
 
   timer = setTimeout(run, fastMs);
-  return { stop() { stopped = true; clearTimeout(timer); } };
+  return {
+    stop() { stopped = true; clearTimeout(timer); },
+    // Runs the tick immediately, e.g. when a callback reports a change.
+    now() { if (!stopped) { clearTimeout(timer); run(); } }
+  };
 }

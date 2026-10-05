@@ -7,9 +7,10 @@ For full license terms please see the LICENSE file distributed with this
 program. If this file is missing then the license can be retrieved from
 https://hub.5g-mag.com/Getting-Started/OFFICIAL_5G-MAG_Public_License_v1.0.pdf
 
-Stage 2 — Network. Create form exposes the full CreateNetwork body (name,
-networkProfileId XOR qosProfileName, serviceTime, callback config) scoped to
-the area picked in Stage 1; detail view shows the full lifecycle tracker.
+Stage 2 — Network. Create form exposes the CreateNetwork body (networkProfileId
+XOR qosProfileName, serviceTime, callback config) scoped to the area picked in
+Stage 1; the optional name is kept as a local nickname only. Detail view shows
+the full lifecycle tracker.
 */
 
 import { Api, resolveProfileName } from './api.js';
@@ -20,6 +21,7 @@ import {
 import { wizard } from './wizard.js';
 import { startPolling } from './polling.js';
 import { renderCallbackConfig } from './callbackConfig.js';
+import { eventRef, mountCallbackPanel, subscribeCallbacks } from './callbackLog.js';
 
 function loadJSON(key, fallback) { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch (_) { return fallback; } }
 function saveJSON(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (_) {} }
@@ -28,6 +30,12 @@ export function initStageNetwork(nav) {
   let poller = null;
   let miniMap = null;
   const nicknames = loadJSON('dn_network_nicknames', {}); // networkId -> local nickname
+
+  mountCallbackPanel(document.getElementById('network-callbacks'), 'networks');
+  subscribeCallbacks(ev => {
+    const { networkId } = eventRef(ev);
+    if (poller && networkId && wizard.network && networkId === wizard.network.id) poller.now();
+  });
 
   function displayName(n) { return (n && (nicknames[n.id] || n.name)) || (n && n.id) || 'Unnamed'; }
 
@@ -197,7 +205,6 @@ export function initStageNetwork(nav) {
         ...callbackCfg.getValue()
       };
       const nameVal = document.getElementById('net-name').value.trim();
-      if (nameVal) reqBody.name = nameVal;
 
       btn.textContent = 'Creating…'; btn.disabled = true;
       const r = await Api.createNetwork(reqBody);
