@@ -28,7 +28,7 @@
 
 |  |  |
 |---|---|
-| **Supports** | [CAMARA](https://camaraproject.org/) APIs: Dedicated Networks (Networks, Network Profiles, Device Accesses and Service Areas), QoS Booking, Quality on Demand |
+| **Supports** | [CAMARA](https://camaraproject.org/) Dedicated Networks APIs in the portal and the MCP server; Insomnia collections also cover QoS Booking and Quality on Demand |
 | **Part of** | [CAMARA Connectivity Quality Management APIs](https://www.5g-mag.com/reference-tools/network-apis/) |
 
 ## Introduction
@@ -73,6 +73,26 @@ API collections ready to import into [Insomnia](https://insomnia.rest/):
 | [`Insomnia_Using_DedicatedNetworks.yaml`](./insomnia/Insomnia_Using_DedicatedNetworks.yaml) | Dedicated Networks, Profiles, Accesses |
 | [`Insomnia_Using_QoSBooking.yaml`](./insomnia/Insomnia_Using_QoSBooking.yaml) | QoS Booking |
 | [`Insomnia_Using_QualityonDemand.yaml`](./insomnia/Insomnia_Using_QualityonDemand.yaml) | Quality on Demand |
+
+## APIs and versions
+
+The table lists every CAMARA API this repository calls, the path prefix the code and collections use,
+and the specification revision checked for it.
+
+| CAMARA API | Path prefix used here | Spec revision checked | Commonalities | Used by |
+|---|---|---|---|---|
+| Dedicated Network: Networks | `dedicated-network/v0.2-wip` | `0.2.0-rc.1` | `0.8.0` | Portal, MCP server, Insomnia |
+| Dedicated Network: Network Profiles | `dedicated-network-profiles/v0.2-wip` | `0.2.0-rc.1` | `0.8.0` | Portal, MCP server, Insomnia |
+| Dedicated Network: Device Accesses | `dedicated-network-accesses/v0.2-wip` | `0.2.0-rc.1` | `0.8.0` | Portal, MCP server, Insomnia |
+| Dedicated Network: Service Areas | `dedicated-network-areas/v0.1-wip` | `0.1.0-rc.1` | `0.8.0` | Portal, MCP server, Insomnia |
+| QoS Booking | `qos-bookings`, `device-qos-bookings` | not pinned | not pinned | Insomnia |
+| Quality on Demand | `qos-assignments`, `sessions`, `retrieve-qos-profiles` | not pinned | not pinned | Insomnia |
+
+- The spec revisions are the CAMARA sources at tag `r2.2` of
+  [camaraproject/DedicatedNetworks](https://github.com/camaraproject/DedicatedNetworks), read from each
+  file's `info` block. The `main` branch is labelled `wip` and differs from `r2.2`.
+- The sandbox behaves differently from the spec in two places: it rejects `name` on a network, and it
+  takes one device per access (`device`, not `devices`). The code follows the sandbox.
 
 ## Contributing
 
