@@ -11,3 +11,11 @@ This software contains dependencies with the following open-source projects:
 - CAMARA Project - Quality on Demand
   available at https://github.com/camaraproject/QualityOnDemand
   Licensed under Apache License 2.0 (https://github.com/camaraproject/QualityOnDemand/blob/main/LICENSE)
+
+- Leaflet
+  available at https://github.com/Leaflet/Leaflet
+  Licensed under BSD 2-Clause License
+
+- Leaflet Control Geocoder
+  available at https://github.com/perliedman/leaflet-control-geocoder
+  Licensed under BSD 2-Clause License
