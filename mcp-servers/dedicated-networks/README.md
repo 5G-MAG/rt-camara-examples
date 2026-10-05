@@ -6,16 +6,8 @@ A Python MCP server that lets Claude Desktop call the four CAMARA Dedicated Netw
 
 ## API versions
 
-This server was built against the following CAMARA API definitions (OpenAPI `3.0.3`):
-
-| API | Title | API version | Path version | Commonalities |
-|-----|-------|-------------|--------------|---------------|
-| Networks | `Dedicated Network - Networks` | `wip` | `v0` | `0.6` |
-| Network Profiles | `Dedicated Network - Network Profiles` | `wip` | `v0` | `0.6` |
-| Device Accesses | `Dedicated Network - Accesses` | `wip` | `v0` | `0.6` |
-| Service Areas | `Dedicated Network - Areas` | `wip` | `v0` | `0.6` |
-
-> `wip` ("work in progress") is the version label carried in the CAMARA source specs at the time this server was built. As the CAMARA APIs stabilise into numbered releases, update the tool implementations accordingly.
+The versions and paths this server uses are listed in the
+[root README](../../README.md#apis-and-versions).
 
 ---
 
