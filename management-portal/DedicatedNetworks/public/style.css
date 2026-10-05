@@ -1,0 +1,277 @@
+/* Shared 5G-MAG look and feel (design tokens, cards, tab bar, buttons, badges,
+   toast, dark mode) -- generic UI chrome common across the 5G-MAG reference
+   tools family (rt-mbs-application-provider, rt-media-server, ...), copied
+   verbatim rather than reinvented. App-specific additions are appended at
+   the bottom, clearly marked, same convention those repos use for their own
+   one-off needs. */
+
+:root {
+  --bg: #f8fafc; --surface: #ffffff; --surface-2: #f7fafc; --border: #e2e8f0;
+  --text: #212529; --text-2: #475569; --text-3: #64748b; --accent: #00a0d2;
+  --success: #1e8a4c; --danger: #d9534f; --warning: #b9770e; --reserved: #7c3aed; --radius: 10px;
+  --font-mono: ui-monospace, 'SF Mono', 'Fira Code', monospace;
+}
+:root[data-theme="dark"] {
+  --bg: #0d0d0f; --surface: #17181c; --surface-2: #1e2126; --border: rgba(255,255,255,0.08);
+  --text: #e8e8ed; --text-2: #b0b0bb; --text-3: #83879a; --accent: #00a0d2;
+  --success: #30d158; --danger: #ff453a; --warning: #ff9f0a; --reserved: #af52de;
+}
+:root[data-theme="dark"] .btn-ghost { color: #4dc8ea; }
+:root[data-theme="dark"] .btn-ghost:hover { background: rgba(77,200,234,0.12); color: #7fdcf5; }
+:root[data-theme="dark"] input[type="number"],
+:root[data-theme="dark"] input[type="text"],
+:root[data-theme="dark"] input[type="tel"],
+:root[data-theme="dark"] input[type="datetime-local"],
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea { border-color: rgba(255,255,255,0.15); }
+:root[data-theme="dark"] input:focus,
+:root[data-theme="dark"] select:focus,
+:root[data-theme="dark"] textarea:focus { background: var(--surface-2); }
+:root[data-theme="dark"] select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23b0b0bb'/%3E%3C/svg%3E");
+}
+:root[data-theme="dark"] #toast { background: var(--surface-2); }
+:root[data-theme="dark"] .badge-success { background: rgba(48,209,88,0.16); }
+:root[data-theme="dark"] .badge-warning { background: rgba(255,159,10,0.16); }
+:root[data-theme="dark"] .badge-danger  { background: rgba(255,69,58,0.16); }
+:root[data-theme="dark"] .badge-reserved { background: rgba(175,82,222,0.18); }
+:root[data-theme="dark"] .badge-neutral { background: rgba(255,255,255,0.08); }
+:root[data-theme="dark"] #toast.success { border-color: rgba(48,209,88,0.35); }
+:root[data-theme="dark"] #toast.error   { border-color: rgba(255,69,58,0.35); }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
+html, body {
+  height: 100%; background: var(--bg); color: var(--text);
+  font-family: 'Poppins', system-ui, sans-serif;
+  /* Match rt-media-server's actual base exactly (not just its rem ratios) —
+     everything else in this file is sized in rem off this. */
+  font-size: 14px; -webkit-font-smoothing: antialiased;
+}
+
+/* Secondary toolbar header (below the shared 5G-MAG blue bar) */
+.header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 0 1.5rem; height: 56px;
+  display: flex; align-items: center; justify-content: center; gap: 1rem;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+/* Tab bar */
+.tab-nav { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+.tab-btn {
+  background: transparent; border: 1px solid transparent; color: var(--text-3);
+  font-size: 0.92rem; font-weight: 600; padding: 0.5rem 1.05rem; border-radius: var(--radius);
+  cursor: pointer; font-family: inherit; transition: background 0.15s, color 0.15s;
+}
+.tab-btn:hover { background: rgba(0,160,210,0.06); color: var(--text); }
+.tab-btn.active { background: rgba(0,160,210,0.14); border-color: rgba(0,160,210,0.35); color: var(--accent); }
+.tab-dot {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 0.45rem;
+  vertical-align: middle; background: var(--text-3); opacity: 0.45; transition: background 0.2s, opacity 0.2s;
+}
+.tab-dot.up   { background: #22c55e; opacity: 1; box-shadow: 0 0 6px rgba(34,197,94,0.5); animation: tab-status-blink 1.6s ease-in-out infinite; }
+.tab-dot.down { background: #e55353; opacity: 1; box-shadow: none; animation: none; }
+@keyframes tab-status-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+@media (prefers-reduced-motion: reduce) { .tab-dot.up { animation: none; } }
+
+.btn {
+  border: none; border-radius: var(--radius); cursor: pointer;
+  font-size: 0.84rem; font-weight: 600; padding: 0.4rem 1rem;
+  font-family: inherit; transition: filter 0.15s, background 0.15s;
+  line-height: 1; display: inline-flex; align-items: center; justify-content: center;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-ghost   { background: transparent; color: #2994c7; border: 1px solid var(--border); }
+.btn-ghost:hover { background: rgba(41,148,199,0.08); color: #197e9d; }
+.btn-ghost.active { background: rgba(0,160,210,0.14); border-color: rgba(0,160,210,0.35); color: var(--accent); }
+.btn-danger  { background: var(--danger); color: #fff; }
+.btn-sm { font-size: 0.78rem; padding: 0.3rem 0.75rem; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; filter: none; }
+
+/* Toast */
+#toast {
+  position: fixed; bottom: 1.25rem; right: 1.25rem; z-index: 500;
+  background: #fff; border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 0.6rem 1.1rem;
+  font-size: 0.85rem; color: var(--text-2); max-width: 420px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  animation: toast-in 0.2s ease;
+}
+#toast.success { border-color: rgba(30,138,76,0.35); color: var(--success); }
+#toast.error   { border-color: rgba(217,83,79,0.35); color: var(--danger); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } }
+
+/* Main layout */
+.main { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+.subtitle { color: var(--text-2); margin: 0 0 1.5rem; font-size: 0.92rem; line-height: 1.5; }
+.toolbar { display: flex; align-items: center; justify-content: flex-end; gap: 0.6rem; margin-top: 0.6rem; margin-bottom: 1rem; }
+
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.4rem 1.6rem; margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.card-title {
+  font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: #fff;
+  background: var(--accent);
+  margin: -1.4rem -1.6rem 1.2rem;
+  padding: 0.7rem 1.6rem;
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.card-parent-label {
+  font-size: 0.8rem; color: var(--text-2); margin: -0.4rem 0 1rem;
+}
+.card-parent-label strong { color: var(--text); }
+
+.list-row-clickable {
+  cursor: pointer; border-radius: 6px; padding: 0.4rem 0.5rem; margin: 0 -0.5rem;
+  transition: background 0.12s ease;
+}
+.list-row-clickable:hover, .list-row-clickable:focus-visible {
+  background: rgba(0,160,210,0.1);
+  outline: none;
+}
+.list-row-clickable.active { background: rgba(0,160,210,0.14); }
+:root[data-theme="dark"] .list-row-clickable:hover,
+:root[data-theme="dark"] .list-row-clickable:focus-visible {
+  background: rgba(0,160,210,0.16);
+}
+
+table { width: 100%; border-collapse: collapse; }
+td, th {
+  text-align: left; padding: 0.55rem 0.4rem;
+  border-bottom: 1px solid var(--border); vertical-align: middle;
+}
+tbody tr:last-child td { border-bottom: none; }
+.field-key {
+  display: block; font-family: var(--font-mono);
+  font-size: 0.8rem; color: var(--text-3); margin-top: 2px;
+}
+code { font-family: var(--font-mono); font-size: 0.9em; }
+
+input[type="number"], input[type="text"], input[type="tel"], input[type="datetime-local"], select, textarea {
+  width: 100%;
+  background: var(--surface-2); border: 1.5px solid #c7d2dc;
+  border-radius: 8px; padding: 0.42rem 0.7rem; color: var(--text);
+  font-size: 0.95rem; font-family: inherit; outline: none;
+  transition: border-color 0.15s;
+}
+input[type="number"] { max-width: 220px; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); background: #fff; }
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2364748b'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 0.7rem center; padding-right: 2rem;
+}
+textarea { resize: vertical; min-height: 4.5rem; font-family: var(--font-mono); font-size: 0.85rem; }
+
+.form-row { margin-bottom: 1rem; }
+.form-row:last-child { margin-bottom: 0; }
+.form-label { display: block; font-weight: 600; color: var(--text); font-size: 0.95rem; margin-bottom: 0.4rem; }
+.form-hint { color: var(--text-3); font-size: 0.82rem; margin-top: 0.3rem; line-height: 1.45; }
+
+.status-line { margin-top: 1rem; font-size: 0.8rem; color: var(--text-3); }
+.status-line.status-success { color: var(--success); font-weight: 600; }
+.status-line.status-error { color: var(--danger); font-weight: 600; }
+
+/* Countdown text (service-time remaining) — same semantics as a status line
+   but inline, no top margin: amber while awaiting activation, green while
+   actively counting down, red once expired, grey once terminated/unknown. */
+.countdown-pending { color: var(--warning); font-weight: 600; }
+.countdown-active  { color: var(--success); font-weight: 600; }
+.countdown-expired { color: var(--danger);  font-weight: 600; }
+.countdown-muted   { color: var(--text-3); }
+
+.badge {
+  display: inline-block; border-radius: 4px; padding: 2px 8px;
+  font-size: 0.78rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase;
+}
+.badge-success { background: rgba(30,138,76,0.12);  color: var(--success); }
+.badge-warning { background: rgba(185,119,14,0.12); color: var(--warning); }
+.badge-danger  { background: rgba(217,83,79,0.12);  color: var(--danger); }
+.badge-reserved { background: rgba(124,58,237,0.12); color: var(--reserved); }
+.badge-neutral { background: rgba(100,116,139,0.10); color: var(--text-2); }
+
+pre {
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 0.8rem; overflow-x: auto; font-size: 0.82rem;
+}
+
+.field-name { font-weight: 600; color: var(--text); font-size: 0.98rem; }
+
+.alert-banner {
+  display: flex; align-items: center; gap: 0.6rem;
+  background: rgba(185,119,14,0.1); border: 1px solid rgba(185,119,14,0.35);
+  color: var(--warning); border-radius: var(--radius); padding: 0.7rem 1rem;
+  font-size: 0.82rem; margin-bottom: 1rem;
+}
+:root[data-theme="dark"] .alert-banner { background: rgba(255,159,10,0.1); border-color: rgba(255,159,10,0.35); }
+
+/* A resource's fields were previously flat; group related ones under a real bordered
+   panel + a strong header instead (same idea as rt-media-server's Output format/Transport
+   panels). Used here for the Network/Access create forms' field groups. */
+.section-panel { border: 1px solid var(--border); border-radius: 8px; padding: 0.8rem 1rem 1rem; margin: 1rem 0; background: var(--surface); }
+.section-panel-title {
+  font-size: 0.78rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--accent); margin: 0 0 0.7rem;
+}
+
+/* Basic vs advanced: native <details>, no JS state to manage, collapsed by default. */
+.advanced-fields { margin-top: 0.8rem; border-top: 1px dashed var(--border); padding-top: 0.6rem; }
+.advanced-fields > summary {
+  cursor: pointer; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.03em;
+  color: var(--text-3); list-style: none;
+}
+.advanced-fields > summary::-webkit-details-marker { display: none; }
+.advanced-fields > summary::before { content: '\25b8  '; }
+.advanced-fields[open] > summary::before { content: '\25be  '; }
+
+/* ────────────────────────────────────────────────────────────────────────
+   App-specific additions below this line (not part of the shared 5G-MAG
+   style sheet above). Kept minimal and built from the same tokens/classes.
+   ──────────────────────────────────────────────────────────────────────── */
+
+/* Areas/Network/Access tabs need a map + list side by side, unlike the
+   single-column .main used by the reference apps' plain CRUD forms -- a
+   functional requirement (Leaflet needs width), not a style choice. */
+.map-layout { max-width: none; padding: 0; height: calc(100vh - 76px - 56px); display: flex; }
+.map-sidebar { width: 280px; min-width: 240px; border-right: 1px solid var(--border); background: var(--surface); padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; }
+#map, #home-map { flex: 1; min-width: 0; }
+#map.draw-mode { cursor: crosshair !important; }
+.map-right-panel { width: 340px; min-width: 300px; border-left: 1px solid var(--border); background: var(--bg); overflow-y: auto; padding: 1rem; }
+
+.leaflet-locate-btn {
+  background: var(--surface); border: none; border-radius: 8px; padding: 5px 10px;
+  font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: inherit;
+  box-shadow: 0 1px 4px rgba(0,0,0,.2); color: var(--text); white-space: nowrap;
+}
+.leaflet-locate-btn:hover { background: var(--surface-2); }
+
+/* Lifecycle progress: the full state machine as a row of badges, current one
+   accented -- same .badge vocabulary as everywhere else, just several in a
+   row instead of one. "List every status, mark the ones already reached." */
+.lifecycle-row { display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; margin: 0.5rem 0; }
+.lifecycle-row .badge { opacity: 1; }
+.lifecycle-row .badge.is-future { opacity: 0.45; }
+
+.empty-hint { color: var(--text-3); font-size: 0.85rem; padding: 1rem 0; text-align: center; }
+
+/* Sandbox connectivity dots in the blue bar need a visible label next to
+   them (the reference apps' .tab-dot always sits beside tab text on a white
+   background; on the blue bar there's no tab label to borrow, so give each
+   one its own). */
+.health-indicator { display: inline-flex; align-items: center; color: #fff; font-size: 0.8rem; white-space: nowrap; gap: 2px; }
+
+/* Network profile detail popup — native <dialog>, same pattern as rt-media-server's
+   file-browse dialog (backdrop, focus trap and Escape-to-dismiss come free). */
+/* The shared reset's `* { margin: 0 }` above also zeroes dialog's own
+   default `margin: auto`, which is what the browser uses to center it (it
+   already sets position:fixed/inset itself for the modal case) — restore
+   just the margin or it sticks to the top-left corner. */
+#profile-dialog { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; width: 420px; max-width: 92vw; margin: auto; }
+#profile-dialog::backdrop { background: rgba(0,0,0,0.45); }
