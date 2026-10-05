@@ -275,3 +275,114 @@ pre {
    just the margin or it sticks to the top-left corner. */
 #profile-dialog { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; width: 420px; max-width: 92vw; margin: auto; }
 #profile-dialog::backdrop { background: rgba(0,0,0,0.45); }
+
+/* ── Network APIs content-production: phase/procedure timeline ─────
+   Used by the "General Workflow" figures on the CAMARA content-production
+   walkthrough pages (using-dedicated-networks, using-qos-booking,
+   using-qos-booking-assignment, using-quality-on-demand): a coloured
+   phase header (.p-header, background set inline per phase) followed by
+   its .p-entry rows, each showing which actor (.p-pill-asp / .p-pill-csp,
+   optionally both joined by .p-plus-sign) performs a step. ──────────── */
+.proc-wrapper {
+  display: flex;
+  flex-direction: column;
+  margin: 1.25rem 0 1.75rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.p-header {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 1rem;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+.p-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: #fff;
+  font-weight: 800;
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+.p-entry {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.55rem 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.p-actors {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  width: 3.25rem;
+}
+
+.p-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.p-pill-asp {
+  background: #2f6fed;
+}
+
+.p-pill-csp {
+  background: #5a6b7d;
+}
+
+.p-plus-sign {
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-3);
+}
+
+.p-content,
+.p-content-a,
+.p-content-m {
+  flex: 1;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.p-content-a {
+  font-weight: 600;
+}
+
+.p-content-m {
+  font-style: italic;
+  color: var(--text-2);
+}
+
+@media (max-width: 640px) {
+  .p-entry {
+    align-items: flex-start;
+  }
+}
