@@ -14,10 +14,11 @@ Call register_area_tools(mcp) once from server.py to activate both tools.
 import json
 from typing import Any, Dict, List
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer as FastMCP
 
 from camara.client import api_request, handle_error
 from camara.formatters import fmt_area
+from camara.geo import combined_geojson_url, with_geojson_url
 from camara.models import GetAreaInput, ResponseFormat, RetrieveAreasInput
 
 
@@ -63,7 +64,14 @@ def register_area_tools(mcp: FastMCP) -> None:
         Returns:
             List of matching service areas. Each has: id (use as serviceAreaId),
             name, description, area (CIRCLE or POLYGON with coordinates),
-            networkProfiles, qosProfiles.
+            networkProfiles, qosProfiles, plus a GeoJSON map link
+            ('geojsonUrl' in JSON, 'GeoJSON map' in Markdown; 'geojsonNote'
+            instead if the geometry cannot be drawn). With several areas, a
+            link drawing all of them together is also returned.
+
+        IMPORTANT: always show the user each area's GeoJSON map link, copied in
+        full and unmodified, whenever you present an area. Skip it only if you
+        gave that exact link in your immediately preceding message.
 
         Use when:
             - "Find service areas near latitude 50.74, longitude 7.10"
@@ -85,18 +93,27 @@ def register_area_tools(mcp: FastMCP) -> None:
             if params.byQosProfileName:
                 body["byQosProfileName"] = params.byQosProfileName
 
-            areas: List[Dict[str, Any]] = await api_request(
-                "areas", "/retrieve-service-areas", method="POST", body=body
+            areas: List[Dict[str, Any]] = (
+                await api_request("areas", "/retrieve-service-areas", method="POST", body=body)
+                or []
             )
+            all_url = combined_geojson_url(areas)
 
             if params.response_format == ResponseFormat.JSON:
-                return json.dumps({"areas": areas, "count": len(areas)}, indent=2)
+                result: Dict[str, Any] = {
+                    "areas": [with_geojson_url(a) for a in areas],
+                    "count": len(areas),
+                }
+                if all_url:
+                    result["geojsonUrl"] = all_url
+                return json.dumps(result, indent=2)
 
             if not areas:
                 return "No service areas found matching the given criteria."
-            return f"# Network Service Areas ({len(areas)})\n\n" + "\n".join(
-                fmt_area(a) for a in areas
-            )
+            header = f"# Network Service Areas ({len(areas)})\n\n"
+            if len(areas) > 1 and all_url:
+                header += f"**All areas on one map**: [View all areas]({all_url})\n\n"
+            return header + "\n".join(fmt_area(a) for a in areas)
 
         except Exception as e:
             return handle_error(e)
@@ -125,7 +142,13 @@ def register_area_tools(mcp: FastMCP) -> None:
 
         Returns:
             Area details: id, name, description, area geometry (CIRCLE or POLYGON),
-            networkProfiles, qosProfiles.
+            networkProfiles, qosProfiles, plus a GeoJSON map link ('geojsonUrl'
+            in JSON, 'GeoJSON map' in Markdown; 'geojsonNote' instead if the
+            geometry cannot be drawn).
+
+        IMPORTANT: always show the user the area's GeoJSON map link, copied in
+        full and unmodified, whenever you present the area. Skip it only if you
+        gave that exact link in your immediately preceding message.
 
         Errors:
             404 — area not found; verify the areaId UUID.
@@ -138,7 +161,7 @@ def register_area_tools(mcp: FastMCP) -> None:
             area: Dict[str, Any] = await api_request("areas", f"/areas/{params.areaId}")
 
             if params.response_format == ResponseFormat.JSON:
-                return json.dumps(area, indent=2)
+                return json.dumps(with_geojson_url(area), indent=2)
             return f"# Network Service Area\n\n{fmt_area(area)}"
 
         except Exception as e:

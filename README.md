@@ -59,10 +59,8 @@ Profiles), with a one-click Quick Booking shortcut. What it does and how to run 
 
 ### MCP server: Dedicated Networks
 
-A [Model Context Protocol](https://modelcontextprotocol.io/) server, in Python, that exposes the
-same four CAMARA Dedicated Networks APIs as tools an AI assistant, such as Claude Desktop, can call
-directly. Installation, configuration and the available tools are in the
-[server README](./mcp-servers/dedicated-networks/README.md).
+A Python [Model Context Protocol](https://modelcontextprotocol.io/) server exposing the four CAMARA Dedicated Networks APIs (Networks, Network Profiles, Device Accesses and Service Areas) as **12 tools**, plus **4 guided workflow prompts**. It lets an assistant discover profiles and service areas, reserve and monitor dedicated networks, and grant or revoke device access through natural language. Service areas are returned with a [geojson.io](https://geojson.io) link so they can be viewed on a map.
+Installation, configuration and the available tools are in the [server README](./mcp-servers/dedicated-networks/README.md).
 
 ### Insomnia collections
 
@@ -99,8 +97,6 @@ and the specification revision checked for it.
 Contributions are welcome. How to raise an issue, fork the repository and open a pull request, and
 the Contributor License Agreement required before code can be merged, are described at
 <https://www.5g-mag.com/contributing>.
-
-## License
 
 Distributed under the 5G-MAG Public License v1.0. See [LICENSE](LICENSE). Third-party
 dependencies are listed in [ATTRIBUTION_NOTICE](ATTRIBUTION_NOTICE).
