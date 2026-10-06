@@ -16,6 +16,8 @@ Exported:
 
 from typing import Any, Dict, List
 
+from camara.geo import GEOJSON_UNAVAILABLE_NOTE, area_geojson_url
+
 
 # ─── Networks ──────────────────────────────────────────────────────────────────
 
@@ -136,6 +138,12 @@ def fmt_area(area: Dict[str, Any]) -> str:
         lines.append(f"- **Geography**: Polygon — {pts}")
     else:
         lines.append(f"- **Geography**: {area_type}")
+
+    url = area_geojson_url(area)
+    if url:
+        lines.append(f"- **GeoJSON map**: [View area]({url})")
+    else:
+        lines.append(f"- **GeoJSON map**: unavailable — {GEOJSON_UNAVAILABLE_NOTE}")
 
     if area.get("networkProfiles"):
         lines.append(f"- **Network Profiles**: {', '.join(area['networkProfiles'])}")
