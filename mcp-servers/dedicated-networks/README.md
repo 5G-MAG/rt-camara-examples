@@ -6,16 +6,21 @@ A Python MCP server that lets Claude Desktop call the four CAMARA Dedicated Netw
 
 ## API versions
 
-This server was built against the following CAMARA API definitions (OpenAPI `3.0.3`):
+This server was built against the following CAMARA Dedicated Networks APIs, as the sandbox deploys them
+(paths in `camara/config.py`). The specification revision checked is the CAMARA source at tag `r2.2` of
+[camaraproject/DedicatedNetworks](https://github.com/camaraproject/DedicatedNetworks), read from each
+file's `info` block.
 
-| API | Title | API version | Path version | Commonalities |
-|-----|-------|-------------|--------------|---------------|
-| Networks | `Dedicated Network - Networks` | `wip` | `v0` | `0.6` |
-| Network Profiles | `Dedicated Network - Network Profiles` | `wip` | `v0` | `0.6` |
-| Device Accesses | `Dedicated Network - Accesses` | `wip` | `v0` | `0.6` |
-| Service Areas | `Dedicated Network - Areas` | `wip` | `v0` | `0.6` |
+| API | Title | Path prefix | Spec revision checked | Commonalities |
+|-----|-------|-------------|-----------------------|---------------|
+| Networks | `Dedicated Network - Networks` | `dedicated-network/v0.2-wip` | `0.2.0-rc.1` | `0.8.0` |
+| Network Profiles | `Dedicated Network - Network Profiles` | `dedicated-network-profiles/v0.2-wip` | `0.2.0-rc.1` | `0.8.0` |
+| Device Accesses | `Dedicated Network - Accesses` | `dedicated-network-accesses/v0.2-wip` | `0.2.0-rc.1` | `0.8.0` |
+| Service Areas | `Dedicated Network - Areas` | `dedicated-network-areas/v0.1-wip` | `0.1.0-rc.1` | `0.8.0` |
 
-> `wip` ("work in progress") is the version label carried in the CAMARA source specs at the time this server was built. As the CAMARA APIs stabilise into numbered releases, update the tool implementations accordingly.
+The `main` branch of the CAMARA repository is labelled `wip` and differs from `r2.2`. The sandbox
+differs from the specification in two places: it rejects a `name` on a network, and it takes one device
+per access (`device`, not `devices`).
 
 ---
 
@@ -617,11 +622,6 @@ camara/
     accesses.py             camara_list_accesses, camara_get_access,
                             camara_create_access, camara_delete_access
     areas.py                camara_retrieve_service_areas, camara_get_area
-docs/
-  dedicated-network.yaml              OpenAPI spec — Networks API
-  dedicated-network-profiles.yaml     OpenAPI spec — Network Profiles API
-  dedicated-network-accesses.yaml     OpenAPI spec — Device Accesses API
-  dedicated-network-areas.yaml        OpenAPI spec — Service Areas API
 ```
 
 Each tool follows the same pattern:
