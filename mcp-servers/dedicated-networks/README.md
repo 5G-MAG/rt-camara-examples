@@ -6,21 +6,8 @@ A Python MCP server that lets Claude Desktop call the four CAMARA Dedicated Netw
 
 ## API versions
 
-This server was built against the following CAMARA Dedicated Networks APIs, as the sandbox deploys them
-(paths in `camara/config.py`). The specification revision checked is the CAMARA source at tag `r2.2` of
-[camaraproject/DedicatedNetworks](https://github.com/camaraproject/DedicatedNetworks), read from each
-file's `info` block.
-
-| API | Title | Path prefix | Spec revision checked | Commonalities |
-|-----|-------|-------------|-----------------------|---------------|
-| Networks | `Dedicated Network - Networks` | `dedicated-network/v0.2-wip` | `0.2.0-rc.1` | `0.8.0` |
-| Network Profiles | `Dedicated Network - Network Profiles` | `dedicated-network-profiles/v0.2-wip` | `0.2.0-rc.1` | `0.8.0` |
-| Device Accesses | `Dedicated Network - Accesses` | `dedicated-network-accesses/v0.2-wip` | `0.2.0-rc.1` | `0.8.0` |
-| Service Areas | `Dedicated Network - Areas` | `dedicated-network-areas/v0.1-wip` | `0.1.0-rc.1` | `0.8.0` |
-
-The `main` branch of the CAMARA repository is labelled `wip` and differs from `r2.2`. The sandbox
-differs from the specification in two places: it rejects a `name` on a network, and it takes one device
-per access (`device`, not `devices`).
+The versions and paths this server uses are listed in the
+[root README](../../README.md#apis-and-versions).
 
 ---
 
