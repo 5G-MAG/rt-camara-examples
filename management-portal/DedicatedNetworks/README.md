@@ -27,6 +27,9 @@ shortcut shows up already unlocked in Devices.
   API has no device list), give one access to the current network from a drop-down, and see
   every access each device is part of, on any network
 - **Live status** — adaptive polling (fast while transitioning or near expiry, slow once stable)
+- **Callbacks** — status notifications sent by CAMARA arrive at the portal's webhook receiver and are
+  listed in a Callbacks panel on the Network and Access tabs. A notification for the resource on
+  screen refreshes its tracker at once. Sending them needs `SINK_BASE_URL` (see Configuration).
 - **Dark mode**, offline-bundled map assets, no CDN dependency at runtime
 
 The UI reuses the shared 5G-MAG reference-tools look — the same `blue-bar.css` and `style.css`
@@ -38,7 +41,12 @@ and a single toast.
 
 Implements the 4 sub-APIs published in
 [camaraproject/DedicatedNetworks](https://github.com/camaraproject/DedicatedNetworks):
-Areas, Networks, Accesses and Profiles.
+Areas, Networks, Accesses and Profiles. It is built against the sandbox deployment, whose paths are
+`dedicated-network/v0.2-wip`, `dedicated-network-accesses/v0.2-wip`,
+`dedicated-network-profiles/v0.2-wip` and `dedicated-network-areas/v0.1-wip`. The sandbox differs from
+the specification in two places: it rejects a `name` on a network, and it takes one device per access
+(`device`, not `devices`). The versions are listed in the
+[root README](../../README.md#apis-and-versions).
 
 ## Install dependencies
 
@@ -87,7 +95,7 @@ base URLs can also be viewed and edited live from the portal's own **Config** ta
 | `NETWORKS_URL` | Base URL for the Dedicated Network API |
 | `PROFILES_URL` | Base URL for the Dedicated Network Profiles API |
 | `ACCESSES_URL` | Base URL for the Dedicated Network Accesses API |
-| `QOD_URL` | Base URL for the Quality on Demand API (used by the separate, unexposed Sessions route) |
+| `QOD_URL` | Base URL for the Quality on Demand API. Used by the QoS Profiles (reference) list in Areas, and by the Sessions route, which the UI does not expose |
 | `PORT` | Server port (default: 3001) |
 | `SINK_BASE_URL` | Public base URL for inbound webhook notifications |
 
@@ -115,6 +123,7 @@ management-portal/DedicatedNetworks/
         polling.js               One adaptive-pace polling utility for every tab
         uiCommon.js               Formatting, badge helpers, lifecycle tracker
         callbackConfig.js         Shared sink/sinkCredential form fragment
+        callbackLog.js            Callback list and immediate status refresh
         devicePool.js             Local device-identity pool
         stageAreas.js / stageNetwork.js / stageAccess.js / stageDevices.js
         quickBooking.js           Quick Booking tab
