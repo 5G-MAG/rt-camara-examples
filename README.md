@@ -84,7 +84,7 @@ and the specification revision checked for it.
 | Dedicated Network: Device Accesses | `dedicated-network-accesses/v0.2-wip` | `0.2.0-rc.1` | `0.8.0` | Portal, MCP server, Insomnia |
 | Dedicated Network: Service Areas | `dedicated-network-areas/v0.1-wip` | `0.1.0-rc.1` | `0.8.0` | Portal, MCP server, Insomnia |
 | QoS Booking | `qos-bookings`, `device-qos-bookings` | not pinned | not pinned | Insomnia |
-| Quality on Demand | `qos-assignments`, `sessions`, `retrieve-qos-profiles` | not pinned | not pinned | Insomnia |
+| Quality on Demand | `qos-assignments`, `sessions`, `retrieve-qos-profiles` | not pinned | not pinned | Portal (optional QoS profile list), Insomnia |
 
 - The spec revisions are the CAMARA sources at tag `r2.2` of
   [camaraproject/DedicatedNetworks](https://github.com/camaraproject/DedicatedNetworks), read from each
