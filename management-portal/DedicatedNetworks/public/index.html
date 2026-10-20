@@ -1,0 +1,383 @@
+<!--
+License: 5G-MAG Public License (v1.0)
+Author: Jordi Joan Gimenez
+Copyright: (C) 2026 5G-MAG Association
+
+For full license terms please see the LICENSE file distributed with this
+program. If this file is missing then the license can be retrieved from
+https://hub.5g-mag.com/Getting-Started/OFFICIAL_5G-MAG_Public_License_v1.0.pdf
+
+Structure/classes copied from the 5G-MAG reference tools family
+(rt-mbs-application-provider, rt-media-server dashboard): blue-bar header,
+plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
+-->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>5G-MAG - CAMARA Dedicated Networks</title>
+<script>
+  try {
+    if (localStorage.getItem('dn-portal-theme') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  } catch (e) {}
+</script>
+<link rel="stylesheet" href="/lib/leaflet.css"/>
+<link rel="stylesheet" href="/lib/Control.Geocoder.css"/>
+<link rel="stylesheet" href="/blue-bar.css"/>
+<link rel="stylesheet" href="/style.css"/>
+</head>
+<body>
+
+<header class="blue-bar">
+  <div class="blue-bar-logo"><img src="/5gmag.png" alt="5G-MAG logo"></div>
+  <div class="blue-bar-title">CAMARA Dedicated Networks</div>
+  <div class="blue-bar-actions">
+    <span class="health-indicator"><span class="tab-dot" data-status-for="areas" title="Checking connection…"></span>Areas</span>
+    <span class="health-indicator"><span class="tab-dot" data-status-for="profiles" title="Checking connection…"></span>Profiles</span>
+    <span class="health-indicator"><span class="tab-dot" data-status-for="networks" title="Checking connection…"></span>Networks</span>
+    <span class="health-indicator"><span class="tab-dot" data-status-for="accesses" title="Checking connection…"></span>Accesses</span>
+    <button id="theme-toggle" class="blue-bar-btn" type="button" aria-pressed="false">&#9790;&nbsp;Dark mode</button>
+  </div>
+</header>
+
+<header class="header">
+  <nav class="tab-nav" role="tablist">
+    <button id="tabbtn-guide" class="tab-btn" type="button" data-tab="guide" role="tab" aria-selected="false" aria-controls="tab-guide">Start here</button>
+    <button id="tabbtn-areas" class="tab-btn active" type="button" data-tab="areas" role="tab" aria-selected="true" aria-controls="tab-areas">1. Areas</button>
+    <button id="tabbtn-network" class="tab-btn" type="button" data-tab="network" role="tab" aria-selected="false" aria-controls="tab-network" disabled title="Select an area first">2. Network</button>
+    <button id="tabbtn-access" class="tab-btn" type="button" data-tab="access" role="tab" aria-selected="false" aria-controls="tab-access" disabled title="Create a network first">3. Access</button>
+    <button id="tabbtn-devices" class="tab-btn" type="button" data-tab="devices" role="tab" aria-selected="false" aria-controls="tab-devices">4. Devices</button>
+    <button id="tabbtn-quick" class="tab-btn" type="button" data-tab="quick" role="tab" aria-selected="false" aria-controls="tab-quick" title="Shortcut: tabs 1 to 3 in one form">Shortcut: Quick Booking</button>
+    <button id="tabbtn-config" class="tab-btn" type="button" data-tab="config" role="tab" aria-selected="false" aria-controls="tab-config">Config</button>
+  </nav>
+</header>
+
+<div id="toast" role="status" aria-live="polite" hidden></div>
+
+<!-- ═══ TAB: GUIDE (landing) ═══ -->
+<main class="main" id="tab-guide" role="tabpanel" aria-labelledby="tabbtn-guide" style="max-width:800px;" hidden>
+  <p class="subtitle">This portal walks through the four CAMARA Dedicated Networks APIs in the order they depend on each other: find a service area, reserve a network in it, then give devices access to that network. Each tab unlocks once the one before it has what it needs.</p>
+
+  <div class="card" id="guide-workflow">
+    <div class="card-title">How to use this portal</div>
+    <p class="form-hint">The portal follows the Dedicated Networks workflow described on 5g-mag.com, <a href="https://www.5g-mag.com/tech/network-apis/content-production/using-dedicated-networks" target="_blank" rel="noopener">Using CAMARA APIs: Dedicated Networks for Content Production</a>. Each step is done by the <span class="badge badge-reserved">ASP</span> (Application Service Provider, the media application using this portal) or the <span class="badge badge-neutral">CSP</span> (Communication Service Provider, the network operator behind the API).</p>
+    <div class="proc-wrapper"><div class="p-header" style="background-color:#7c52e4"><div class="p-circle" style="color:#7c52e4">0</div> Pre-conditions</div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-asp">ASP</span><div class="p-plus-sign">+</div><span class="p-pill p-pill-csp">CSP</span></div><div class="p-content"><p>On-boarding of the ASP and Negotiation<br/><ul>
+<li class=""> Sign up and access credentials<br/></li>
+<li class=""> Selection / Request for Network Profiles and Network Service Areas</li>
+</ul></div></div><div class="p-header" style="background-color:#f38d3c"><div class="p-circle" style="color:#f38d3c">1</div> Before using the network</div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-asp">ASP</span></div><div class="p-content-m">1.0a. Discovery of available and eligible Network Profiles (optional)</div></div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-asp">ASP</span></div><div class="p-content-m">1.0b. Discovery of available and eligible Network Service Areas (optional)</div></div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-asp">ASP</span></div><div class="p-content-a">1.1. <u>Request</u> Reservation of Dedicated Network</div></div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-csp">CSP</span></div><div class="p-content">1.2. Assessment of Dedicated Network reservation request and change of status</div></div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-asp">ASP</span></div><div class="p-content-a">1.3. <u>Request</u> Device Access for the Dedicated Network</div></div><div class="p-header" style="background-color:#74b85c"><div class="p-circle" style="color:#74b85c">2</div> During operation</div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-asp">ASP</span></div><div class="p-content-a">2.1. <u>Request</u> Device Access for the Dedicated Network</div></div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-csp">CSP</span></div><div class="p-content">2.2. Dedicated Network is active and available</div></div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-asp">ASP</span></div><div class="p-content">2.3. Device establishes connection and makes use of the Dedicated Network</div></div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-asp">ASP</span></div><div class="p-content-a">2.4. Usage of various API capabilities</div></div><div class="p-header" style="background-color:#cc0000"><div class="p-circle" style="color:#cc0000">3</div> Dismantling</div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-asp">ASP</span></div><div class="p-content-a">3.1a. <u>Deletion</u> of Device Access and <u>Deletion</u> of Dedicated Network</div></div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-csp">CSP</span></div><div class="p-content">3.1b. Or the CSP simply tears the Dedicated Network down</div></div></div>
+    <div class="section-panel">
+      <div class="section-panel-title">0. Pre-conditions</div>
+      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <span class="badge badge-neutral">CSP</span> <strong>0</strong> On-boarding: sign up, access credentials, and the network profiles and service areas agreed with the operator.<br><em>In the portal:</em> enter the CAMARA API base URLs and OAuth2 credentials in <strong>Config</strong>. The four dots in the top bar turn green when each API answers.</p>
+    </div>
+    <div class="section-panel">
+      <div class="section-panel-title">1. Before using the network</div>
+      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>1.0a</strong> Discover the available network profiles (optional).<br><em>In the portal:</em> the profiles are listed in <strong>2. Network</strong>, and <strong>1. Areas</strong> can filter areas by profile.</p>
+      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>1.0b</strong> Discover the available network service areas (optional).<br><em>In the portal:</em> <strong>1. Areas</strong>: search by point, circle, polygon, name or profile, pick one and click &ldquo;Use This Area&rdquo;.</p>
+      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>1.1</strong> Request the reservation of a dedicated network.<br><em>In the portal:</em> <strong>2. Network</strong>: choose a network profile (or a QoS profile) and the service time.</p>
+      <p class="form-hint"><span class="badge badge-neutral">CSP</span> <strong>1.2</strong> The operator assesses the request and changes its status.<br><em>In the portal:</em> <strong>2. Network</strong> shows the status: REQUESTED, then RESERVED outside the service time and ACTIVATED during it.</p>
+      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>1.3</strong> Request device access to the dedicated network.<br><em>In the portal:</em> <strong>4. Devices</strong> (create devices by phone number and give one access to the network) or <strong>3. Access</strong>. The access starts as REQUESTED; the operator grants or denies it.</p>
+    </div>
+    <div class="section-panel">
+      <div class="section-panel-title">2. During operation</div>
+      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>2.1</strong> Request device access, also while the network is running.<br><em>In the portal:</em> <strong>4. Devices</strong> and <strong>3. Access</strong> work at any time.</p>
+      <p class="form-hint"><span class="badge badge-neutral">CSP</span> <strong>2.2</strong> The dedicated network is active and available.<br><em>In the portal:</em> <strong>2. Network</strong> shows ACTIVATED.</p>
+      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>2.3</strong> The device connects and uses the dedicated network.<br><em>In the portal:</em> on the device itself; its access must be GRANTED and the network ACTIVATED.</p>
+      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>2.4</strong> Assign new devices and remove existing ones while the network is active.<br><em>In the portal:</em> give access in <strong>4. Devices</strong>; &ldquo;Delete&rdquo; an access in <strong>3. Access</strong> or <strong>4. Devices</strong>.</p>
+    </div>
+    <div class="section-panel">
+      <div class="section-panel-title">3. Dismantling</div>
+      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>3.1a</strong> Delete the device accesses and the dedicated network.<br><em>In the portal:</em> &ldquo;Delete&rdquo; in <strong>3. Access</strong> or <strong>4. Devices</strong>, and in <strong>2. Network</strong>.</p>
+      <p class="form-hint"><span class="badge badge-neutral">CSP</span> <strong>3.1b</strong> Or the operator tears the network down.<br><em>In the portal:</em> <strong>2. Network</strong> shows TERMINATED.</p>
+    </div>
+    <div class="section-panel">
+      <div class="section-panel-title">Shortcut: Quick Booking (a sub-case of steps 1.0b to 1.3)</div>
+      <p class="form-hint">Once you know the full path, Quick Booking runs one narrow case of it in a single form: the area is the one found at the location you click, the network uses the profile you pick and runs from now until the time you set, and one access is created for one phone number. Area search options, a later start time, QoS-only networks and more devices are only available in the full path.</p>
+      <p class="form-hint"><strong>Expected:</strong> the network and access it creates are the same objects the full path creates, and they appear in the Network, Access and Devices tabs afterwards.</p>
+    </div>
+    <div class="toolbar" style="justify-content:flex-start;">
+      <button class="btn btn-primary" id="guide-start-btn">Start with 1. Areas &rarr;</button>
+    </div>
+  </div>
+</main>
+
+<!-- ═══ TAB: AREAS ═══ -->
+<main class="main map-layout" id="tab-areas" role="tabpanel" aria-labelledby="tabbtn-areas">
+  <div class="map-sidebar">
+    <div class="toolbar" style="justify-content:flex-start;margin-top:0;">
+      <button class="btn btn-primary btn-sm" id="get-areas-btn">Load All Service Areas</button>
+      <button class="btn btn-ghost btn-sm" id="clear-map-btn">Clear Map</button>
+    </div>
+    <p class="status-line" id="areas-status"></p>
+
+    <details class="advanced-fields">
+      <summary>Search by shape (point / circle / polygon)</summary>
+      <p class="form-hint" id="draw-hint">Choose a mode then click the map.</p>
+      <div class="toolbar" style="justify-content:flex-start;">
+        <button class="btn btn-ghost btn-sm" id="mode-point-btn">Point</button>
+        <button class="btn btn-ghost btn-sm" id="mode-circle-btn">Circle</button>
+        <button class="btn btn-ghost btn-sm" id="mode-polygon-btn">Polygon</button>
+      </div>
+      <div class="toolbar" style="justify-content:flex-start;">
+        <button class="btn btn-ghost btn-sm" id="undo-btn" hidden>Undo</button>
+        <button class="btn btn-ghost btn-sm" id="clear-draw-btn">Clear Draw</button>
+      </div>
+      <div class="form-row" id="circle-radius-wrap" hidden>
+        <label class="form-label" for="circle-radius">Radius (metres, max 200000)</label>
+        <input type="number" id="circle-radius" min="1" max="200000" value="1000"/>
+      </div>
+      <p class="form-hint" id="point-count" hidden></p>
+      <p class="status-line" id="draw-validation" hidden></p>
+      <button class="btn btn-primary btn-sm" id="close-polygon-btn" hidden style="width:100%;margin-top:0.4rem;">Close Polygon</button>
+      <div class="form-row" id="coords-wrap" hidden>
+        <label class="form-label">Points</label>
+        <pre id="coords-table"></pre>
+      </div>
+      <div class="toolbar" id="search-wrap" style="justify-content:flex-start;" hidden>
+        <button class="btn btn-primary btn-sm" id="search-at-btn" hidden>Find Areas At Point</button>
+        <button class="btn btn-primary btn-sm" id="search-overlapping-btn" hidden>Find Overlapping</button>
+        <button class="btn btn-primary btn-sm" id="search-covering-btn" hidden>Find Covering</button>
+      </div>
+    </details>
+
+    <details class="advanced-fields" id="extra-filters">
+      <summary>Additional filters</summary>
+      <div class="form-row">
+        <label class="form-label" for="filter-name">By name</label>
+        <input id="filter-name" type="text" placeholder="Area name" />
+      </div>
+      <div class="form-row">
+        <label class="form-label" for="filter-profile-id">Network profile ID</label>
+        <input id="filter-profile-id" type="text" placeholder="UUID" />
+      </div>
+      <div class="form-row">
+        <label class="form-label" for="filter-qos-name">QoS profile name</label>
+        <input id="filter-qos-name" type="text" placeholder="QOS_A" />
+      </div>
+      <button class="btn btn-ghost btn-sm" id="search-filters-only-btn" style="width:100%;">Search by Filters Only</button>
+    </details>
+
+    <details class="advanced-fields">
+      <summary>Network Profiles (reference)</summary>
+      <div class="toolbar" style="justify-content:flex-start;">
+        <button class="btn btn-ghost btn-sm" id="load-profiles-btn">Load</button>
+      </div>
+      <p class="status-line" id="profiles-status"></p>
+      <div id="profiles-list"></div>
+    </details>
+    <details class="advanced-fields">
+      <summary>QoS Profiles (reference)</summary>
+      <div class="toolbar" style="justify-content:flex-start;">
+        <button class="btn btn-ghost btn-sm" id="load-qos-btn">Load</button>
+      </div>
+      <p class="status-line" id="qos-status"></p>
+      <div id="qos-list"></div>
+    </details>
+  </div>
+
+  <div id="map"></div>
+
+  <div class="map-right-panel">
+    <div class="card">
+      <div class="card-title">Service Areas</div>
+      <div id="area-list"><p class="empty-hint">Click &ldquo;Load All Service Areas&rdquo;, or search on the left, to load.</p></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Area Detail</div>
+      <div id="detail-content"><p class="empty-hint">Click an area to see details.</p></div>
+      <div class="toolbar" style="justify-content:flex-start;" id="use-area-wrap" hidden>
+        <button class="btn btn-primary" id="use-area-btn" style="width:100%;">Use This Area &rarr;</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ═══ TAB: NETWORK ═══ -->
+<main class="main map-layout" id="tab-network" role="tabpanel" aria-labelledby="tabbtn-network" hidden>
+  <div class="map-sidebar" id="network-locked-msg">
+    <p class="empty-hint">Select an area in the Areas tab first.</p>
+  </div>
+  <div class="map-sidebar" id="network-body" hidden>
+    <div class="card" id="network-area-chip" style="padding:0.8rem 1rem;"></div>
+    <button class="btn btn-ghost btn-sm" id="network-change-area-btn">&larr; Change Area</button>
+    <div class="section-panel">
+      <div class="section-panel-title">Existing Networks (reference)</div>
+      <button class="btn btn-ghost btn-sm" id="load-networks-btn" style="width:100%;">Load Dedicated Networks</button>
+      <p class="status-line" id="networks-status"></p>
+      <div id="networks-list"></div>
+    </div>
+  </div>
+  <div class="main" id="network-main-wrap" style="max-width:640px;" hidden>
+    <div class="card">
+      <div class="card-title">Network</div>
+      <div id="network-main-body"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Callbacks</div>
+      <div id="network-callbacks"></div>
+    </div>
+  </div>
+</main>
+
+<!-- ═══ TAB: ACCESS ═══ -->
+<main class="main map-layout" id="tab-access" role="tabpanel" aria-labelledby="tabbtn-access" hidden>
+  <div class="map-sidebar" id="access-locked-msg">
+    <p class="empty-hint">Create a network in the Network tab first.</p>
+  </div>
+  <div class="map-sidebar" id="access-body" hidden>
+    <div class="card" id="access-network-chip" style="padding:0.8rem 1rem;"></div>
+    <button class="btn btn-ghost btn-sm" id="access-change-network-btn">&larr; Change Network</button>
+    <div class="section-panel">
+      <div class="section-panel-title">Existing Accesses on this Network</div>
+      <button class="btn btn-ghost btn-sm" id="load-accesses-btn" style="width:100%;">Load Accesses</button>
+      <p class="status-line" id="accesses-status"></p>
+      <div id="accesses-list"></div>
+    </div>
+  </div>
+  <div class="main" id="access-main-wrap" style="max-width:640px;" hidden>
+    <div class="card">
+      <div class="card-title">Access</div>
+      <div id="access-main-body"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Callbacks</div>
+      <div id="access-callbacks"></div>
+    </div>
+  </div>
+</main>
+
+<!-- ═══ TAB: DEVICES ═══ -->
+<main class="main" id="tab-devices" role="tabpanel" aria-labelledby="tabbtn-devices" style="max-width:800px;" hidden>
+  <p class="card-parent-label" id="devices-context-chip"></p>
+
+  <div class="card">
+    <div class="card-title">Create device</div>
+    <p class="subtitle" style="margin-bottom:0.8rem;">A device is identified by its phone number (MSISDN). Devices are kept in this browser; the Accesses API has no device list of its own.</p>
+    <div class="form-row"><label class="form-label" for="pool-dev-phone">Phone number (MSISDN)</label><input id="pool-dev-phone" type="tel" placeholder="+41799445408"/></div>
+    <div class="form-row"><label class="form-label" for="pool-dev-name">Name <span class="form-hint" style="display:inline;">(optional)</span></label><input id="pool-dev-name" type="text" placeholder="e.g. Camera 1"/></div>
+    <div class="toolbar" style="justify-content:flex-start;">
+      <button class="btn btn-primary btn-sm" id="pool-save-btn">Create device</button>
+    </div>
+    <p class="status-line" id="pool-status"></p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Give a device access to the current network</div>
+    <div id="devices-no-network-msg">
+      <p class="empty-hint">Select or create a network (Network tab) to give a device access to it.</p>
+    </div>
+    <div id="devices-attach-form" hidden>
+      <div class="form-row"><label class="form-label" for="devices-attach-select">Device (MSISDN)</label><select id="devices-attach-select"></select></div>
+      <div class="toolbar" style="justify-content:flex-start;">
+        <button class="btn btn-primary btn-sm" id="devices-attach-btn">Create access</button>
+      </div>
+    </div>
+    <p class="status-line" id="devices-action-status"></p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Devices and their accesses</div>
+    <p class="form-hint" style="margin-bottom:0.8rem;">A device can be part of more than one access, for example one on each of two networks.</p>
+    <div id="device-pool-list"></div>
+  </div>
+</main>
+
+<!-- ═══ TAB: QUICK BOOKING ═══ -->
+<main class="main map-layout" id="tab-quick" role="tabpanel" aria-labelledby="tabbtn-quick" hidden>
+  <div class="map-sidebar" style="width:360px;min-width:320px;">
+    <p class="subtitle">Immediate Connectivity Quality</p>
+    <p class="form-hint">Shortcut for one case of tabs 1 to 3 (workflow steps 1.0b to 1.3): area at your location, network from now until the time you set, access for one phone number. See &ldquo;Start here&rdquo;.</p>
+    <div class="form-row">
+      <label class="form-label">Your location</label>
+      <p class="form-hint" id="home-location-display">Click on the map or use &ldquo;Use My Location&rdquo;.</p>
+    </div>
+    <div class="form-row">
+      <label class="form-label">Available network profiles</label>
+      <div id="home-profiles-list"><p class="empty-hint">Select a location to load available profiles.</p></div>
+    </div>
+    <div class="form-row" id="home-qos-section" hidden>
+      <label class="form-label">QoS profile</label>
+      <div id="home-qos-list"></div>
+    </div>
+    <div class="form-row">
+      <label class="form-label" for="home-until">Connectivity quality until</label>
+      <input type="datetime-local" id="home-until">
+    </div>
+    <div class="form-row">
+      <label class="form-label" for="home-phone">SIM card / phone number</label>
+      <input type="tel" id="home-phone" placeholder="e.g. +41799445408">
+    </div>
+    <p class="status-line" id="home-status" hidden></p>
+    <button class="btn btn-primary" id="home-obtain-btn" disabled style="width:100%;">Obtain Connectivity Quality NOW</button>
+  </div>
+  <div id="home-map"></div>
+  <div class="map-right-panel" id="home-cards-row" hidden>
+    <div class="card" id="home-network-card"></div>
+    <div class="card" id="home-access-card"></div>
+  </div>
+</main>
+
+<!-- ═══ TAB: CONFIG ═══ -->
+<main class="main" id="tab-config" role="tabpanel" aria-labelledby="tabbtn-config" style="max-width:640px;" hidden>
+  <p class="subtitle">CAMARA API endpoints and OAuth2 credentials. Saved to this server's <code>.env</code> file and applied immediately — no restart needed.</p>
+
+  <div class="card">
+    <div class="card-title">OAuth2 credentials</div>
+    <div class="form-row"><label class="form-label" for="cfg-client-id">Client ID</label><input type="text" id="cfg-client-id"/></div>
+    <div class="form-row">
+      <label class="form-label" for="cfg-client-secret">Client secret</label>
+      <input type="password" id="cfg-client-secret" autocomplete="off"/>
+      <p class="form-hint" id="cfg-secret-hint">Write-only — never shown back. Leave blank to keep the current one.</p>
+    </div>
+    <div class="form-row"><label class="form-label" for="cfg-token-url">Token URL</label><input type="text" id="cfg-token-url" placeholder="https://.../tokens"/></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">CAMARA API base URLs</div>
+    <div class="form-row"><label class="form-label" for="cfg-areas-url">Areas API</label><input type="text" id="cfg-areas-url" placeholder="https://.../dedicated-network-areas/v0.1-wip"/></div>
+    <div class="form-row"><label class="form-label" for="cfg-networks-url">Networks API</label><input type="text" id="cfg-networks-url" placeholder="https://.../dedicated-network/v0.2-wip"/></div>
+    <div class="form-row"><label class="form-label" for="cfg-profiles-url">Profiles API</label><input type="text" id="cfg-profiles-url" placeholder="https://.../dedicated-network-profiles/v0.2-wip"/></div>
+    <div class="form-row"><label class="form-label" for="cfg-accesses-url">Accesses API</label><input type="text" id="cfg-accesses-url" placeholder="https://.../dedicated-network-accesses/v0.2-wip"/></div>
+    <div class="form-row"><label class="form-label" for="cfg-qod-url">Quality on Demand API <span class="form-hint" style="display:inline;">(optional — powers the QoS Profiles reference browser)</span></label><input type="text" id="cfg-qod-url"/></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Webhook notifications</div>
+    <div class="form-row">
+      <label class="form-label" for="cfg-sink-url">Sink base URL <span class="form-hint" style="display:inline;">(optional)</span></label>
+      <input type="text" id="cfg-sink-url"/>
+      <p class="form-hint">A public tunnel URL for inbound CAMARA notifications, e.g. from <code>npx localtunnel --port 3001</code>.</p>
+    </div>
+  </div>
+
+  <p class="status-line" id="config-status"></p>
+  <div class="toolbar" style="justify-content:flex-start;">
+    <button class="btn btn-primary" id="config-save-btn">Save</button>
+    <button class="btn btn-ghost" id="config-reload-btn">Reload</button>
+  </div>
+</main>
+
+<!-- Network profile detail (native dialog, matches rt-media-server's file-browse dialog pattern) -->
+<dialog id="profile-dialog">
+  <div class="card-title" id="profile-dialog-title" style="margin:-1px -1px 1rem;border-radius:0;">Network Profile</div>
+  <div id="profile-dialog-body"></div>
+  <div class="toolbar">
+    <button class="btn btn-ghost btn-sm" id="profile-dialog-close">Close</button>
+  </div>
+</dialog>
+
+<script src="/lib/leaflet.js"></script>
+<script src="/lib/Control.Geocoder.js"></script>
+<script>
+  delete L.Icon.Default.prototype._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconUrl:       '/lib/images/marker-icon.png',
+    iconRetinaUrl: '/lib/images/marker-icon-2x.png',
+    shadowUrl:     '/lib/images/marker-shadow.png',
+  });
+</script>
+<script type="module" src="/js/app.js"></script>
+</body>
+</html>
