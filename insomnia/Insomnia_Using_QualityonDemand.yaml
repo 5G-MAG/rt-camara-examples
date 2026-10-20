@@ -1,0 +1,734 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: Using Quality on Demand
+meta:
+  id: wrk_271a1a6f613f4a31b95ed98bc1d88a34
+  created: 1778667834757
+  modified: 1778667834757
+  description: ""
+collection:
+  - name: QoS Profiles
+    meta:
+      id: fld_061fe203aecf4d9e93264420c1f39d23
+      created: 1778667872405
+      modified: 1778668001262
+      sortKey: -1778667887667
+      description: Manage QoS Profiles
+    children:
+      - url: "{{ _.base_url }}/retrieve-qos-profiles"
+        name: Retrieve QoS profiles
+        meta:
+          id: req_40ec69ef721c48b9adb58f7c25ccdcb0
+          created: 1778667872411
+          modified: 1778678702278
+          isPrivate: false
+          description: >
+            Returns all QoS Profiles that match the given criteria.
+
+            **NOTES:**
+
+            - The access token may be either a 2-legged or 3-legged access
+            token.
+
+            - If the access token is 3-legged, all returned QoS Profiles will be
+            available to the subject (device) associated with the access token.
+
+            - If the access token is 2-legged and a device filter is provided,
+            all returned QoS Profiles will be available to that device. If
+            multiple device identifiers are provided within the device property,
+            only QoS Profiles available to the device identifier chosen by the
+            implementation will be returned, even if the identifiers do not
+            match the same device. API provider does not perform any logic to
+            validate/correlate that the indicated device identifiers match the
+            same device. No error should be returned if the identifiers are
+            otherwise valid to prevent API consumers correlating different
+            identifiers with a given end user.
+
+            - This call uses the POST method instead of GET to comply with the
+            CAMARA Commonalities guidelines for sending sensitive or complex
+            data in API calls. Since the device field may contain personally
+            identifiable information, it should not be sent via GET.
+            Additionally, this call may include complex data structures.
+              [CAMARA API Design Guidelines](https://github.com/camaraproject/Commonalities/blob/r3.3/documentation/API-design-guidelines.md#post-or-get-for-transferring-sensitive-or-complex-data)
+          sortKey: -1778667872532
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "device": {
+                "phoneNumber": "+123456789",
+                "networkAccessIdentifier": "123456789@domain.com",
+                "ipv4Address": {
+                  "publicAddress": "203.0.113.0",
+                  "privateAddress": "203.0.113.0",
+                  "publicPort": 59765
+                },
+                "ipv6Address": "2001:db8:85a3:8d3:1319:8a2e:370:7344"
+              },
+              "name": "voice",
+              "status": "ACTIVE"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+            disabled: false
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/qos-profiles/{{ _.name }}"
+        name: Get QoS Profile for a given name
+        meta:
+          id: req_5f96d10267504494b291578932e325b7
+          created: 1778667872432
+          modified: 1778667872432
+          isPrivate: false
+          description: >
+            Returns a QoS Profile that matches the given name.
+
+
+            The access token may be either a 2-legged or 3-legged access token.
+            If the access token is 3-legged, a QoS Profile is only returned if
+            available to all subjects associated with the access token.
+          sortKey: -1778667872432
+        method: GET
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: QoS Assignment
+    meta:
+      id: fld_7baf2cd217db472c9ebcfca2f762aef7
+      created: 1778667880468
+      modified: 1778667880468
+      sortKey: -1778667880468
+      description: Manage the permanent assignment of a QoS profile to a device
+    children:
+      - url: "{{ _.base_url }}/qos-assignments"
+        name: Triggers the provisioning process for the assignment of a QoS profile to a
+          device
+        meta:
+          id: req_d4805c03b1e54ed492c84ae669cf769d
+          created: 1778667880474
+          modified: 1778680322832
+          isPrivate: false
+          description: >
+            Initiates the assignment of a specific QoS profile to a given device
+            when connected to the operator's network.
+
+
+            - If the QoS profile assignment is completed synchronously, the
+            response will be 201 with `status` = `AVAILABLE`.
+
+            - If the QoS profile assignment request is accepted but not yet
+            completed, the response will be 201 with `status` = `REQUESTED`.
+
+            - If the operator determines synchronously that the QoS profile
+            assignment request cannot be fulfilled, the response will be 201
+            with `status` = `UNAVAILABLE`.
+
+
+            - If the request includes the `sink` and `sinkCredential`
+            properties, the client will receive a `status-changed` event with
+            the outcome of the process. The event will be sent also for
+            synchronous operations.
+
+
+            **NOTES:**
+
+            - When the assignment status becomes `UNAVAILABLE`, the QoS profile
+            assignment is not immediately released, but will get deleted
+            automatically, at earliest 360 seconds after.
+
+
+            This behavior allows API consumers that are not receiving
+            notification events but are polling, to get the QoS profile
+            assignment status information. Before a client can attempt to create
+            a new QoS profile assignment for the same device, they must release
+            the previous assignment resources with an explicit `delete`
+            operation if not yet automatically deleted.
+
+            - The access token may be either 2-legged or 3-legged. See
+            "Identifying the device from the access token" for further
+            information
+              - When the API is invoked using a two-legged access token, the subject will be identified from the optional `device` object, which therefore MUST be provided.
+              - When a three-legged access token is used however, this optional identifier MUST NOT be provided, as the subject will be uniquely identified from the access token.
+          sortKey: -1778667880607
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "qosProfile": "QOS_M",
+              "device": {
+                "phoneNumber": "+123456789",
+                "networkAccessIdentifier": "123456789@domain.com",
+                "ipv4Address": {
+                  "publicAddress": "203.0.113.0",
+                  "privateAddress": "203.0.113.0",
+                  "publicPort": 59765
+                },
+                "ipv6Address": "2001:db8:85a3:8d3:1319:8a2e:370:7344"
+              },
+              "sink": "https://application-server.com/callback",
+              "sinkCredential": {
+                "credentialType": "ACCESSTOKEN",
+                "accessToken": "eyJhbGciOiJIUzI1NiIsInR...",
+                "accessTokenExpiresUtc": "2024-12-01T12:00:00Z",
+                "accessTokenType": "bearer"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+            disabled: false
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/qos-assignments/{{ _.assignmentId }}"
+        name: Get the QoS profile assignment information identified by an assignment
+          record ID
+        meta:
+          id: req_77bfc49b8bea48b085e596b43c70c391
+          created: 1778667880502
+          modified: 1778668054839
+          isPrivate: false
+          description: >
+            Querying for details about the QoS profile assignment
+
+
+            **NOTES:**
+
+            - The access token may be either 2-legged or 3-legged.
+
+            - If a 3-legged access token is used, the subject associated with
+            the QoS profile assignment must also be associated with the access
+            token.
+
+            - The QoS profile assignment must have been created by the same API
+            consumer given in the access token.
+          sortKey: -1778667880557
+        method: GET
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/qos-assignments/{{ _.assignmentId }}"
+        name: Revokes a QoS profile assignment identified by an assignment record ID
+        meta:
+          id: req_ac6edd4793d74dcb8a6ff78f1c6c3e05
+          created: 1778667880505
+          modified: 1778667880505
+          isPrivate: false
+          description: >
+            Revokes the assignment of a QoS profile to a device performed by a
+            previous assignment operation.
+
+
+            If the notification callback is provided and the assignment status
+            was `AVAILABLE`, when the process is completed, the API consumer
+            will receive in addition to the response a
+            `ASSIGNMENT_STATUS_CHANGED` event with
+
+            - `status` as `UNAVAILABLE` and
+
+            - `statusInfo` as `DELETE_REQUESTED`
+
+            There will be no notification event if the `status` was already
+            `UNAVAILABLE`.
+
+
+            **NOTES:**
+
+            - The access token may be either 2-legged or 3-legged.
+
+            - If a 3-legged access token is used, the subject associated with
+            the QoS profile assignment must also be associated with the access
+            token.
+
+            - The QoS profile assignment must have been created by the same API
+            consumer given in the access token.
+          sortKey: -1778667880505
+        method: DELETE
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/retrieve-qos-assignment"
+        name: Returns the assignment record details of the QoS profile assignment for a
+          device
+        meta:
+          id: req_e9d52925b7d64a75bdd8148da3ef33a6
+          created: 1778667880507
+          modified: 1778680282441
+          isPrivate: false
+          description: |
+            Returns the details of the record for the assignment of a QoS profile to a device, if any.
+
+            **NOTES:**
+            - The access token may be either 2-legged or 3-legged. See "Identifying the device from the access token" for further information
+              - When the API is invoked using a two-legged access token, the subject will be identified from the optional `device` object, which therefore MUST be provided.
+              - When a three-legged access token is used however, this optional identifier MUST NOT be provided, as the subject will be uniquely identified from the access token.
+            - The QoS profile assignment must have been created by the same API consumer given in the access token.
+            - If no QoS profile assignment is found for the device, an error response 404 is returned with code "NOT_FOUND".
+            - This call uses the POST method instead of GET to comply with the [CAMARA Commonalities guidelines](https://github.com/camaraproject/Commonalities/blob/r3.3/documentation/CAMARA-API-Design-Guide.md#65-post-or-get-for-transferring-sensitive-or-complex-data) for sending sensitive or complex data in API calls. Since the device field may contain personally identifiable information, it should not be sent via GET.
+          sortKey: -1778667880507
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "device": {
+                "phoneNumber": "+123456789",
+                "networkAccessIdentifier": "123456789@domain.com",
+                "ipv4Address": {
+                  "publicAddress": "203.0.113.0",
+                  "privateAddress": "203.0.113.0",
+                  "publicPort": 59765
+                },
+                "ipv6Address": "2001:db8:85a3:8d3:1319:8a2e:370:7344"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+            disabled: false
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: QoS Sessions
+    meta:
+      id: fld_b6a11e8621364e0c981c91e7d21ab783
+      created: 1778667887567
+      modified: 1778668005672
+      sortKey: -1778667887567
+      description: Manage QoS sessions
+    children:
+      - url: "{{ _.base_url }}/sessions"
+        name: Creates a new session
+        meta:
+          id: req_5444cb93e88547488a51fc08e872802e
+          created: 1778667887573
+          modified: 1778678908963
+          isPrivate: false
+          description: >
+            Create QoS Session to manage latency/throughput priorities
+
+
+            If the qosStatus in the API response is "AVAILABLE" and a
+            notification callback is provided the API consumer will receive in
+            addition to the response a
+
+            `QOS_STATUS_CHANGED` event notification with `qosStatus` as
+            `AVAILABLE`.
+
+
+            If the `qosStatus` in the API response is `REQUESTED`, the client
+            will receive either
+
+            - a `QOS_STATUS_CHANGED` event notification with `qosStatus` as
+            `AVAILABLE` after the network notifies that it has created the
+            requested session, or
+
+            - a `QOS_STATUS_CHANGED` event notification with `qosStatus` as
+            `UNAVAILABLE` and `statusInfo` as `NETWORK_TERMINATED` after the
+            network notifies that it has failed to provide the requested
+            session.
+
+
+            A `QOS_STATUS_CHANGED` event notification with `qosStatus` as
+            `UNAVAILABLE` will also be send if the network terminates the
+            session before the requested duration expired
+
+
+            **NOTES:**
+
+            - In case of a `QOS_STATUS_CHANGED` event with `qosStatus` as
+            `UNAVAILABLE` and `statusInfo` as `NETWORK_TERMINATED` the resources
+            of the QoS session are not directly released, but will get deleted
+            automatically at earliest 360 seconds after the event.
+
+              This behavior allows API consumers which are not receiving notification events but are polling to get the session information with the `qosStatus` `UNAVAILABLE` and `statusInfo` `NETWORK_TERMINATED`. Before a API consumer can attempt to create a new QoD session for the same device and flow period they must release the session resources with an explicit `delete` operation if not yet automatically deleted.
+            - The access token may be either 2-legged or 3-legged. See
+            "Identifying the device from the access token" for further
+            information
+              - When the API is invoked using a two-legged access token, the subject will be identified from the optional `device` object, which therefore MUST be provided.
+              - When a three-legged access token is used however, this optional identifier MUST NOT be provided, as the subject will be uniquely identified from the access token.
+          sortKey: -1778667887676
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "duration": 3600,
+              "qosProfile": "QOS_L",
+              "device": {
+                "phoneNumber": "+123456789",
+                "networkAccessIdentifier": "123456789@domain.com",
+                "ipv4Address": {
+                  "publicAddress": "203.0.113.0",
+                  "privateAddress": "203.0.113.0",
+                  "publicPort": 59765
+                },
+                "ipv6Address": "2001:db8:85a3:8d3:1319:8a2e:370:7344"
+              },
+              "applicationServer": {
+                "ipv4Address": "198.51.100.0/24",
+                "ipv6Address": "2001:db8:85a3:8d3::/64"
+              },
+              "devicePorts": {
+                "ports": [
+                  5060
+                ],
+                "ranges": [
+                  {
+                    "from": 5061,
+                    "to": 5065
+                  }
+                ]
+              },
+              "applicationServerPorts": {
+                "ports": [
+                  80
+                ],
+                "ranges": [
+                  {
+                    "from": 8080,
+                    "to": 8085
+                  }
+                ]
+              },
+              "sink": "https://application-server.com/notifications",
+              "sinkCredential": {
+                "credentialType": "ACCESSTOKEN",
+                "accessToken": "c9876-4321-a",
+                "accessTokenExpiresUtc": "2024-06-01T13:30:00Z",
+                "accessTokenType": "bearer"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/sessions/{{ _.sessionId }}"
+        name: Delete a QoS session
+        meta:
+          id: req_66859eb514824d17a86e7446fc585376
+          created: 1778667887575
+          modified: 1778667887575
+          isPrivate: false
+          description: >
+            Release resources related to QoS session
+
+
+            If the notification callback is provided and the `qosStatus` of the
+            session was `AVAILABLE` the client will receive in addition to the
+            response a `QOS_STATUS_CHANGED` event with
+
+            - `qosStatus` as `UNAVAILABLE` and
+
+            - `statusInfo` as `DELETE_REQUESTED`
+
+            There will be no notification event if the `qosStatus` was already
+            `UNAVAILABLE`.
+
+
+            **NOTES:**
+
+            - The access token may be either 2-legged or 3-legged.
+
+            - If a 3-legged access token is used, the subject associated with
+            the session must also be associated with the access token.
+
+            - The session must must have been created by the same API consumer
+            given in the access token
+          sortKey: -1778667887575
+        method: DELETE
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/sessions/{{ _.sessionId }}"
+        name: Get QoS session information
+        meta:
+          id: req_b66202faf06d40bfa21adffaa9201148
+          created: 1778667887575
+          modified: 1778668030171
+          isPrivate: false
+          description: >
+            Querying for QoS session resource information details
+
+
+            **NOTES:**
+
+            - The access token may be either 2-legged or 3-legged.
+
+            - If a 3-legged access token is used, the end user (and device)
+            associated with the session must also be associated with the access
+            token.
+
+            - The session must have been created by the same API client given in
+            the access token
+          sortKey: -1778667887626
+        method: GET
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/retrieve-sessions"
+        name: Get QoS session information for a device
+        meta:
+          id: req_08b3977a1d3141048424fc18aa5eca37
+          created: 1778667887576
+          modified: 1778678956315
+          isPrivate: false
+          description: >
+            Querying for QoS session resource information details for a device
+
+
+            **NOTES:**
+
+            - The access token may be either 2-legged or 3-legged.
+              - If a 3-legged access token is used, the subject associated with the session must also be associated with the access token. In this case the optional `device` parameter MUST NOT be provided in the request.
+              - If a 2-legged access token is used, the device parameter must be provided and identify a device.
+            - The session must have been created by the same API consumer given
+            in the access token
+
+            - If no QoS session is found for the requested device, an empty
+            array is returned.
+
+            - This call uses the POST method instead of GET to comply with the
+            CAMARA Commonalities guidelines for sending sensitive or complex
+            data in API calls. Since the device field may contain personally
+            identifiable information, it should not be sent via GET.
+              [CAMARA API Design Guidelines](https://github.com/camaraproject/Commonalities/blob/r3.3/documentation/CAMARA-API-Design-Guide.md#65-post-or-get-for-transferring-sensitive-or-complex-data)
+          sortKey: -1778667887601
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "device": {
+                "phoneNumber": "+123456789",
+                "networkAccessIdentifier": "123456789@domain.com",
+                "ipv4Address": {
+                  "publicAddress": "203.0.113.0",
+                  "privateAddress": "203.0.113.0",
+                  "publicPort": 59765
+                },
+                "ipv6Address": "2001:db8:85a3:8d3:1319:8a2e:370:7344"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+            disabled: false
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/sessions/{{ _.sessionId }}/extend"
+        name: Extend the duration of an active session
+        meta:
+          id: req_15812a9ded0e455088ef449cd4f7b11b
+          created: 1778667887576
+          modified: 1778678920660
+          isPrivate: false
+          description: >
+            Extend the overall session duration of an active QoS session (with
+            qosStatus = AVAILABLE).
+
+            The overall duration of the QoS session, including the additional
+            extended duration, shall not exceed the maximum duration limit fixed
+            for the QoS Profile. If the current duration plus the value of
+            `requestedAdditionalDuration` exceeds the maximum limit, the new
+            overall duration shall be capped to the maximum value allowed.
+
+            An example: For a QoS profile limited to a `maxDuration` of 50,000
+            seconds, a QoD session was originally created with duration 30,000
+            seconds. Before the session expires, the API consumer requests to
+            extend the session by another 30,000 seconds:
+
+            - Previous duration: 30,000 seconds
+
+            - Requested additional duration: 30,000 seconds
+
+            - New overall session duration: 50,000 seconds (the maximum allowed)
+
+
+            **NOTES:**
+
+            - The access token may be either 2-legged or 3-legged.
+
+            - If a 3-legged access token is used, the subject associated with
+            the session must also be associated with the access token.
+
+            - The session must must have been created by the same API consumer
+            given in the access token
+          sortKey: -1778667887576
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "requestedDuration": 3600
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+            disabled: false
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_ffc85efbdc9505b48ac15f85446628afa59e124c
+    created: 1778667834778
+    modified: 1778667834778
+environments:
+  name: Base Environment
+  meta:
+    id: env_ffc85efbdc9505b48ac15f85446628afa59e124c
+    created: 1778667834768
+    modified: 1778676673404
+    isPrivate: false
+  data:
+    base_url: "{{ _.scheme }}://{{ _.host }}{{ _.base_path }}"
+  subEnvironments:
+    - name: OpenAPI env localhost:9091
+      meta:
+        id: env_2a7c556f4905430e9e2a18792a4522c6
+        created: 1778667872400
+        modified: 1778667872400
+        isPrivate: false
+        sortKey: 1778667872400
+      data:
+        scheme: http
+        base_path: /qos-profiles/vwip
+        host: localhost:9091
+    - name: OpenAPI env localhost:9091
+      meta:
+        id: env_867138f0311b4c719c2190d62a60ac2f
+        created: 1778667880462
+        modified: 1778667880462
+        isPrivate: false
+        sortKey: 1778667880462
+      data:
+        scheme: http
+        base_path: /qos-provisioning/vwip
+        host: localhost:9091
+        bearerToken: bearerToken
+    - name: OpenAPI env localhost:9091
+      meta:
+        id: env_3f2e0aebc8af4adfafe2bb0a821a791d
+        created: 1778667887541
+        modified: 1778667887541
+        isPrivate: false
+        sortKey: 1778667887541
+      data:
+        scheme: http
+        base_path: /quality-on-demand/vwip
+        host: localhost:9091
+        bearerToken: bearerToken
+    - name: OpenAPI env localhost:9091
+      meta:
+        id: env_aa578202a38d4082b1991593b41bb4ed
+        created: 1778676673409
+        modified: 1778676673409
+        isPrivate: false
+        sortKey: 1778676673409
+      data:
+        scheme: http
+        base_path: /quality-on-demand/vwip
+        host: localhost:9091
+        bearerToken: bearerToken

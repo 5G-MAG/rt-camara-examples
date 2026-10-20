@@ -1,0 +1,1086 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: Dedicated Networks
+meta:
+  id: wrk_26122302ab584e528748cd54c6409ca9
+  created: 1778660860987
+  modified: 1778660860987
+  description: ""
+collection:
+  - url: "{{ token_url }}"
+    name: Get Token
+    meta:
+      id: req_296aaee5014a479b96c0d54dccf91403
+      created: 1779279731606
+      modified: 1779880171478
+      isPrivate: false
+      description: ""
+      sortKey: -1779279731606
+    method: POST
+    body:
+      mimeType: application/x-www-form-urlencoded
+      params:
+        - name: grant_type
+          value: client_credentials
+          description: ""
+          disabled: false
+        - name: client_id
+          value: "{{ client_id }}"
+          description: ""
+          disabled: false
+          multiline: false
+          type: text
+        - name: client_secret
+          value: "{{ client_secret }}"
+          description: ""
+          disabled: false
+    headers:
+      - name: Content-Type
+        value: application/x-www-form-urlencoded
+      - name: User-Agent
+        value: insomnia/12.2.0
+        description: ""
+        disabled: false
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - name: Networks
+    meta:
+      id: fld_5b8dbf3558fd4e5d9cd7dad1ca650955
+      created: 1778661142490
+      modified: 1779299157700
+      sortKey: -1778661623111
+      description: Manage a dedicated network
+    children:
+      - url: "{{ networks_url }}/networks"
+        name: Get a list of dedicated networks
+        meta:
+          id: req_f74f1a0ded0a46c7b4a9885d62a1e32c
+          created: 1778661142491
+          modified: 1779280695661
+          isPrivate: false
+          description: ""
+          sortKey: -1778661142544
+        method: GET
+        parameters:
+          - name: name
+            value: string
+            disabled: true
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        authentication:
+          type: bearer
+          token: "{% response 'body', 'req_296aaee5014a479b96c0d54dccf91403',
+            'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ networks_url }}/networks"
+        name: Request to create a dedicated network
+        meta:
+          id: req_e93664feb27142bfb0680677b7922a2e
+          created: 1778661142492
+          modified: 1779299139208
+          isPrivate: false
+          description: ""
+          sortKey: -1778661142594
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "networkProfileId": "7e54f738-9e58-4509-9069-7023f03b22b6",
+              "serviceTime": {
+                "start": "2026-05-20T17:45:37.088Z",
+                "end": "2026-05-20T18:30:37.088Z"
+              },
+              "serviceAreaId": "625b2d4b-4da7-4f07-9169-e60ffdf76671",
+              "sink": "https://]|",
+              "sinkCredential": {}
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+            disabled: false
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        authentication:
+          type: bearer
+          token: "{% response 'body', 'req_296aaee5014a479b96c0d54dccf91403',
+            'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+          prefix: ""
+        scripts:
+          afterResponse: >-
+            if (insomnia.response.code === 200 || insomnia.response.code ===
+            201) {
+            	const jsonBody = insomnia.response.json();
+              insomnia.environment.set("networkId", jsonBody.id); 
+            }
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ networks_url }}/networks/{{ _.networkId }}"
+        name: Get the current information about a dedicated network
+        meta:
+          id: req_18a79a8953184dcea944f5ba4cc98d6c
+          created: 1778661142493
+          modified: 1779298135766
+          isPrivate: false
+          description: ""
+          sortKey: -1778661142519
+        method: GET
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        authentication:
+          type: bearer
+          token: "{% response 'body', 'req_296aaee5014a479b96c0d54dccf91403',
+            'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ networks_url }}/networks/7e54f738-9e58-4509-9069-7023f03b22b6"
+        name: Delete a dedicated network
+        meta:
+          id: req_eb3ddadc35cb412397daebf83026e9c7
+          created: 1778661142494
+          modified: 1779299072034
+          isPrivate: false
+          description: ""
+          sortKey: -1778661142494
+        method: DELETE
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        authentication:
+          type: bearer
+          token: "{% response 'body', 'req_296aaee5014a479b96c0d54dccf91403',
+            'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: Accesses
+    meta:
+      id: fld_edb0200b38dc4ece98f64d6f24db6fba
+      created: 1778661162230
+      modified: 1779299788321
+      sortKey: -1778661392682.5
+      description: Manage accesses to a dedicated network for devices
+    children:
+      - url: "{{ accesses_url }}/accesses"
+        name: Get a list of accesses to dedicated networks, optionally filtered for a
+          given device and/or for a given dedicated network
+        meta:
+          id: req_5978e611d79d4d929e346761b4d5da3c
+          created: 1778661162257
+          modified: 1779281501209
+          isPrivate: false
+          description: >
+            Get a list of accesses to dedicated networks, optionally filtered
+            for a given device and/or for a given dedicated network
+          sortKey: -1778661162415
+        method: GET
+        parameters:
+          - name: networkId
+            value: string
+            disabled: true
+        headers:
+          - name: x-device
+            value: phonenumber="+123456789"
+            disabled: true
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        authentication:
+          type: bearer
+          token: "{% response 'body', 'req_296aaee5014a479b96c0d54dccf91403',
+            'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ accesses_url }}/accesses"
+        name: Create an access to a dedicated network with given configuration,
+          optionally including devices
+        meta:
+          id: req_ba83131672c94072bda1dcba1622b13f
+          created: 1778661162264
+          modified: 1779299786954
+          isPrivate: false
+          description: >
+            Create an access to a dedicated network with given configuration,
+            optionally including devices
+
+            **NOTE:**
+              - This API recommends usage of a two-legged access token, but if the invoker uses a three-legged token, the corresponding `device` identifier MUST be provided and must match the identifier in the access token.
+          sortKey: -1778661162465
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "networkId": {{networkId}},
+              "devices": [
+                {
+                  "phoneNumber": "+1234567890",
+                  "ipv4Address": {
+                    "publicAddress": "192.0.2.1",
+                    "publicPort": 80
+                  }
+                }
+              ],
+              "qosProfiles": [
+                "QOS_A",
+                "QOS_B"
+              ],
+              "defaultQosProfile": "QOS_A",
+              "sink": "https://]|",
+              "sinkCredential": {}
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+            disabled: false
+        authentication:
+          type: bearer
+          token: "{% response 'body', 'req_296aaee5014a479b96c0d54dccf91403',
+            'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+        scripts:
+          afterResponse: >-
+            if (insomnia.response.code === 200 || insomnia.response.code ===
+            201) {
+            	const jsonBody = insomnia.response.json();
+              insomnia.environment.set("accessId", jsonBody.id); 
+            }
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ accesses_url }}/accesses/{{ _.accessId }}"
+        name: Read access information
+        meta:
+          id: req_0b8b207bd866494b8a568fe89074f3a7
+          created: 1778661162265
+          modified: 1779298640806
+          isPrivate: false
+          description: |
+            Read access information
+          sortKey: -1778661162365
+        method: GET
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        authentication:
+          type: bearer
+          token: "{% response 'body', 'req_296aaee5014a479b96c0d54dccf91403',
+            'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+          prefix: ""
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ accesses_url }}/accesses/{{ _.accessId }}"
+        name: Delete an access
+        meta:
+          id: req_a8a4bb7640a648c2a42775bfe3d84a78
+          created: 1778661162265
+          modified: 1779280883559
+          isPrivate: false
+          description: |
+            Delete an access
+          sortKey: -1778661162265
+        method: DELETE
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        authentication:
+          type: bearer
+          token: "{% response 'body', 'req_296aaee5014a479b96c0d54dccf91403',
+            'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: Devices
+    meta:
+      id: fld_342cfbf75b80467da7af6cfa4990ef02
+      created: 1778661162254
+      modified: 1779280998972
+      sortKey: -1778661335075.375
+      description: Manage devices of an access to a dedicated network
+    children:
+      - url: "{{ accesses_url }}/accesses/{{ _.accessId }}/devices"
+        name: Read a paged list of devices with information included in the access,
+          optionally filtered by device status
+        meta:
+          id: req_4cd5022786d4463b937e16d3b914be1e
+          created: 1778661162266
+          modified: 1779281074975
+          isPrivate: false
+          description: >
+            Read a paged list of devices with information included in the
+            access, optionally filtered by device status
+          sortKey: -1778661162468
+        method: GET
+        parameters:
+          - name: perPage
+            value: "10"
+            disabled: true
+          - name: seek
+            value: phonenumber="+123456789"
+            disabled: true
+          - name: deviceStatus
+            value: string
+            disabled: true
+        authentication:
+          type: bearer
+          token: "{% response 'body', 'req_296aaee5014a479b96c0d54dccf91403',
+            'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ accesses_url }}/accesses/{{ _.accessId }}/devices/add"
+        name: Add devices to the access
+        meta:
+          id: req_fbbc178121834da5901debc87f983e4a
+          created: 1778661162267
+          modified: 1779299197694
+          isPrivate: false
+          description: |
+            Add devices to the access
+          sortKey: -1778661162568
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "networkId": {{ _.networkId }},
+              "device": {
+                "phoneNumber": "+49123456789"
+              },
+              "defaultQosProfileName": "QCI_1_voice",
+              "allowedQosProfileNames": [
+                "QCI_1_voice"
+              ]
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+            disabled: false
+        authentication:
+          type: bearer
+          token: "{% response 'body', 'req_296aaee5014a479b96c0d54dccf91403',
+            'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ accesses_url }}/accesses/{{ _.accessId }}/devices/remove"
+        name: Remove devices from the access
+        meta:
+          id: req_83282a08d7774f72a560092f9a83446c
+          created: 1778661162268
+          modified: 1779281112220
+          isPrivate: false
+          description: Remove devices from the access
+          sortKey: -1778661162268
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "networkId": "b69e5404-3871-448d-8f9f-11dc5d29a4c8",
+              "device": {
+                "phoneNumber": "+49123456789"
+              },
+              "defaultQosProfileName": "QCI_1_voice",
+              "allowedQosProfileNames": [
+                "QCI_1_voice"
+              ]
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+            disabled: false
+        authentication:
+          type: bearer
+          token: "{% response 'body', 'req_296aaee5014a479b96c0d54dccf91403',
+            'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: Profiles
+    meta:
+      id: fld_f6bcf523f6b04906b38ecdc83fa250a5
+      created: 1778662083968
+      modified: 1778663156273
+      sortKey: -1778662105968
+      description: Operations related to dedicated network profiles
+    children:
+      - url: "{{ profiles_url }}/profiles"
+        name: Read dedicated network profiles
+        meta:
+          id: req_5835c1d57b134b938cc0d7f867ee0e78
+          created: 1778662083970
+          modified: 1779280106409
+          isPrivate: false
+          description: ""
+          sortKey: -1778662084071
+        method: GET
+        parameters:
+          - name: name
+            value: string
+            disabled: true
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        authentication:
+          type: bearer
+          token: "{% response 'body', 'req_296aaee5014a479b96c0d54dccf91403',
+            'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ profiles_url }}profiles/7e54f738-9e58-4509-9069-7023f03b22b6"
+        name: Read a dedicated network profile
+        meta:
+          id: req_9b8df23ac88243bf8d32dfd54f97cb75
+          created: 1778662083971
+          modified: 1779296877203
+          isPrivate: false
+          description: ""
+          sortKey: -1778662083971
+        method: GET
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        authentication:
+          type: bearer
+          token: "{% response 'body', 'req_296aaee5014a479b96c0d54dccf91403',
+            'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: Areas
+    meta:
+      id: fld_64d361f9d8474438862a512e4cb1370f
+      created: 1778662105868
+      modified: 1778662105868
+      sortKey: -1778662105868
+      description: Discovery and management of geographical network service areas.
+    children:
+      - url: "{{ areas_url }}/retrieve-service-areas"
+        name: Retrieve dedicated network service areas, filtered by additional search
+          criteria
+        meta:
+          id: req_4cc1f14c1da74a0c812725e6270859e0
+          created: 1778662105901
+          modified: 1779310626125
+          isPrivate: false
+          description: ""
+          sortKey: -1778662106003
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{% response 'body', 'req_296aaee5014a479b96c0d54dccf91403',
+            'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ areas_url }}/areas/{{ _.areaId }}"
+        name: Read a dedicated network service area
+        meta:
+          id: req_15471f9f6589433b8b4bb0bb173434f9
+          created: 1778662105903
+          modified: 1779297339566
+          isPrivate: false
+          description: ""
+          sortKey: -1778662105903
+        method: GET
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        authentication:
+          type: bearer
+          token: "{% response 'body', 'req_296aaee5014a479b96c0d54dccf91403',
+            'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: (Optional) QoS Profiles
+    meta:
+      id: fld_c838bc5602264894b585bc34534dea2e
+      created: 1778667939076
+      modified: 1778690516522
+      sortKey: -1778667939076
+      description: Manage QoS Profiles
+    children:
+      - url: "{{ _.base_url }}/retrieve-qos-profiles"
+        name: Retrieve QoS profiles
+        meta:
+          id: req_bd7e1d8e49184c8d93f5d1c2c37a209b
+          created: 1778667939082
+          modified: 1778667939082
+          isPrivate: false
+          description: >
+            Returns all QoS Profiles that match the given criteria.
+
+            **NOTES:**
+
+            - The access token may be either a 2-legged or 3-legged access
+            token.
+
+            - If the access token is 3-legged, all returned QoS Profiles will be
+            available to the subject (device) associated with the access token.
+
+            - If the access token is 2-legged and a device filter is provided,
+            all returned QoS Profiles will be available to that device. If
+            multiple device identifiers are provided within the device property,
+            only QoS Profiles available to the device identifier chosen by the
+            implementation will be returned, even if the identifiers do not
+            match the same device. API provider does not perform any logic to
+            validate/correlate that the indicated device identifiers match the
+            same device. No error should be returned if the identifiers are
+            otherwise valid to prevent API consumers correlating different
+            identifiers with a given end user.
+
+            - This call uses the POST method instead of GET to comply with the
+            CAMARA Commonalities guidelines for sending sensitive or complex
+            data in API calls. Since the device field may contain personally
+            identifiable information, it should not be sent via GET.
+            Additionally, this call may include complex data structures.
+              [CAMARA API Design Guidelines](https://github.com/camaraproject/Commonalities/blob/r3.3/documentation/API-design-guidelines.md#post-or-get-for-transferring-sensitive-or-complex-data)
+          sortKey: -1778667939082
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "device": {
+                "phoneNumber": "+123456789",
+                "networkAccessIdentifier": "123456789@domain.com",
+                "ipv4Address": {
+                  "publicAddress": "203.0.113.0",
+                  "publicPort": 59765
+                },
+                "ipv6Address": "2001:db8:85a3:8d3:1319:8a2e:370:7344"
+              },
+              "name": "voice",
+              "status": "string"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+            disabled: false
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/qos-profiles/{{ _.name }}"
+        name: Get QoS Profile for a given name
+        meta:
+          id: req_e890f4d27307495d972a0ab9380d305b
+          created: 1778667939087
+          modified: 1778667939087
+          isPrivate: false
+          description: >
+            Returns a QoS Profile that matches the given name.
+
+
+            The access token may be either a 2-legged or 3-legged access token.
+            If the access token is 3-legged, a QoS Profile is only returned if
+            available to all subjects associated with the access token.
+          sortKey: -1778667939087
+        method: GET
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: (QoD) QoS Sessions
+    meta:
+      id: fld_3b1aecc55a984f9981bf3cfd453427a6
+      created: 1778690493500
+      modified: 1778690676068
+      sortKey: -1778661277468.25
+      description: Manage QoS sessions
+    children:
+      - url: "{{ _.base_url }}/sessions"
+        name: Creates a new session
+        meta:
+          id: req_7c794f36182447cb9fb4df340732d1a1
+          created: 1778690493502
+          modified: 1778691023498
+          isPrivate: false
+          description: >
+            Create QoS Session to manage latency/throughput priorities
+
+
+            If the qosStatus in the API response is "AVAILABLE" and a
+            notification callback is provided the API consumer will receive in
+            addition to the response a
+
+            `QOS_STATUS_CHANGED` event notification with `qosStatus` as
+            `AVAILABLE`.
+
+
+            If the `qosStatus` in the API response is `REQUESTED`, the client
+            will receive either
+
+            - a `QOS_STATUS_CHANGED` event notification with `qosStatus` as
+            `AVAILABLE` after the network notifies that it has created the
+            requested session, or
+
+            - a `QOS_STATUS_CHANGED` event notification with `qosStatus` as
+            `UNAVAILABLE` and `statusInfo` as `NETWORK_TERMINATED` after the
+            network notifies that it has failed to provide the requested
+            session.
+
+
+            A `QOS_STATUS_CHANGED` event notification with `qosStatus` as
+            `UNAVAILABLE` will also be send if the network terminates the
+            session before the requested duration expired
+
+
+            **NOTES:**
+
+            - In case of a `QOS_STATUS_CHANGED` event with `qosStatus` as
+            `UNAVAILABLE` and `statusInfo` as `NETWORK_TERMINATED` the resources
+            of the QoS session are not directly released, but will get deleted
+            automatically at earliest 360 seconds after the event.
+
+              This behavior allows API consumers which are not receiving notification events but are polling to get the session information with the `qosStatus` `UNAVAILABLE` and `statusInfo` `NETWORK_TERMINATED`. Before a API consumer can attempt to create a new QoD session for the same device and flow period they must release the session resources with an explicit `delete` operation if not yet automatically deleted.
+            - The access token may be either 2-legged or 3-legged. See
+            "Identifying the device from the access token" for further
+            information
+              - When the API is invoked using a two-legged access token, the subject will be identified from the optional `device` object, which therefore MUST be provided.
+              - When a three-legged access token is used however, this optional identifier MUST NOT be provided, as the subject will be uniquely identified from the access token.
+          sortKey: -1778690493502
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "duration": 3600,
+              "qosProfile": "QOS_L",
+              "device": {
+                "phoneNumber": "+123456789",
+                "networkAccessIdentifier": "123456789@domain.com",
+                "ipv4Address": {
+                  "publicAddress": "203.0.113.0",
+                  "privateAddress": "203.0.113.0",
+                  "publicPort": 59765
+                },
+                "ipv6Address": "2001:db8:85a3:8d3:1319:8a2e:370:7344"
+              },
+              "applicationServer": {
+                "ipv4Address": "198.51.100.0/24",
+                "ipv6Address": "2001:db8:85a3:8d3::/64"
+              },
+              "devicePorts": {
+                "ports": [
+                  5060
+                ],
+                "ranges": [
+                  {
+                    "from": 5061,
+                    "to": 5065
+                  }
+                ]
+              },
+              "applicationServerPorts": {
+                "ports": [
+                  80
+                ],
+                "ranges": [
+                  {
+                    "from": 8080,
+                    "to": 8085
+                  }
+                ]
+              },
+              "sink": "https://application-server.com/notifications",
+              "sinkCredential": {
+                "credentialType": "ACCESSTOKEN",
+                "accessToken": "c9876-4321-a",
+                "accessTokenExpiresUtc": "2024-06-01T13:30:00Z",
+                "accessTokenType": "bearer"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+            disabled: false
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/sessions/{{ _.sessionId }}"
+        name: Get QoS session information
+        meta:
+          id: req_c9f4913a49dd49b9b85304d2330313df
+          created: 1778690493503
+          modified: 1778690493503
+          isPrivate: false
+          description: >
+            Querying for QoS session resource information details
+
+
+            **NOTES:**
+
+            - The access token may be either 2-legged or 3-legged.
+
+            - If a 3-legged access token is used, the end user (and device)
+            associated with the session must also be associated with the access
+            token.
+
+            - The session must have been created by the same API client given in
+            the access token
+          sortKey: -1778690493503
+        method: GET
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/sessions/{{ _.sessionId }}"
+        name: Delete a QoS session
+        meta:
+          id: req_0cdce98fc34143bc887f10c52d872145
+          created: 1778690493504
+          modified: 1778690493504
+          isPrivate: false
+          description: >
+            Release resources related to QoS session
+
+
+            If the notification callback is provided and the `qosStatus` of the
+            session was `AVAILABLE` the client will receive in addition to the
+            response a `QOS_STATUS_CHANGED` event with
+
+            - `qosStatus` as `UNAVAILABLE` and
+
+            - `statusInfo` as `DELETE_REQUESTED`
+
+            There will be no notification event if the `qosStatus` was already
+            `UNAVAILABLE`.
+
+
+            **NOTES:**
+
+            - The access token may be either 2-legged or 3-legged.
+
+            - If a 3-legged access token is used, the subject associated with
+            the session must also be associated with the access token.
+
+            - The session must must have been created by the same API consumer
+            given in the access token
+          sortKey: -1778690493504
+        method: DELETE
+        headers:
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/sessions/{{ _.sessionId }}/extend"
+        name: Extend the duration of an active session
+        meta:
+          id: req_f995e28262e647269e1e4cdd19332b0d
+          created: 1778690493506
+          modified: 1778690493506
+          isPrivate: false
+          description: >
+            Extend the overall session duration of an active QoS session (with
+            qosStatus = AVAILABLE).
+
+            The overall duration of the QoS session, including the additional
+            extended duration, shall not exceed the maximum duration limit fixed
+            for the QoS Profile. If the current duration plus the value of
+            `requestedAdditionalDuration` exceeds the maximum limit, the new
+            overall duration shall be capped to the maximum value allowed.
+
+            An example: For a QoS profile limited to a `maxDuration` of 50,000
+            seconds, a QoD session was originally created with duration 30,000
+            seconds. Before the session expires, the API consumer requests to
+            extend the session by another 30,000 seconds:
+
+            - Previous duration: 30,000 seconds
+
+            - Requested additional duration: 30,000 seconds
+
+            - New overall session duration: 50,000 seconds (the maximum allowed)
+
+
+            **NOTES:**
+
+            - The access token may be either 2-legged or 3-legged.
+
+            - If a 3-legged access token is used, the subject associated with
+            the session must also be associated with the access token.
+
+            - The session must must have been created by the same API consumer
+            given in the access token
+          sortKey: -1778690493506
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "requestedAdditionalDuration": 1800
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+            disabled: false
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/retrieve-sessions"
+        name: Get QoS session information for a device
+        meta:
+          id: req_16022f15b14647249cc56fe781d40596
+          created: 1778690493507
+          modified: 1778690493507
+          isPrivate: false
+          description: >
+            Querying for QoS session resource information details for a device
+
+
+            **NOTES:**
+
+            - The access token may be either 2-legged or 3-legged.
+              - If a 3-legged access token is used, the subject associated with the session must also be associated with the access token. In this case the optional `device` parameter MUST NOT be provided in the request.
+              - If a 2-legged access token is used, the device parameter must be provided and identify a device.
+            - The session must have been created by the same API consumer given
+            in the access token
+
+            - If no QoS session is found for the requested device, an empty
+            array is returned.
+
+            - This call uses the POST method instead of GET to comply with the
+            CAMARA Commonalities guidelines for sending sensitive or complex
+            data in API calls. Since the device field may contain personally
+            identifiable information, it should not be sent via GET.
+              [CAMARA API Design Guidelines](https://github.com/camaraproject/Commonalities/blob/r3.3/documentation/CAMARA-API-Design-Guide.md#65-post-or-get-for-transferring-sensitive-or-complex-data)
+          sortKey: -1778690493507
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "device": {
+                "phoneNumber": "+123456789",
+                "networkAccessIdentifier": "123456789@domain.com",
+                "ipv4Address": {
+                  "publicAddress": "203.0.113.0",
+                  "publicPort": 59765
+                },
+                "ipv6Address": "2001:db8:85a3:8d3:1319:8a2e:370:7344"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+            disabled: false
+          - name: x-correlator
+            value: b4333c46-49c0-4f62-80d7-f0ef930f1c46
+            disabled: true
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_d2c2256736f3cea3ebedc56669b7eb5879f60437
+    created: 1778660861027
+    modified: 1779310232714
+  cookies:
+    - id: e5b43ec6-366c-4ba0-98de-d50b81ae22f3
+      key: KC_RESTART
+      value: ""
+      domain: api-sbox.erdc.ericsson.net
+      path: /realms/nod/
+      secure: false
+      httpOnly: true
+      extensions:
+        - Version=1
+      hostOnly: true
+    - id: 2e946441-b7db-4f77-bd24-f3b984bc4b19
+      key: KC_AUTH_STATE
+      value: ""
+      domain: api-sbox.erdc.ericsson.net
+      path: /realms/nod/
+      secure: false
+      httpOnly: false
+      extensions:
+        - Version=1
+      hostOnly: true
+environments:
+  name: Base Environment
+  meta:
+    id: env_d2c2256736f3cea3ebedc56669b7eb5879f60437
+    created: 1778660861022
+    modified: 1779299788320
+    isPrivate: false
+  data:
+    "": ""
+  subEnvironments:
+    - name: DN Sandbox
+      meta:
+        id: env_1ad7fa89a6c04d4daa92e304380610b8
+        created: 1779279514114
+        modified: 1779874595623
+        isPrivate: false
+        sortKey: 1779279514117
+      data:
+        client_id: YOUR CLENT ID HERE
+        client_secret: YOUR CLIENT SECRET HERE
+        token_url: https://api-sbox.erdc.ericsson.net/tokens
+        areas_url: https://api-sbox.erdc.ericsson.net/dedicated-network-areas/v0.1-wip
+        networks_url: https://api-sbox.erdc.ericsson.net/dedicated-network/v0.2-wip
+        profiles_url: https://api-sbox.erdc.ericsson.net/dedicated-network-profiles/v0.2-wip
+        accesses_url: https://api-sbox.erdc.ericsson.net/dedicated-network-accesses/v0.2-wip
+        networkId: 3c6ea613-60fb-4f5d-ad38-144345622ca7
+        dedicated_network_id: 26654968-1bc2-46d0-882a-3930c4edc9f7
