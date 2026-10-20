@@ -80,7 +80,7 @@ An MCP client starts the server itself, from the configuration below. To test th
 python server.py
 ```
 
-You should see a line like:
+The server writes a line like this to standard error (standard output carries the protocol), saying whether a token is set:
 
 ```
 [camara-mcp] Starting | API root: http://localhost:9091/ | Auth: NO TOKEN
@@ -199,7 +199,7 @@ Each tool has a Pydantic model that validates what the assistant passes in, is r
 decorator, calls `_api_request()` and formats the result, and has its errors turned into readable messages by
 `_handle_error()`. All tools accept `response_format: 'json'` to return the raw API payload instead of Markdown.
 
-The test suite has 41 cases:
+The test suite has 42 cases:
 
 ```bash
 pip install -r requirements-dev.txt
