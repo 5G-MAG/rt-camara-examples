@@ -139,7 +139,7 @@ and the [server README](./mcp-servers/dedicated-networks/README.md#configuration
 
 ## Development
 
-The layout is in the tree under Introduction. The MCP server has a test suite of 37 cases
+The layout is in the tree under Introduction. The MCP server has a test suite of 41 cases
 (`pip install -r requirements-dev.txt && python -m pytest` in `mcp-servers/dedicated-networks`); the portal has no
 automated tests yet.
 

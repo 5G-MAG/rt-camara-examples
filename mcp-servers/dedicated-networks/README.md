@@ -83,7 +83,7 @@ python server.py
 You should see a line like:
 
 ```
-[camara-mcp] Starting | API root: http://localhost:9091 | Auth: NO TOKEN
+[camara-mcp] Starting | API root: http://localhost:9091/ | Auth: NO TOKEN
 ```
 
 Press Ctrl+C to stop. Example prompts to give the assistant once it is configured:
@@ -199,7 +199,7 @@ Each tool has a Pydantic model that validates what the assistant passes in, is r
 decorator, calls `_api_request()` and formats the result, and has its errors turned into readable messages by
 `_handle_error()`. All tools accept `response_format: 'json'` to return the raw API payload instead of Markdown.
 
-The test suite has 37 cases:
+The test suite has 41 cases:
 
 ```bash
 pip install -r requirements-dev.txt
