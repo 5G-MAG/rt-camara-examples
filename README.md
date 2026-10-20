@@ -27,7 +27,7 @@
 
 |  |  |
 |---|---|
-| **Supports** | [CAMARA](https://camaraproject.org/) Dedicated Networks APIs in the portal and the MCP server; Insomnia collections also cover QoS Booking and Quality on Demand |
+| **Implements** | [CAMARA](https://camaraproject.org/) Dedicated Networks APIs in the portal and the MCP server; Insomnia collections also cover QoS Booking and Quality on Demand |
 | **Part of** | [CAMARA Connectivity Quality Management APIs](https://www.5g-mag.com/reference-tools/network-apis/) |
 
 ## Introduction
@@ -71,7 +71,7 @@ API collections ready to import into [Insomnia](https://insomnia.rest/):
 | [`Insomnia_Using_QoSBooking.yaml`](./insomnia/Insomnia_Using_QoSBooking.yaml) | QoS Booking |
 | [`Insomnia_Using_QualityonDemand.yaml`](./insomnia/Insomnia_Using_QualityonDemand.yaml) | Quality on Demand |
 
-## APIs and versions
+## Specification
 
 The table lists every CAMARA API this repository calls, the path prefix the code and collections use,
 and the specification revision checked for it.
@@ -91,11 +91,65 @@ and the specification revision checked for it.
 - The sandbox behaves differently from the spec in two places: it rejects `name` on a network, and it
   takes one device per access (`device`, not `devices`). The code follows the sandbox.
 
+## Install dependencies
+
+- The management portal: Node.js LTS and npm.
+- The MCP server: Python 3.10 or newer and pip.
+- The Insomnia collections: [Insomnia](https://insomnia.rest/).
+
+## Downloading
+
+```bash
+cd ~
+git clone https://github.com/5G-MAG/rt-camara-examples.git
+cd rt-camara-examples
+```
+
+## Building
+
+None of the tools has a build step.
+
+## Installing
+
+```bash
+cd management-portal/DedicatedNetworks && npm install
+cd ../../mcp-servers/dedicated-networks && pip install -r requirements.txt
+```
+
+## Running
+
+The portal, from `management-portal/DedicatedNetworks` after the configuration below:
+
+```bash
+node server.js
+```
+
+Open **http://localhost:3001**. The MCP server is started by an AI assistant from its configuration; its
+[README](./mcp-servers/dedicated-networks/README.md#running) shows how to test it by hand. To use a collection, import
+the file from `insomnia/` into Insomnia; the Dedicated Networks collection has a `DN Sandbox` environment to fill in.
+
+## Configuration
+
+Both tools call the CAMARA Dedicated Networks APIs of a server you name, and need its address and credentials: the
+portal in its `.env` (client ID, client secret, token URL and the four API base URLs, copied from `.env.example`), the
+MCP server in the variables `CAMARA_API_ROOT` and `CAMARA_ACCESS_TOKEN`. The Insomnia collections take the same values
+in their environment. Access to the sandbox these tools are built against, and its credentials, are available to
+5G-MAG members on request. Details are in the [portal README](./management-portal/DedicatedNetworks/README.md#configuration)
+and the [server README](./mcp-servers/dedicated-networks/README.md#configuration).
+
+## Development
+
+The layout is in the tree under Introduction. The MCP server has a test suite of 37 cases
+(`pip install -r requirements-dev.txt && python -m pytest` in `mcp-servers/dedicated-networks`); the portal has no
+automated tests yet.
+
 ## Contributing
 
 Contributions are welcome. How to raise an issue, fork the repository and open a pull request, and
 the Contributor License Agreement required before code can be merged, are described at
 <https://www.5g-mag.com/contributing>.
+
+## License
 
 Distributed under the 5G-MAG Public License v1.0. See [LICENSE](LICENSE). Third-party
 dependencies are listed in [ATTRIBUTION_NOTICE](ATTRIBUTION_NOTICE).

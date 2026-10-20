@@ -1,12 +1,12 @@
 # CAMARA Dedicated Networks API Portal
 
-A guided, browser-based portal for the CAMARA Dedicated Networks APIs — Areas, Networks,
-Accesses and Profiles — plus a one-click Quick Booking shortcut.
+A guided, browser-based portal for the CAMARA Dedicated Networks APIs (Areas, Networks,
+Accesses and Profiles), with a one-click Quick Booking shortcut.
 
 ## Introduction
 
-The portal walks a user through the full dedicated-network lifecycle as one guided flow —
-**Areas → Network → Access → Devices** — where each stage is disabled with a one-line reason
+The portal walks a user through the full dedicated-network lifecycle as one guided flow
+(**Areas → Network → Access → Devices**) where each stage is disabled with a one-line reason
 until its prerequisite is done, and exercises the full parameter surface of its CAMARA API rather
 than a cut-down subset. A **Start here** tab, shown on a first visit, follows the Dedicated Networks workflow on
 [5g-mag.com](https://www.5g-mag.com/tech/network-apis/content-production/using-dedicated-networks)
@@ -16,23 +16,23 @@ step (application provider or operator) and names the tab that does it. After th
 network and an access in one request); both share the same state, so a network booked through the
 shortcut shows up already unlocked in Devices.
 
-- **Service areas** — search by point, drawn circle or polygon (overlapping/covering), or by
+- **Service areas**: search by point, drawn circle or polygon (overlapping/covering), or by
   name / network-profile / QoS-profile filters, combinable
-- **Networks** — reserve by network profile *or* QoS profile, for a chosen area and time window,
+- **Networks**: reserve by network profile *or* QoS profile, for a chosen area and time window,
   with optional callback (webhook) configuration
-- **Accesses** — grant a device access to a network; the tracker always shows the three access
+- **Accesses**: grant a device access to a network; the tracker always shows the three access
   states the API defines (REQUESTED, GRANTED, DENIED), highlights the current one and, for a
   denied access, shows the reason code and message
-- **Devices** — create devices by phone number (MSISDN; kept in the browser, since the Accesses
+- **Devices**: create devices by phone number (MSISDN; kept in the browser, since the Accesses
   API has no device list), give one access to the current network from a drop-down, and see
   every access each device is part of, on any network
-- **Live status** — adaptive polling (fast while transitioning or near expiry, slow once stable)
-- **Callbacks** — status notifications sent by CAMARA arrive at the portal's webhook receiver and are
+- **Live status**: adaptive polling (fast while transitioning or near expiry, slow once stable)
+- **Callbacks**: status notifications sent by CAMARA arrive at the portal's webhook receiver and are
   listed in a Callbacks panel on the Network and Access tabs. A notification for the resource on
   screen refreshes its tracker at once. Sending them needs `SINK_BASE_URL` (see Configuration).
 - **Dark mode**, offline-bundled map assets, no CDN dependency at runtime
 
-The UI reuses the shared 5G-MAG reference-tools look — the same `blue-bar.css` and `style.css`
+The UI reuses the shared 5G-MAG reference-tools look, the same `blue-bar.css` and `style.css`
 vocabulary as `rt-mbs-application-provider` / `rt-media-server` (copied, not reinvented): a
 blue-bar header, `.card` / `.badge` / `.form-row` throughout, native `<dialog>` / `confirm()`,
 and a single toast.
@@ -46,11 +46,11 @@ Areas, Networks, Accesses and Profiles. It is built against the sandbox deployme
 `dedicated-network-profiles/v0.2-wip` and `dedicated-network-areas/v0.1-wip`. The sandbox differs from
 the specification in two places: it rejects a `name` on a network, and it takes one device per access
 (`device`, not `devices`). The versions are listed in the
-[root README](../../README.md#apis-and-versions).
+[root README](../../README.md#specification).
 
 ## Install dependencies
 
-Node.js LTS and npm — no other system packages required.
+Node.js LTS and npm; no other system packages are required.
 
 ## Downloading
 
@@ -62,7 +62,7 @@ cd rt-camara-examples/management-portal/DedicatedNetworks
 
 ## Building
 
-No build step — plain Node.js on the backend, vanilla JS/CSS served as static files on the
+No build step: plain Node.js on the backend, vanilla JS/CSS served as static files on the
 frontend.
 
 ## Installing
