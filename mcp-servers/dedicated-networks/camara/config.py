@@ -44,3 +44,8 @@ API_PATHS: Dict[str, str] = {
     "accesses": "dedicated-network-accesses/v0.2-wip",
     "areas":    "dedicated-network-areas/v0.1-wip",
 }
+
+
+def startup_line() -> str:
+    """The line the server writes to standard error when it starts. It says whether a token is set, never the token."""
+    return f"[camara-mcp] Starting | API root: {API_ROOT} | Auth: {'token set' if ACCESS_TOKEN else 'NO TOKEN'}"

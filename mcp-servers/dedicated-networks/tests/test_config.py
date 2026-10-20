@@ -16,6 +16,7 @@ import camara.config as config
 def restore_config(monkeypatch):
     yield
     monkeypatch.delenv("CAMARA_API_ROOT", raising=False)
+    monkeypatch.delenv("CAMARA_ACCESS_TOKEN", raising=False)
     importlib.reload(config)
 
 
@@ -32,3 +33,14 @@ def test_the_default_root_is_the_local_server(monkeypatch):
     monkeypatch.delenv("CAMARA_API_ROOT", raising=False)
     importlib.reload(config)
     assert config.API_ROOT == "http://localhost:9091/"
+
+
+def test_the_start_up_line_names_the_root_and_whether_a_token_is_set_but_never_the_token(monkeypatch):
+    monkeypatch.setenv("CAMARA_API_ROOT", "https://api.example.com")
+    monkeypatch.delenv("CAMARA_ACCESS_TOKEN", raising=False)
+    importlib.reload(config)
+    assert config.startup_line() == "[camara-mcp] Starting | API root: https://api.example.com/ | Auth: NO TOKEN"
+    monkeypatch.setenv("CAMARA_ACCESS_TOKEN", "secret-value")
+    importlib.reload(config)
+    assert "secret-value" not in config.startup_line()
+    assert config.startup_line().endswith("Auth: token set")
