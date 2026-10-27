@@ -59,18 +59,18 @@ async function apiRequest(url, options = {}) {
  * one single page and not asked again, since it ignores page and perPage.
  *
  * @param {string} url      - Full URL to call, with any filter already in its query
- * @param {object} options  - method, body, perPage (default 100), maxPages (default 50)
+ * @param {object} options  - method, body, headers, perPage (default 100), maxPages (default 50)
  * @returns {Promise<{status, ok, data: Array, pagination: object|null}>} data is the array of items;
  *          on an error response the error response itself is returned
  */
-async function listPages(url, { method = 'GET', body, perPage = 100, maxPages = 50 } = {}) {
+async function listPages(url, { method = 'GET', body, headers, perPage = 100, maxPages = 50 } = {}) {
   const items = [];
   let pagination = null;
   for (let page = 1; page <= maxPages; page++) {
     const u = new URL(url);
     u.searchParams.set('page', String(page));
     u.searchParams.set('perPage', String(perPage));
-    const r = await apiRequest(u.toString(), { method, body });
+    const r = await apiRequest(u.toString(), { method, body, headers });
     if (!r.ok) return r;
     if (Array.isArray(r.data)) return { status: r.status, ok: true, data: items.concat(r.data), pagination };
     const pageItems = r.data && Array.isArray(r.data.items) ? r.data.items : [];

@@ -13,11 +13,11 @@ each module doesn't repeat its own fetch/JSON/error-shape boilerplate.
 
 /** GET/POST/DELETE to our own backend, always resolving (never throwing on
  * a non-2xx HTTP status) with { ok, status, data }. */
-async function req(path, { method = 'GET', body } = {}) {
+async function req(path, { method = 'GET', body, headers } = {}) {
   try {
     const res = await fetch(path, {
       method,
-      headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+      headers: body !== undefined || headers ? { ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}), ...(headers || {}) } : undefined,
       body: body !== undefined ? JSON.stringify(body) : undefined
     });
     const status = res.status;
@@ -49,7 +49,7 @@ export const Api = {
   deleteNetwork: id => req(`/api/networks/${id}`, { method: 'DELETE' }),
 
   // Accesses. One access holds a list of devices (create takes `devices`; the answer carries `stats` and
-  // `addedAccessDevices`). The server also answers in the earlier shape, one `device` and a `status` on the
+  // `recentAccessDevices`). The server also answers in the earlier shape, one `device` and a `status` on the
   // access, which the sandbox still uses: it takes one device per access and has no /devices endpoints
   // (they answer 404 "No matching api service"). The server gives every answer a top-level `status` for the screens.
   listAccesses: networkId => req(`/api/accesses?networkId=${encodeURIComponent(networkId)}`),
@@ -58,13 +58,11 @@ export const Api = {
   createAccess: body => req('/api/accesses', { method: 'POST', body }),
   getAccess: id => req(`/api/accesses/${id}`),
   deleteAccess: id => req(`/api/accesses/${id}`, { method: 'DELETE' }),
-  // Devices of an access: page, perPage, deviceStatus and addedAt.gte|gt|lte|lt may be given as `query`
-  listAccessDevices: (id, query) => req(`/api/accesses/${id}/devices${query ? '?' + new URLSearchParams(query) : ''}`),
-  addDevice: (id, device) => req(`/api/accesses/${id}/devices`, { method: 'POST', body: { device } }),
+  // Devices of an access: page, perPage and deviceStatus may be given as `query`; `device` narrows the list to
+  // one device (sent as the x-device header, e.g. 'phonenumber="+41795550001"')
+  listAccessDevices: (id, query, device) => req(`/api/accesses/${id}/devices${query ? '?' + new URLSearchParams(query) : ''}`, device ? { headers: { 'x-device': device } } : undefined),
   addDevices: (id, devices) => req(`/api/accesses/${id}/devices/add`, { method: 'POST', body: { devices } }),
-  removeDevices: (id, accessDeviceIds) => req(`/api/accesses/${id}/devices/remove`, { method: 'POST', body: { accessDeviceIds } }),
-  getAccessDevice: (id, accessDeviceId) => req(`/api/accesses/${id}/devices/${accessDeviceId}`),
-  deleteAccessDevice: (id, accessDeviceId) => req(`/api/accesses/${id}/devices/${accessDeviceId}`, { method: 'DELETE' }),
+  removeDevices: (id, devices) => req(`/api/accesses/${id}/devices/remove`, { method: 'POST', body: { devices } }),
 
   sandboxHealth: () => req('/api/sandbox-health'),
   notifications: () => req('/api/webhooks/notifications'),

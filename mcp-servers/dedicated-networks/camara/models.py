@@ -27,8 +27,7 @@ Exported:
   GetAccessInput          — camara_get_access
   CreateAccessInput       — camara_create_access
   DeleteAccessInput       — camara_delete_access
-  AddDeviceInput, AddDevicesInput, RemoveDevicesInput, ListAccessDevicesInput,
-  GetAccessDeviceInput, DeleteAccessDeviceInput — the device tools of an access
+  AddDevicesInput, RemoveDevicesInput, ListAccessDevicesInput — the device tools of an access
 """
 
 from enum import Enum
@@ -368,11 +367,11 @@ class ListAccessesInput(BaseModel):
         None,
         description="Filter accesses for a specific network UUID. Omit to return all.",
     )
-    accessDeviceId: Optional[str] = Field(
+    phoneNumber: Optional[str] = Field(
         None,
-        description="Only accesses that contain the device with this access device id.",
+        pattern=r"^\+[1-9][0-9]{4,14}$",
+        description="Only accesses that contain the device with this phone number (sent as the x-device header).",
     )
-    name: Optional[str] = Field(None, description="Filter by exact access name.")
     page: Optional[int] = Field(
         None, ge=1,
         description="Number of the page to return. Omit it to get every item, from all pages.",
@@ -400,15 +399,6 @@ class GetAccessInput(BaseModel):
 class CreateAccessInput(BaseModel):
     model_config = ConfigDict(validate_assignment=True, extra="forbid")
 
-    name: Optional[str] = Field(
-        None,
-        min_length=1,
-        max_length=1024,
-        description=(
-            "A human-readable name for the access. Sent to the API; an API that does not "
-            "accept a name yet gets the request again without it."
-        ),
-    )
     networkId: str = Field(
         ...,
         description=(
@@ -466,17 +456,6 @@ class DeleteAccessInput(BaseModel):
     accessId: str = Field(..., description="UUID of the device access grant to delete.")
 
 
-class AddDeviceInput(BaseModel):
-    """Add one device to an existing access (POST /accesses/{accessId}/devices)."""
-    model_config = ConfigDict(extra="forbid")
-
-    accessId: str = Field(..., description="UUID of the access.")
-    device: Optional[DeviceInput] = Field(
-        None,
-        description="The device. REQUIRED with a two-legged token; omit with a three-legged token.",
-    )
-
-
 class AddDevicesInput(BaseModel):
     """Add several devices to an existing access (POST /accesses/{accessId}/devices/add)."""
     model_config = ConfigDict(extra="forbid")
@@ -484,7 +463,7 @@ class AddDevicesInput(BaseModel):
     accessId: str = Field(..., description="UUID of the access.")
     devices: List[DeviceInput] = Field(
         ..., min_length=1, max_length=100,
-        description="The devices to add (1-100), each identified by a device object.",
+        description="The devices to add (1-100), each identified by a device object with a phoneNumber.",
     )
 
 
@@ -493,9 +472,9 @@ class RemoveDevicesInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     accessId: str = Field(..., description="UUID of the access.")
-    accessDeviceIds: List[str] = Field(
+    devices: List[DeviceInput] = Field(
         ..., min_length=1, max_length=100,
-        description="The access device ids (deviceId in camara_list_access_devices) to remove.",
+        description="The devices to remove (1-100), each identified by a device object with a phoneNumber.",
     )
 
 
@@ -508,10 +487,11 @@ class ListAccessDevicesInput(BaseModel):
         None, pattern=r"^(REQUESTED|GRANTED|DENIED)$",
         description="Only devices with this status: REQUESTED, GRANTED or DENIED.",
     )
-    addedAtOrAfter: Optional[str] = Field(None, description="Only devices added at or after this time (RFC 3339 with timezone).")
-    addedAfter: Optional[str] = Field(None, description="Only devices added after this time (RFC 3339 with timezone).")
-    addedAtOrBefore: Optional[str] = Field(None, description="Only devices added at or before this time (RFC 3339 with timezone).")
-    addedBefore: Optional[str] = Field(None, description="Only devices added before this time (RFC 3339 with timezone).")
+    phoneNumber: Optional[str] = Field(
+        None,
+        pattern=r"^\+[1-9][0-9]{4,14}$",
+        description="Only the device with this phone number (sent as the x-device header).",
+    )
     page: Optional[int] = Field(
         None, ge=1,
         description="Number of the page to return. Omit it to get every item, from all pages.",
@@ -524,23 +504,3 @@ class ListAccessDevicesInput(BaseModel):
         default=ResponseFormat.MARKDOWN,
         description="'markdown' or 'json'.",
     )
-
-
-class GetAccessDeviceInput(BaseModel):
-    """Read one device of an access (GET /accesses/{accessId}/devices/{accessDeviceId})."""
-    model_config = ConfigDict(extra="forbid")
-
-    accessId: str = Field(..., description="UUID of the access.")
-    accessDeviceId: str = Field(..., description="The access device id (deviceId).")
-    response_format: ResponseFormat = Field(
-        default=ResponseFormat.MARKDOWN,
-        description="'markdown' or 'json'.",
-    )
-
-
-class DeleteAccessDeviceInput(BaseModel):
-    """Remove one device from an access (DELETE /accesses/{accessId}/devices/{accessDeviceId})."""
-    model_config = ConfigDict(extra="forbid")
-
-    accessId: str = Field(..., description="UUID of the access.")
-    accessDeviceId: str = Field(..., description="The access device id (deviceId) to remove.")

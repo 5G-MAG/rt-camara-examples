@@ -10,34 +10,29 @@ Operations:
   GET    /accesses/{id}                             → camara_get_access
   DELETE /accesses/{id}                             → camara_delete_access
   GET    /accesses/{id}/devices                     → camara_list_access_devices
-  POST   /accesses/{id}/devices                     → camara_add_device_to_access
   POST   /accesses/{id}/devices/add                 → camara_add_devices_to_access
   POST   /accesses/{id}/devices/remove              → camara_remove_devices_from_access
-  GET    /accesses/{id}/devices/{accessDeviceId}    → camara_get_access_device
-  DELETE /accesses/{id}/devices/{accessDeviceId}    → camara_delete_access_device
 
-An access holds a list of devices. A deployment that still takes one device per access (and has no
-/devices endpoints) is served too: create_access then sends the single `device` form.
+Follows release r2.2 (version 0.2.0-rc.1) of camaraproject/DedicatedNetworks. An access holds a list of
+devices. A deployment that still takes one device per access (and has no /devices endpoints) is served
+too: create_access then sends the single `device` form.
 
 Call register_access_tools(mcp) once from server.py to activate all the tools.
 """
 
 import json
 import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import httpx
 from mcp.server.mcpserver import MCPServer as FastMCP
 
-from camara.client import api_list, api_post_dropping, api_request, handle_error
+from camara.client import api_list, api_request, handle_error
 from camara.formatters import fmt_access, fmt_access_device
 from camara.models import (
-    AddDeviceInput,
     AddDevicesInput,
     CreateAccessInput,
-    DeleteAccessDeviceInput,
     DeleteAccessInput,
-    GetAccessDeviceInput,
     GetAccessInput,
     ListAccessDevicesInput,
     ListAccessesInput,
@@ -68,17 +63,23 @@ def _wants_single_device(e: httpx.HTTPStatusError) -> bool:
     return bool(re.search(r"['\"`]device['\"`]", text, re.I) and re.search(r"missing|required", text, re.I))
 
 
-async def create_access_request(body: Dict[str, Any]) -> Tuple[Dict[str, Any], List[str]]:
+def x_device(phone_number: Optional[str]) -> Optional[Dict[str, str]]:
+    """The x-device header that narrows a list to one device: the device object serialised as an RFC 8941
+    dictionary, here `phonenumber="+123456789"` (a phone number is the only identifier this API supports)."""
+    return {"x-device": f'phonenumber="{phone_number}"'} if phone_number else None
+
+
+async def create_access_request(body: Dict[str, Any]) -> Dict[str, Any]:
     """POST /accesses with `devices`, as the specification defines it.
 
     An API that answers that it wants a single `device` is sent the earlier form instead, for exactly
-    one device. `name` is dropped if the API does not accept it. Returns (access, dropped properties).
+    one device.
     """
     spec = dict(body)
     if "device" in spec and "devices" not in spec:
         spec["devices"] = [spec.pop("device")]
     try:
-        return await api_post_dropping("accesses", "/accesses", spec, ("name",))
+        return await api_request("accesses", "/accesses", method="POST", body=spec)
     except httpx.HTTPStatusError as e:
         if "devices" not in spec or not _wants_single_device(e):
             raise
@@ -88,7 +89,7 @@ async def create_access_request(body: Dict[str, Any]) -> Tuple[Dict[str, Any], L
             ) from e
         earlier = {k: v for k, v in spec.items() if k != "devices"}
         earlier["device"] = spec["devices"][0]
-        return await api_post_dropping("accesses", "/accesses", earlier, ("name",))
+        return await api_request("accesses", "/accesses", method="POST", body=earlier)
 
 
 def register_access_tools(mcp: FastMCP) -> None:
@@ -118,8 +119,7 @@ def register_access_tools(mcp: FastMCP) -> None:
         Args:
             params.networkId (optional str): Filter results to a specific network UUID.
                 Omit to return accesses across all your networks.
-            params.accessDeviceId (optional str): Only accesses that contain this device.
-            params.name (optional str): Filter by exact access name.
+            params.phoneNumber (optional str): Only accesses that contain the device with this phone number.
             params.page, params.perPage (optional): Read a single page. Omit to get every access.
             params.response_format: 'markdown' (default) or 'json'.
 
@@ -135,14 +135,11 @@ def register_access_tools(mcp: FastMCP) -> None:
             query_params: Dict[str, Any] = {}
             if params.networkId:
                 query_params["networkId"] = params.networkId
-            if params.accessDeviceId:
-                query_params["accessDeviceId"] = params.accessDeviceId
-            if params.name:
-                query_params["name"] = params.name
 
             accesses: List[Dict[str, Any]] = await api_list(
                 "accesses", "/accesses", params=query_params,
                 page=params.page, per_page=params.perPage, request=api_request,
+                headers=x_device(params.phoneNumber),
             )
 
             if params.response_format == ResponseFormat.JSON:
@@ -218,7 +215,7 @@ def register_access_tools(mcp: FastMCP) -> None:
         """Grant a device access to a dedicated network.
 
         An access holds a list of devices: give them in `devices` (up to 100), or one in
-        `device`. The answer lists the devices added (`addedAccessDevices`), with `stats`;
+        `device`. The answer lists the devices accepted (`recentAccessDevices`), with `stats`;
         if only some could be added, the failed ones are listed with the reason.
 
         With a two-legged access token: you MUST provide the device field to
@@ -232,7 +229,6 @@ def register_access_tools(mcp: FastMCP) -> None:
 
         Args:
             params.networkId (str): UUID of the dedicated network.
-            params.name (optional str): A human-readable name for the access.
             params.device (optional): One device (phone number, IPv4, or IPv6).
                 Required with two-legged token; omit with three-legged token.
             params.devices (optional list): Several devices to add (1-100).
@@ -243,7 +239,7 @@ def register_access_tools(mcp: FastMCP) -> None:
 
         Returns:
             Created access with: id (store as accessId), networkId, stats, the devices
-            added (each with its own status, starting at REQUESTED), qosProfiles.
+            accepted (each with its own status, starting at REQUESTED), qosProfiles.
 
         Errors:
             400 — invalid arguments; check device identifier format.
@@ -259,8 +255,6 @@ def register_access_tools(mcp: FastMCP) -> None:
                 return "Error: give either `device` or `devices`, not both."
             body: Dict[str, Any] = {"networkId": params.networkId}
 
-            if params.name:
-                body["name"] = params.name
             if params.device:
                 body["devices"] = [params.device.model_dump(exclude_none=True)]
             if params.devices:
@@ -275,15 +269,11 @@ def register_access_tools(mcp: FastMCP) -> None:
                 body["sinkCredential"] = params.sinkCredential.model_dump(exclude_none=True)
 
             try:
-                access, dropped = await create_access_request(body)
+                access = await create_access_request(body)
             except ValueError as e:
                 return f"Error: {e}"
 
             access_id = access.get("id", "?")
-            note = (
-                f"The API does not accept an access name yet, so `{params.name}` was not stored.\n\n"
-                if dropped else ""
-            )
             partial = (
                 "Some devices could not be added; they are listed below.\n\n"
                 if access.get("results") else ""
@@ -292,7 +282,7 @@ def register_access_tools(mcp: FastMCP) -> None:
                 f"# Device Access Created\n\n"
                 f"Access request submitted. Each device moves from REQUESTED to GRANTED "
                 f"once the CSP approves it.\n\n"
-                f"{note}{partial}"
+                f"{partial}"
                 f"{fmt_access(access)}\n"
                 f"**Access ID**: `{access_id}` — use this with `camara_delete_access` "
                 f"to revoke access when no longer needed."
@@ -359,30 +349,22 @@ def register_access_tools(mcp: FastMCP) -> None:
         Args:
             params.accessId (str): UUID of the access.
             params.deviceStatus (optional): Only devices with this status.
-            params.addedAtOrAfter / addedAfter / addedAtOrBefore / addedBefore (optional):
-                Only devices added in this time range (RFC 3339 with timezone).
-            params.page, params.perPage (optional): Read a single page. Omit to get every device.
+            params.phoneNumber (optional str): Only the device with this phone number.
+            params.page, params.perPage (optional): Read a single page. Omit page to get every device.
 
         Returns:
-            The devices with their access device id (use it to remove a device), status and
-            the time they were added.
+            The devices with their status and, for DENIED, the reason.
 
         Errors:
             404 — access not found, or an API that takes one device per access and has no
             device list.
         """
         try:
-            query: Dict[str, Any] = {
-                "deviceStatus": params.deviceStatus,
-                "addedAt.gte": params.addedAtOrAfter,
-                "addedAt.gt": params.addedAfter,
-                "addedAt.lte": params.addedAtOrBefore,
-                "addedAt.lt": params.addedBefore,
-            }
             devices: List[Dict[str, Any]] = await api_list(
                 "accesses", f"/accesses/{params.accessId}/devices",
-                params={k: v for k, v in query.items() if v is not None},
+                params={"deviceStatus": params.deviceStatus} if params.deviceStatus else None,
                 page=params.page, per_page=params.perPage, request=api_request,
+                headers=x_device(params.phoneNumber),
             )
             if params.response_format == ResponseFormat.JSON:
                 return json.dumps({"devices": devices, "count": len(devices)}, indent=2)
@@ -391,38 +373,6 @@ def register_access_tools(mcp: FastMCP) -> None:
             return f"# Devices of access `{params.accessId}` ({len(devices)})\n\n" + "\n".join(
                 fmt_access_device(d) for d in devices
             )
-        except Exception as e:
-            return _device_error(e)
-
-    @mcp.tool(
-        name="camara_add_device_to_access",
-        annotations={
-            "title": "Add One Device to an Access",
-            "readOnlyHint": False,
-            "destructiveHint": False,
-            "idempotentHint": False,
-            "openWorldHint": True,
-        },
-    )
-    async def camara_add_device_to_access(params: AddDeviceInput) -> str:
-        """Add one device to an existing access.
-
-        With a two-legged token the `device` MUST be given; with a three-legged token it MUST
-        be omitted. For several devices use camara_add_devices_to_access.
-
-        Errors:
-            409 — the device is already in the access.
-            422 — device identifier missing or not valid.
-            404 — access not found, or an API that takes one device per access.
-        """
-        try:
-            body: Dict[str, Any] = {}
-            if params.device:
-                body["device"] = params.device.model_dump(exclude_none=True)
-            added: Dict[str, Any] = await api_request(
-                "accesses", f"/accesses/{params.accessId}/devices", method="POST", body=body
-            )
-            return f"# Device added\n\n{fmt_access_device(added)}"
         except Exception as e:
             return _device_error(e)
 
@@ -439,8 +389,8 @@ def register_access_tools(mcp: FastMCP) -> None:
     async def camara_add_devices_to_access(params: AddDevicesInput) -> str:
         """Add several devices (1-100) to an existing access.
 
-        If all are added the answer lists them; if only some are added, the answer lists the added
-        ones and, separately, each failed device with its reason.
+        If all are accepted the answer lists them (`recentAccessDevices`); if only some are, the answer
+        lists the accepted ones and, separately, each failed device with its reason.
 
         Errors:
             409 / 422 — none of the devices could be added.
@@ -466,10 +416,9 @@ def register_access_tools(mcp: FastMCP) -> None:
         },
     )
     async def camara_remove_devices_from_access(params: RemoveDevicesInput) -> str:
-        """Remove several devices from an access, by their access device ids.
+        """Remove several devices (1-100) from an access, each identified by a device object.
 
-        Get the ids from camara_list_access_devices. If only some are removed, the answer lists
-        each device that could not be removed with its reason.
+        If only some are removed, the answer lists each device that could not be removed with its reason.
 
         Errors:
             404 — access not found, or an API that takes one device per access.
@@ -477,62 +426,11 @@ def register_access_tools(mcp: FastMCP) -> None:
         try:
             result: Optional[Dict[str, Any]] = await api_request(
                 "accesses", f"/accesses/{params.accessId}/devices/remove", method="POST",
-                body={"accessDeviceIds": params.accessDeviceIds},
+                body={"devices": [d.model_dump(exclude_none=True) for d in params.devices]},
             )
             failed = (result or {}).get("results") or []
             if failed:
                 return "Some devices could not be removed:\n\n" + fmt_access({"id": params.accessId, "results": failed})
-            return f"Removed {len(params.accessDeviceIds)} device(s) from access `{params.accessId}`."
-        except Exception as e:
-            return _device_error(e)
-
-    @mcp.tool(
-        name="camara_get_access_device",
-        annotations={
-            "title": "Get a Device of an Access",
-            "readOnlyHint": True,
-            "destructiveHint": False,
-            "idempotentHint": True,
-            "openWorldHint": True,
-        },
-    )
-    async def camara_get_access_device(params: GetAccessDeviceInput) -> str:
-        """Get one device of an access: its status, the reason for it, and when it was added.
-
-        Errors:
-            404 — access or access device not found.
-        """
-        try:
-            device: Dict[str, Any] = await api_request(
-                "accesses", f"/accesses/{params.accessId}/devices/{params.accessDeviceId}"
-            )
-            if params.response_format == ResponseFormat.JSON:
-                return json.dumps(device, indent=2)
-            return f"# Access device\n\n{fmt_access_device(device)}"
-        except Exception as e:
-            return _device_error(e)
-
-    @mcp.tool(
-        name="camara_delete_access_device",
-        annotations={
-            "title": "Remove a Device from an Access",
-            "readOnlyHint": False,
-            "destructiveHint": True,
-            "idempotentHint": True,
-            "openWorldHint": True,
-        },
-    )
-    async def camara_delete_access_device(params: DeleteAccessDeviceInput) -> str:
-        """Remove one device from an access. This cannot be undone.
-
-        Errors:
-            404 — access or access device not found.
-        """
-        try:
-            await api_request(
-                "accesses", f"/accesses/{params.accessId}/devices/{params.accessDeviceId}",
-                method="DELETE",
-            )
-            return f"Device `{params.accessDeviceId}` removed from access `{params.accessId}`."
+            return f"Removed {len(params.devices)} device(s) from access `{params.accessId}`."
         except Exception as e:
             return _device_error(e)

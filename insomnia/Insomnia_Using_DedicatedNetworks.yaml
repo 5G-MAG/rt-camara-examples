@@ -221,12 +221,6 @@ collection:
           - name: networkId
             value: string
             disabled: true
-          - name: accessDeviceId
-            value: string
-            disabled: true
-          - name: name
-            value: string
-            disabled: true
           - name: perPage
             value: "100"
             disabled: true
@@ -272,7 +266,6 @@ collection:
           mimeType: application/json
           text: |-
             {
-              "name": "Camera crew",
               "networkId": {{networkId}},
               "devices": [
                 {
@@ -305,9 +298,6 @@ collection:
             201) {
             	const jsonBody = insomnia.response.json();
               insomnia.environment.set("accessId", jsonBody.id); 
-              if (jsonBody.addedAccessDevices && jsonBody.addedAccessDevices.length) {
-                insomnia.environment.set("accessDeviceId", jsonBody.addedAccessDevices[0].deviceId);
-              }
             }
         settings:
           renderRequestBody: true
@@ -403,17 +393,9 @@ collection:
           - name: deviceStatus
             value: GRANTED
             disabled: true
-          - name: addedAt.gte
-            value: "2026-01-01T00:00:00Z"
-            disabled: true
-          - name: addedAt.gt
-            value: "2026-01-01T00:00:00Z"
-            disabled: true
-          - name: addedAt.lte
-            value: "2026-12-31T23:59:59Z"
-            disabled: true
-          - name: addedAt.lt
-            value: "2026-12-31T23:59:59Z"
+        headers:
+          - name: x-device
+            value: phonenumber="+123456789"
             disabled: true
         authentication:
           type: bearer
@@ -481,92 +463,16 @@ collection:
           mimeType: application/json
           text: |-
             {
-              "accessDeviceIds": [
-                "{{ _.accessDeviceId }}"
+              "devices": [
+                {
+                  "phoneNumber": "+49123456789"
+                }
               ]
             }
         headers:
           - name: Content-Type
             value: application/json
             disabled: false
-        authentication:
-          type: bearer
-          token: "{% response 'body', 'req_296aaee5014a479b96c0d54dccf91403',
-            'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
-        settings:
-          renderRequestBody: true
-          encodeUrl: true
-          followRedirects: global
-          cookies:
-            send: true
-            store: true
-          rebuildPath: true
-      - url: "{{ accesses_url }}/accesses/{{ _.accessId }}/devices"
-        name: Add one device to the access
-        meta:
-          id: req_0426661ade1146d0b8d3a8c28cc40a63
-          created: 1779300000000
-          modified: 1779300000000
-          isPrivate: false
-          description: "Add one device to the access. With a two-legged token the device object MUST be given."
-          sortKey: -1778661162400
-        method: POST
-        body:
-          mimeType: application/json
-          text: |-
-            {
-              "device": {
-                "phoneNumber": "+49123456789"
-              }
-            }
-        headers:
-          - name: Content-Type
-            value: application/json
-            disabled: false
-        authentication:
-          type: bearer
-          token: "{% response 'body', 'req_296aaee5014a479b96c0d54dccf91403',
-            'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
-        settings:
-          renderRequestBody: true
-          encodeUrl: true
-          followRedirects: global
-          cookies:
-            send: true
-            store: true
-          rebuildPath: true
-      - url: "{{ accesses_url }}/accesses/{{ _.accessId }}/devices/{{ _.accessDeviceId }}"
-        name: Read a device of the access
-        meta:
-          id: req_c229ebc1dfa34fc1b9e985319eb57d5f
-          created: 1779300000000
-          modified: 1779300000000
-          isPrivate: false
-          description: "Read one device of the access: its status, the reason for it, and when it was added."
-          sortKey: -1778661162300
-        method: GET
-        authentication:
-          type: bearer
-          token: "{% response 'body', 'req_296aaee5014a479b96c0d54dccf91403',
-            'b64::JC5hY2Nlc3NfdG9rZW4=::46b', 'always', 60 %}"
-        settings:
-          renderRequestBody: true
-          encodeUrl: true
-          followRedirects: global
-          cookies:
-            send: true
-            store: true
-          rebuildPath: true
-      - url: "{{ accesses_url }}/accesses/{{ _.accessId }}/devices/{{ _.accessDeviceId }}"
-        name: Remove a device from the access
-        meta:
-          id: req_36bfe9fff9674698b88046c1deba3b31
-          created: 1779300000000
-          modified: 1779300000000
-          isPrivate: false
-          description: "Remove one device from the access."
-          sortKey: -1778661162250
-        method: DELETE
         authentication:
           type: bearer
           token: "{% response 'body', 'req_296aaee5014a479b96c0d54dccf91403',

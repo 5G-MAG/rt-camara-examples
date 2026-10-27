@@ -1,6 +1,6 @@
 # Tool reference and workflow
 
-Reference for the 18 tools of the CAMARA Dedicated Networks MCP server, how service areas are shown on a map, the
+Reference for the 15 tools of the CAMARA Dedicated Networks MCP server, how service areas are shown on a map, the
 recommended order of calls, and the interactive map picker (currently disabled). The installation, configuration
 and the list of tools are in the [README](../README.md).
 
@@ -114,8 +114,7 @@ Lists device access grants, optionally scoped to a specific network.
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `networkId` | string (UUID) | No | Filter to a specific network. Omit to return all accesses. |
-| `accessDeviceId` | string | No | Only accesses that contain this device (its access device id). |
-| `name` | string | No | Exact access name to filter by. |
+| `phoneNumber` | string | No | Only accesses that contain the device with this phone number (sent as the `x-device` header). |
 | `page` | integer | No | Read this one page. Omit it to get every item, from all pages. |
 | `perPage` | integer (1-100) | No | Items per page; with `page`, that one page, without it the size of the pages read. |
 | `response_format` | `markdown` \| `json` | No | Output format. Default: `markdown`. |
@@ -141,7 +140,7 @@ Fetches the current state of a single access grant by UUID.
 
 #### `camara_create_access`
 
-Grants one or more devices access to a dedicated network. An access holds a list of devices: each is added with its own status, starting at `REQUESTED`. The answer lists the devices added (`addedAccessDevices`) with `stats`; if only some could be added, the failed ones are listed with the reason. An API that takes one device per access is sent that form, for exactly one device; for several devices the tool says so, and one access is created for each device instead.
+Grants one or more devices access to a dedicated network. An access holds a list of devices: each is added with its own status, starting at `REQUESTED`. The answer lists the devices accepted (`recentAccessDevices`) with `stats`; if only some could be added, the failed ones are listed with the reason. An API that takes one device per access is sent that form, for exactly one device; for several devices the tool says so, and one access is created for each device instead.
 
 **Token type determines how the device is identified:**
 
@@ -153,7 +152,6 @@ Grants one or more devices access to a dedicated network. An access holds a list
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `networkId` | string (UUID) | Yes | Target network. |
-| `name` | string | No | A human-readable name. Sent to the API; dropped, with a note in the answer, if the API does not accept it. |
 | `device` | object | Conditional | One device (see above). |
 | `devices` | list of objects | No | Several devices (1-100), each a device object. Use this or `device`, not both. |
 | `qosProfiles` | list of strings | No | Allowed QoS profiles for this device. Omit to allow all. |
@@ -181,16 +179,13 @@ Revokes a device's access grant. Irreversible.
 
 #### Devices of an access
 
-Six tools manage the devices of an existing access. An API that takes one device per access has no such endpoints and answers `404`; the tools then say so.
+Three tools manage the devices of an existing access, as release r2.2 defines them. An API that takes one device per access has no such endpoints and answers `404`; the tools then say so.
 
 | Tool | What it does | Parameters |
 |---|---|---|
-| `camara_list_access_devices` | Lists the devices of an access, each with its `deviceId` (access device id), status and when it was added. | `accessId`; `deviceStatus` (`REQUESTED`, `GRANTED`, `DENIED`); `addedAtOrAfter`, `addedAfter`, `addedAtOrBefore`, `addedBefore` (RFC 3339); `page`; `perPage`; `response_format` |
-| `camara_get_access_device` | Reads one device of an access. | `accessId`, `accessDeviceId`, `response_format` |
-| `camara_add_device_to_access` | Adds one device. With a 2-legged token the `device` is required; with a 3-legged token it must be omitted. | `accessId`, `device` |
-| `camara_add_devices_to_access` | Adds 1-100 devices. Lists the devices added and, for a partial success, each failed device with its reason. | `accessId`, `devices` |
-| `camara_remove_devices_from_access` | Removes 1-100 devices by access device id. Lists any device that could not be removed. | `accessId`, `accessDeviceIds` |
-| `camara_delete_access_device` | Removes one device. Irreversible. | `accessId`, `accessDeviceId` |
+| `camara_list_access_devices` | Lists the devices of an access, each with its status and, for a denied device, the reason. | `accessId`; `deviceStatus` (`REQUESTED`, `GRANTED`, `DENIED`); `phoneNumber` (sent as the `x-device` header); `page`; `perPage`; `response_format` |
+| `camara_add_devices_to_access` | Adds 1-100 devices. Lists the devices accepted and, for a partial success, each failed device with its reason. | `accessId`, `devices` |
+| `camara_remove_devices_from_access` | Removes 1-100 devices, each given as a device object. Lists any device that could not be removed. | `accessId`, `devices` |
 
 ---
 
