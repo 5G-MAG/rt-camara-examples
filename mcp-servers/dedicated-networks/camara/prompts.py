@@ -110,7 +110,7 @@ Use **`camara_get_network`** to confirm status is `ACTIVATED`.
 
 While the network is active you can:
 - **Add devices**: `camara_add_devices_to_access` (or `camara_create_access` as above, for an API that takes one device per access)
-- **Remove devices**: `camara_remove_devices_from_access` with the access device ids from `camara_list_access_devices` (or `camara_delete_access` with the relevant `accessId`, for an API that takes one device per access)
+- **Remove devices**: `camara_remove_devices_from_access` with the devices to remove (or `camara_delete_access` with the relevant `accessId`, for an API that takes one device per access)
 
 This lets you attach and detach devices without losing the reserved resources.
 

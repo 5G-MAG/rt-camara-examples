@@ -8,15 +8,16 @@ program. If this file is missing then the license can be retrieved from
 https://hub.5g-mag.com/Getting-Started/OFFICIAL_5G-MAG_Public_License_v1.0.pdf
 */
 
-// Accesses as the CAMARA Dedicated Network Accesses API defines them: one access holds a list of devices.
-// Create takes `devices`; the answer is 201 (every device added, `addedAccessDevices`) or 207 (some added,
-// the failed ones in `results`), and an access carries `stats`, not a status; each device has its own status.
+// Accesses as the CAMARA Dedicated Network Accesses API defines them (release r2.2, version 0.2.0-rc.1): one
+// access holds a list of devices. Create takes `devices`; the answer is 201 (every device accepted, listed in
+// `recentAccessDevices`) or 207 (some accepted, the failed ones in `results`), and an access carries `stats`,
+// not a status; each device has its own status.
 //
 // The portal's screens show one status per access, so the answer is given a top-level `status`, `statusInfo`
 // and `device` taken from the first device. A deployment that still answers in the earlier form (one `device`
 // per access, a status on the access) is served too, and its answer is left as it is.
 
-const { apiRequest, postDroppingUnsupported } = require('./apiService');
+const { apiRequest } = require('./apiService');
 
 const BASE = () => process.env.ACCESSES_URL;
 
@@ -38,7 +39,7 @@ function wantsSingleDevice(r) {
 /** Top-level status for the screens: the access's own if it has one, else derived from its first device. */
 function withDeviceStatus(access, firstDevice) {
   if (!access || typeof access !== 'object' || access.status) return access;
-  const first = firstDevice || (Array.isArray(access.addedAccessDevices) ? access.addedAccessDevices[0] : null);
+  const first = firstDevice || (Array.isArray(access.recentAccessDevices) ? access.recentAccessDevices[0] : null);
   const out = { ...access };
   if (first) {
     out.status = first.status;
@@ -53,16 +54,16 @@ function withDeviceStatus(access, firstDevice) {
   return out;
 }
 
-/** Creates an access. Returns { status, ok, data, dropped, singleDeviceForm }. */
+/** Creates an access. Returns { status, ok, data, singleDeviceForm }. */
 async function createAccess(body) {
   const url = `${BASE()}/accesses`;
   const spec = toSpecBody(body);
-  let r = await postDroppingUnsupported(url, spec, ['name']);
+  let r = await apiRequest(url, { method: 'POST', body: spec });
   let singleDeviceForm = false;
   if (wantsSingleDevice(r) && Array.isArray(spec.devices)) {
     if (spec.devices.length !== 1) {
       return {
-        status: 422, ok: false, dropped: [], singleDeviceForm: true,
+        status: 422, ok: false, singleDeviceForm: true,
         data: {
           status: 422, code: 'UNPROCESSABLE_CONTENT',
           message: 'This API deployment takes one device per access. Create one access for each device.'
@@ -71,7 +72,7 @@ async function createAccess(body) {
     }
     const earlier = { ...spec, device: spec.devices[0] };
     delete earlier.devices;
-    r = await postDroppingUnsupported(url, earlier, ['name']);
+    r = await apiRequest(url, { method: 'POST', body: earlier });
     singleDeviceForm = true;
   }
   if (r.ok) r.data = withDeviceStatus(r.data);

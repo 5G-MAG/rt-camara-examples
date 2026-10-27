@@ -43,15 +43,17 @@ Implements the 4 sub-APIs published in
 [camaraproject/DedicatedNetworks](https://github.com/camaraproject/DedicatedNetworks):
 Areas, Networks, Accesses and Profiles. It is built against the sandbox deployment, whose paths are
 `dedicated-network/v0.2-wip`, `dedicated-network-accesses/v0.2-wip`,
-`dedicated-network-profiles/v0.2-wip` and `dedicated-network-areas/v0.1-wip`. The portal calls the APIs as
-the specification defines them, and also works with the sandbox, which answers in an earlier form:
+`dedicated-network-profiles/v0.2-wip` and `dedicated-network-areas/v0.1-wip`. The portal follows release
+**r2.2** of [camaraproject/DedicatedNetworks](https://github.com/camaraproject/DedicatedNetworks) (Networks,
+Profiles and Accesses `0.2.0-rc.1`, Service Areas `0.1.0-rc.1`), and also works with the sandbox, which answers
+in an earlier form:
 
 | The specification | The sandbox | What the portal does |
 |---|---|---|
 | Lists are pages (`items` and `pagination`), asked for with `page` and `perPage` | Bare arrays; `page` and `perPage` are ignored | Asks for pages, follows `totalPages`, and reads a bare array as one page |
-| `name` on a network and on an access | Rejects `name` (400, "unrecognized") | Sends it; on that answer sends the request again without it, and keeps the name as a local nickname |
-| An access holds `devices`; answers carry `addedAccessDevices`, `stats` and, for a partial success, `results` | One `device` per access, with its own `status` | Sends `devices`; on "device is missing" sends one `device`, and gives every answer a top-level `status` for the screens |
-| Devices of an access: list, add one, add several, remove several, read one, remove one | No such endpoints (404, "No matching api service") | Has a route for each (`/api/accesses/:id/devices…`); the sandbox answers 404 |
+| `name` on a network | Rejects `name` (400, "unrecognized") | Sends it; on that answer sends the request again without it, and keeps the name as a local nickname |
+| An access holds `devices`; answers carry `recentAccessDevices`, `stats` and, for a partial success, `results` | One `device` per access, with its own `status` | Sends `devices`; on "device is missing" sends one `device`, and gives every answer a top-level `status` for the screens |
+| Devices of an access: list (filtered by `deviceStatus` and the `x-device` header), add several, remove several | No such endpoints (404, "No matching api service") | Has a route for each (`/api/accesses/:id/devices…`); the sandbox answers 404 |
 
 Not done: three-legged tokens (the portal uses the client-credentials flow only), and the device endpoints
 have no screen yet. The versions are listed in the [root README](../../README.md#specification).

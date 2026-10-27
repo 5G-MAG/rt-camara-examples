@@ -43,6 +43,7 @@ async def api_request(
     method: str = "GET",
     body: Optional[Dict[str, Any]] = None,       # JSON request body (POST)
     params: Optional[Dict[str, Any]] = None,     # URL query parameters (GET)
+    headers: Optional[Dict[str, str]] = None,    # extra request headers, e.g. x-device
 ) -> Any:
     """Send an HTTP request to a CAMARA sub-API and return the parsed JSON body.
 
@@ -60,7 +61,7 @@ async def api_request(
         response = await client.request(
             method=method,
             url=url,
-            headers=_build_headers(),
+            headers={**_build_headers(), **(headers or {})},
             json=body,
             params=clean_params or None,
         )
@@ -83,6 +84,7 @@ async def api_list(
     max_pages: int = 50,
     page: Optional[int] = None,
     request: Optional[Any] = None,
+    headers: Optional[Dict[str, str]] = None,
 ) -> List[Dict[str, Any]]:
     """Return every item of a list endpoint as one list.
 
@@ -101,7 +103,8 @@ async def api_list(
         query = dict(params or {})
         query["page"] = number
         query["perPage"] = size
-        data = await fetch(api, path, method=method, body=body, params=query)
+        extra = {"headers": headers} if headers else {}
+        data = await fetch(api, path, method=method, body=body, params=query, **extra)
         if isinstance(data, list):
             return items + data
         page_items = (data or {}).get("items") or []
