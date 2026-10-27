@@ -9,8 +9,8 @@ https://hub.5g-mag.com/Getting-Started/OFFICIAL_5G-MAG_Public_License_v1.0.pdf
 */
 
 // Runs the portal's API layer against a fake CAMARA server that answers in two forms: the form the
-// Dedicated Networks specification defines (paged lists, `devices`, `name`) and the earlier form of the
-// sandbox (bare arrays, one `device`, no `name`). Run with: npm test
+// Dedicated Networks specification defines (release r2.2, 0.2.0-rc.1: paged lists, `devices`, a network `name`) and
+// the earlier form of the sandbox (bare arrays, one `device`, no `name`). Run with: npm test
 
 const test = require('node:test');
 const assert = require('node:assert');
@@ -30,7 +30,7 @@ test.before(async () => {
     req.on('end', () => {
       const url = new URL(req.url, 'http://x');
       const body = raw && req.headers['content-type'] === 'application/json' ? JSON.parse(raw) : null;
-      calls.push({ method: req.method, path: url.pathname, query: Object.fromEntries(url.searchParams), body });
+      calls.push({ method: req.method, path: url.pathname, query: Object.fromEntries(url.searchParams), body, xDevice: req.headers['x-device'] });
       if (url.pathname === '/token') return reply(res, 200, { access_token: 't', expires_in: 3600 });
       if (req.method === 'GET' && url.pathname === '/items') {
         const page = Number(url.searchParams.get('page'));
@@ -50,9 +50,9 @@ test.before(async () => {
           if (body.name) return reply(res, 400, { status: 400, code: 'INVALID_ARGUMENT', message: "Property 'name' is unrecognized" });
           return reply(res, 201, { ...body, id: 'a1', status: 'REQUESTED' });
         }
-        const added = (body.devices || []).map((d, i) => ({ deviceId: 'd' + i, device: d, status: 'REQUESTED', addedAt: '2026-10-27T10:00:00Z' }));
+        const added = (body.devices || []).map(d => ({ device: d, status: 'REQUESTED' }));
         return reply(res, 201, {
-          id: 'a1', networkId: body.networkId, stats: { totalDevices: added.length, totalGranted: 0, totalDenied: 0 }, addedAccessDevices: added
+          id: 'a1', networkId: body.networkId, stats: { totalDevices: added.length, totalGranted: 0, totalDenied: 0 }, recentAccessDevices: added
         });
       }
       reply(res, 404, 'No matching api service');
@@ -122,13 +122,14 @@ test('createAccess sends a devices list and gives the answer a top-level status'
 
 test('createAccess falls back to one device per access for the earlier form', async () => {
   mode = 'legacy';
-  const r = await createAccess({ networkId: 'n1', name: 'cam', device: { phoneNumber: '+41795550001' } });
+  const r = await createAccess({ networkId: 'n1', device: { phoneNumber: '+41795550001' } });
   assert.strictEqual(r.status, 201);
   assert.strictEqual(r.singleDeviceForm, true);
   assert.strictEqual(r.data.status, 'REQUESTED');
   const posts = calls.filter(c => c.path === '/accesses');
-  assert.strictEqual(posts.length, 3);          // spec form, earlier form with name, earlier form without name
-  assert.ok(posts[2].body.device && !posts[2].body.name);
+  assert.strictEqual(posts.length, 2);          // the specification's form, then the earlier form
+  assert.deepStrictEqual(posts[1].body.device, { phoneNumber: '+41795550001' });
+  assert.strictEqual(posts[1].body.devices, undefined);
 });
 
 test('createAccess with several devices on the earlier form says so and does not guess', async () => {
@@ -136,6 +137,14 @@ test('createAccess with several devices on the earlier form says so and does not
   const r = await createAccess({ networkId: 'n1', devices: [{ phoneNumber: '+1' }, { phoneNumber: '+2' }] });
   assert.strictEqual(r.status, 422);
   assert.match(r.data.message, /one device per access/);
+});
+
+test('listPages passes headers on every request, as the x-device filter needs', async () => {
+  mode = 'spec';
+  await listPages(`${base}/items`, { perPage: 2, headers: { 'x-device': 'phonenumber="+41795550001"' } });
+  const sent = calls.filter(c => c.path === '/items');
+  assert.ok(sent.length >= 2);
+  assert.ok(sent.every(c => c.xDevice === 'phonenumber="+41795550001"'));
 });
 
 test('toSpecBody and withDeviceStatus', () => {

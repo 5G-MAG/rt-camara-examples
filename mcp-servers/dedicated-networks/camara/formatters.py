@@ -86,13 +86,9 @@ def _device_label(device: Dict[str, Any]) -> str:
 def fmt_access_device(d: Dict[str, Any]) -> str:
     """Format one device of an access as a single Markdown bullet."""
     line = f"- {_device_label(d.get('device') or {})} — **{d.get('status', '?')}**"
-    if d.get("deviceId"):
-        line += f" (access device id `{d['deviceId']}`)"
     reason = ((d.get("statusInfo") or {}).get("reason") or {})
     if reason.get("code"):
         line += f" — {reason['code']}: {reason.get('message', '')}"
-    if d.get("addedAt"):
-        line += f", added {d['addedAt']}"
     return line
 
 
@@ -100,13 +96,11 @@ def fmt_access(a: Dict[str, Any]) -> str:
     """Format a single access as a Markdown section.
 
     An access as the specification defines it holds a list of devices: `stats` counts them and
-    `addedAccessDevices` lists the ones just added; `results` lists the ones that failed. An access in
+    `recentAccessDevices` lists the ones just accepted; `results` lists the ones that failed. An access in
     the earlier form has one `device` and a `status` of its own.
     """
     device = a.get("device") or {}
     lines = [f"## Access `{a.get('id', '?')}`"]
-    if a.get("name"):
-        lines.append(f"- **Name**: {a['name']}")
     if a.get("status"):
         lines.append(f"- **Status**: {a['status']}")
     lines.append(f"- **Network**: {a.get('networkId', '?')}")
@@ -134,10 +128,10 @@ def fmt_access(a: Dict[str, Any]) -> str:
     if a.get("sink"):
         lines.append(f"- **Notification Sink**: {a['sink']}")
 
-    added = a.get("addedAccessDevices") or []
+    added = a.get("recentAccessDevices") or []
     if added:
         lines.append("")
-        lines.append("### Devices added")
+        lines.append("### Devices accepted")
         lines.extend(fmt_access_device(d) for d in added)
 
     failed = a.get("results") or []
