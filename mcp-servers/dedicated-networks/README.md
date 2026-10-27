@@ -5,7 +5,7 @@ A Python MCP server that lets an AI assistant (Claude Desktop, OpenCode) call th
 ## Introduction
 
 The server exposes the CAMARA Dedicated Networks APIs (Networks, Network Profiles, Device Accesses and Service
-Areas) as **12 tools** and **4 workflow prompts** of the [Model Context Protocol](https://modelcontextprotocol.io/).
+Areas) as **18 tools** and **4 workflow prompts** of the [Model Context Protocol](https://modelcontextprotocol.io/).
 An assistant that has the server can list profiles, find service areas, reserve a dedicated network for a time window,
 give a device access to it and dismantle it, from a conversation. Service areas come with a geojson.io link for viewing
 them on a map.
@@ -37,6 +37,12 @@ to `GRANTED` or `REJECTED`.
 | `camara_get_access` | Accesses | Check if a device access is granted or denied |
 | `camara_create_access` | Accesses | Grant a device access to a network |
 | `camara_delete_access` | Accesses | Revoke a device's access |
+| `camara_list_access_devices` | Accesses | List the devices of an access, each with its status |
+| `camara_get_access_device` | Accesses | Read one device of an access |
+| `camara_add_device_to_access` | Accesses | Add one device to an access |
+| `camara_add_devices_to_access` | Accesses | Add several devices to an access |
+| `camara_remove_devices_from_access` | Accesses | Remove several devices from an access |
+| `camara_delete_access_device` | Accesses | Remove one device from an access |
 
 The parameters of each tool, the recommended order of calls, the GeoJSON links and the interactive map picker
 (currently disabled) are in [docs/tool-reference.md](docs/tool-reference.md).
@@ -191,7 +197,10 @@ camara/
                             camara_create_network, camara_delete_network
     profiles.py             camara_list_profiles, camara_get_profile
     accesses.py             camara_list_accesses, camara_get_access,
-                            camara_create_access, camara_delete_access
+                            camara_create_access, camara_delete_access,
+                            camara_list_access_devices, camara_get_access_device,
+                            camara_add_device_to_access, camara_add_devices_to_access,
+                            camara_remove_devices_from_access, camara_delete_access_device
     areas.py                camara_retrieve_service_areas, camara_get_area
 ```
 
