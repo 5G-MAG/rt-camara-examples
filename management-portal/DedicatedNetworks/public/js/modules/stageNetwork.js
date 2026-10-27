@@ -9,7 +9,7 @@ https://hub.5g-mag.com/Getting-Started/OFFICIAL_5G-MAG_Public_License_v1.0.pdf
 
 Stage 2 — Network. Create form exposes the CreateNetwork body (networkProfileId
 XOR qosProfileName, serviceTime, callback config) scoped to the area picked in
-Stage 1; the optional name is kept as a local nickname only. Detail view shows
+Stage 1; the optional name is sent to the API and also kept as a local nickname. Detail view shows
 the full lifecycle tracker.
 */
 
@@ -198,13 +198,16 @@ export function initStageNetwork(nav) {
       const startDt = new Date(startVal), endDt = new Date(endVal);
       if (endDt <= startDt) { setSt('net-form-status', 'End time must be after start time.', false); return; }
 
+      const nameVal = document.getElementById('net-name').value.trim();
+      // `name` goes to the API as the specification defines it; the server sends the request again without it
+      // for a deployment that does not accept it, and the name is kept here as a local nickname either way.
       const reqBody = {
+        ...(nameVal ? { name: nameVal } : {}),
         serviceAreaId: area.id,
         serviceTime: { start: startDt.toISOString(), end: endDt.toISOString() },
         ...(chosenMode === 'profile' ? { networkProfileId: profileId } : { qosProfileName: qosName }),
         ...callbackCfg.getValue()
       };
-      const nameVal = document.getElementById('net-name').value.trim();
 
       btn.textContent = 'Creating…'; btn.disabled = true;
       const r = await Api.createNetwork(reqBody);

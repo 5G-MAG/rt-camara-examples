@@ -20,7 +20,7 @@ from typing import Any, Dict, List
 
 from mcp.server.apps import Apps
 
-from camara.client import api_request, handle_error
+from camara.client import api_list, api_request, handle_error
 from camara.config import MAP_TILE_URL
 from camara.geo import combined_bounds, combined_geojson_url, with_geojson_url
 from camara.models import PickLocationInput
@@ -84,9 +84,8 @@ def register_picker_tool(apps: Apps) -> None:
             if params.byQosProfileName:
                 body["byQosProfileName"] = params.byQosProfileName
 
-            areas: List[Dict[str, Any]] = (
-                await api_request("areas", "/retrieve-service-areas", method="POST", body=body)
-                or []
+            areas: List[Dict[str, Any]] = await api_list(
+                "areas", "/retrieve-service-areas", method="POST", body=body, request=api_request
             )
 
             result: Dict[str, Any] = {

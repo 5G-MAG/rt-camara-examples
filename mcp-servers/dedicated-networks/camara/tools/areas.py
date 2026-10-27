@@ -16,7 +16,7 @@ from typing import Any, Dict, List
 
 from mcp.server.mcpserver import MCPServer as FastMCP
 
-from camara.client import api_request, handle_error
+from camara.client import api_list, api_request, handle_error
 from camara.formatters import fmt_area
 from camara.geo import combined_geojson_url, with_geojson_url
 from camara.models import GetAreaInput, ResponseFormat, RetrieveAreasInput
@@ -93,9 +93,10 @@ def register_area_tools(mcp: FastMCP) -> None:
             if params.byQosProfileName:
                 body["byQosProfileName"] = params.byQosProfileName
 
-            areas: List[Dict[str, Any]] = (
-                await api_request("areas", "/retrieve-service-areas", method="POST", body=body)
-                or []
+            areas: List[Dict[str, Any]] = await api_list(
+                "areas", "/retrieve-service-areas", method="POST", body=body,
+                page=params.page, per_page=params.perPage,
+                request=api_request,
             )
             all_url = combined_geojson_url(areas)
 

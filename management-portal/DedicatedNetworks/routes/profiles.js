@@ -9,7 +9,7 @@ https://hub.5g-mag.com/Getting-Started/OFFICIAL_5G-MAG_Public_License_v1.0.pdf
 */
 
 const express = require('express');
-const { apiRequest } = require('../services/apiService');
+const { apiRequest, listPages } = require('../services/apiService');
 const router = express.Router();
 
 const PROFILES_BASE = () => (process.env.PROFILES_URL || '').replace(/\/+$/, '');
@@ -21,7 +21,15 @@ const QOD_BASE      = () => {
 // GET /api/profiles/network  ->  GET {{ profiles_url }}/profiles
 router.get('/network', async (req, res) => {
   try {
-    const result = await apiRequest(`${PROFILES_BASE()}/profiles`, { method: 'GET' });
+    const url = new URL(`${PROFILES_BASE()}/profiles`);
+    if (req.query.name) url.searchParams.set('name', req.query.name);
+    if (req.query.page) {
+      // one page, as the API gives it
+      ['page', 'perPage'].forEach(n => { if (req.query[n]) url.searchParams.set(n, req.query[n]); });
+      const one = await apiRequest(url.toString(), { method: 'GET' });
+      return res.status(one.status).json(one.data);
+    }
+    const result = await listPages(url.toString(), { perPage: Number(req.query.perPage) || undefined });
     res.status(result.status).json(result.data);
   } catch (err) {
     res.status(502).json({ error: err.message });

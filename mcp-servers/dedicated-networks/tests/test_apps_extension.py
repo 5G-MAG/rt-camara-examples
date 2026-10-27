@@ -46,8 +46,8 @@ def test_server_registers_tools_matching_map_picker_flag():
     names = {t.name for t in server.mcp._tool_manager.list_tools()}
     if server.ENABLE_MAP_PICKER:
         assert "camara_pick_location" in names
-        assert len(names) == 13  # the 12 regular tools + camara_pick_location
+        assert len(names) == 19  # the 18 regular tools + camara_pick_location
     else:
         # Map picker temporarily disabled (see server.py)
         assert "camara_pick_location" not in names
-        assert len(names) == 12
+        assert len(names) == 18

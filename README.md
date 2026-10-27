@@ -58,7 +58,7 @@ Profiles), with a one-click Quick Booking shortcut. What it does and how to run 
 
 ### MCP server: Dedicated Networks
 
-A Python [Model Context Protocol](https://modelcontextprotocol.io/) server exposing the four CAMARA Dedicated Networks APIs (Networks, Network Profiles, Device Accesses and Service Areas) as **12 tools**, plus **4 guided workflow prompts**. It lets an assistant discover profiles and service areas, reserve and monitor dedicated networks, and grant or revoke device access through natural language. Service areas are returned with a [geojson.io](https://geojson.io) link so they can be viewed on a map.
+A Python [Model Context Protocol](https://modelcontextprotocol.io/) server exposing the four CAMARA Dedicated Networks APIs (Networks, Network Profiles, Device Accesses and Service Areas) as **18 tools**, plus **4 guided workflow prompts**. It lets an assistant discover profiles and service areas, reserve and monitor dedicated networks, and grant or revoke device access through natural language. Service areas are returned with a [geojson.io](https://geojson.io) link so they can be viewed on a map.
 Installation, configuration and the available tools are in the [server README](./mcp-servers/dedicated-networks/README.md).
 
 ### Insomnia collections
@@ -88,8 +88,10 @@ and the specification revision checked for it.
 - The spec revisions are the CAMARA sources at tag `r2.2` of
   [camaraproject/DedicatedNetworks](https://github.com/camaraproject/DedicatedNetworks), read from each
   file's `info` block. The `main` branch is labelled `wip` and differs from `r2.2`.
-- The sandbox behaves differently from the spec in two places: it rejects `name` on a network, and it
-  takes one device per access (`device`, not `devices`). The code follows the sandbox.
+- The sandbox answers in an earlier form of the API: lists are bare arrays, it rejects `name` on a network
+  and an access, and it takes one device per access (`device`, not `devices`) with no `/devices` endpoints.
+  The portal and the MCP server send the form the specification defines, and fall back to the sandbox's
+  form when the API refuses it.
 
 ## Install dependencies
 

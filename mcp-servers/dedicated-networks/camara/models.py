@@ -27,6 +27,8 @@ Exported:
   GetAccessInput          — camara_get_access
   CreateAccessInput       — camara_create_access
   DeleteAccessInput       — camara_delete_access
+  AddDeviceInput, AddDevicesInput, RemoveDevicesInput, ListAccessDevicesInput,
+  GetAccessDeviceInput, DeleteAccessDeviceInput — the device tools of an access
 """
 
 from enum import Enum
@@ -143,6 +145,14 @@ class ListProfilesInput(BaseModel):
         None,
         description="Filter by exact profile name. Omit to return all available profiles.",
     )
+    page: Optional[int] = Field(
+        None, ge=1,
+        description="Number of the page to return. Omit it to get every item, from all pages.",
+    )
+    perPage: Optional[int] = Field(
+        None, ge=1, le=100,
+        description="Items per page (1-100). With page, reads that one page; without it, sets the size of the pages read.",
+    )
     response_format: ResponseFormat = Field(
         default=ResponseFormat.MARKDOWN,
         description="'markdown' for human-readable output, 'json' for raw data.",
@@ -192,6 +202,14 @@ class RetrieveAreasInput(BaseModel):
         ),
     )
     byName: Optional[str] = Field(None, description="Filter by exact area name.")
+    page: Optional[int] = Field(
+        None, ge=1,
+        description="Number of the page to return. Omit it to get every item, from all pages.",
+    )
+    perPage: Optional[int] = Field(
+        None, ge=1, le=100,
+        description="Items per page (1-100). With page, reads that one page; without it, sets the size of the pages read.",
+    )
     byNetworkProfileId: Optional[str] = Field(
         None, description="Return areas that support this network profile UUID."
     )
@@ -245,6 +263,19 @@ class PickLocationInput(BaseModel):
 class ListNetworksInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    name: Optional[str] = Field(
+        None,
+        description="Filter by exact network name. Omit to return all networks.",
+    )
+    page: Optional[int] = Field(
+        None, ge=1,
+        description="Number of the page to return. Omit it to get every item, from all pages.",
+    )
+    perPage: Optional[int] = Field(
+        None, ge=1, le=100,
+        description="Items per page (1-100). With page, reads that one page; without it, sets the size of the pages read.",
+    )
+
     response_format: ResponseFormat = Field(
         default=ResponseFormat.MARKDOWN,
         description="'markdown' or 'json'.",
@@ -265,6 +296,15 @@ class CreateNetworkInput(BaseModel):
     """Exactly ONE of networkProfileId or qosProfileName must be provided."""
     model_config = ConfigDict(validate_assignment=True, extra="forbid")
 
+    name: Optional[str] = Field(
+        None,
+        min_length=1,
+        max_length=1024,
+        description=(
+            "A human-readable name for the network. Sent to the API; an API that does not "
+            "accept a name yet gets the request again without it."
+        ),
+    )
     serviceAreaId: str = Field(
         ...,
         description=(
@@ -328,6 +368,19 @@ class ListAccessesInput(BaseModel):
         None,
         description="Filter accesses for a specific network UUID. Omit to return all.",
     )
+    accessDeviceId: Optional[str] = Field(
+        None,
+        description="Only accesses that contain the device with this access device id.",
+    )
+    name: Optional[str] = Field(None, description="Filter by exact access name.")
+    page: Optional[int] = Field(
+        None, ge=1,
+        description="Number of the page to return. Omit it to get every item, from all pages.",
+    )
+    perPage: Optional[int] = Field(
+        None, ge=1, le=100,
+        description="Items per page (1-100). With page, reads that one page; without it, sets the size of the pages read.",
+    )
     response_format: ResponseFormat = Field(
         default=ResponseFormat.MARKDOWN,
         description="'markdown' or 'json'.",
@@ -347,6 +400,15 @@ class GetAccessInput(BaseModel):
 class CreateAccessInput(BaseModel):
     model_config = ConfigDict(validate_assignment=True, extra="forbid")
 
+    name: Optional[str] = Field(
+        None,
+        min_length=1,
+        max_length=1024,
+        description=(
+            "A human-readable name for the access. Sent to the API; an API that does not "
+            "accept a name yet gets the request again without it."
+        ),
+    )
     networkId: str = Field(
         ...,
         description=(
@@ -360,6 +422,16 @@ class CreateAccessInput(BaseModel):
             "Device identifier. REQUIRED with a two-legged access token. "
             "MUST be omitted with a three-legged token (device is derived from the token). "
             "Provide at least one of: phoneNumber, ipv4Address, ipv6Address."
+        ),
+    )
+    devices: Optional[List[DeviceInput]] = Field(
+        None,
+        min_length=1,
+        max_length=100,
+        description=(
+            "Several devices to add to the access (1-100), each identified by a device object. "
+            "Use this or 'device', not both. An API that takes one device per access answers "
+            "that it cannot add several; create one access for each device then."
         ),
     )
     qosProfiles: Optional[List[str]] = Field(
@@ -392,3 +464,83 @@ class DeleteAccessInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     accessId: str = Field(..., description="UUID of the device access grant to delete.")
+
+
+class AddDeviceInput(BaseModel):
+    """Add one device to an existing access (POST /accesses/{accessId}/devices)."""
+    model_config = ConfigDict(extra="forbid")
+
+    accessId: str = Field(..., description="UUID of the access.")
+    device: Optional[DeviceInput] = Field(
+        None,
+        description="The device. REQUIRED with a two-legged token; omit with a three-legged token.",
+    )
+
+
+class AddDevicesInput(BaseModel):
+    """Add several devices to an existing access (POST /accesses/{accessId}/devices/add)."""
+    model_config = ConfigDict(extra="forbid")
+
+    accessId: str = Field(..., description="UUID of the access.")
+    devices: List[DeviceInput] = Field(
+        ..., min_length=1, max_length=100,
+        description="The devices to add (1-100), each identified by a device object.",
+    )
+
+
+class RemoveDevicesInput(BaseModel):
+    """Remove several devices from an access (POST /accesses/{accessId}/devices/remove)."""
+    model_config = ConfigDict(extra="forbid")
+
+    accessId: str = Field(..., description="UUID of the access.")
+    accessDeviceIds: List[str] = Field(
+        ..., min_length=1, max_length=100,
+        description="The access device ids (deviceId in camara_list_access_devices) to remove.",
+    )
+
+
+class ListAccessDevicesInput(BaseModel):
+    """List the devices of an access (GET /accesses/{accessId}/devices)."""
+    model_config = ConfigDict(extra="forbid")
+
+    accessId: str = Field(..., description="UUID of the access.")
+    deviceStatus: Optional[str] = Field(
+        None, pattern=r"^(REQUESTED|GRANTED|DENIED)$",
+        description="Only devices with this status: REQUESTED, GRANTED or DENIED.",
+    )
+    addedAtOrAfter: Optional[str] = Field(None, description="Only devices added at or after this time (RFC 3339 with timezone).")
+    addedAfter: Optional[str] = Field(None, description="Only devices added after this time (RFC 3339 with timezone).")
+    addedAtOrBefore: Optional[str] = Field(None, description="Only devices added at or before this time (RFC 3339 with timezone).")
+    addedBefore: Optional[str] = Field(None, description="Only devices added before this time (RFC 3339 with timezone).")
+    page: Optional[int] = Field(
+        None, ge=1,
+        description="Number of the page to return. Omit it to get every item, from all pages.",
+    )
+    perPage: Optional[int] = Field(
+        None, ge=1, le=100,
+        description="Items per page (1-100). With page, reads that one page; without it, sets the size of the pages read.",
+    )
+    response_format: ResponseFormat = Field(
+        default=ResponseFormat.MARKDOWN,
+        description="'markdown' or 'json'.",
+    )
+
+
+class GetAccessDeviceInput(BaseModel):
+    """Read one device of an access (GET /accesses/{accessId}/devices/{accessDeviceId})."""
+    model_config = ConfigDict(extra="forbid")
+
+    accessId: str = Field(..., description="UUID of the access.")
+    accessDeviceId: str = Field(..., description="The access device id (deviceId).")
+    response_format: ResponseFormat = Field(
+        default=ResponseFormat.MARKDOWN,
+        description="'markdown' or 'json'.",
+    )
+
+
+class DeleteAccessDeviceInput(BaseModel):
+    """Remove one device from an access (DELETE /accesses/{accessId}/devices/{accessDeviceId})."""
+    model_config = ConfigDict(extra="forbid")
+
+    accessId: str = Field(..., description="UUID of the access.")
+    accessDeviceId: str = Field(..., description="The access device id (deviceId) to remove.")

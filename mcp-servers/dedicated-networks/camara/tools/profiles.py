@@ -16,7 +16,7 @@ from typing import Any, Dict, List
 
 from mcp.server.mcpserver import MCPServer as FastMCP
 
-from camara.client import api_request, handle_error
+from camara.client import api_list, api_request, handle_error
 from camara.formatters import fmt_profile
 from camara.models import GetProfileInput, ListProfilesInput, ResponseFormat
 
@@ -63,8 +63,10 @@ def register_profile_tools(mcp: FastMCP) -> None:
         """
         try:
             query = {"name": params.name} if params.name else {}
-            profiles: List[Dict[str, Any]] = await api_request(
-                "profiles", "/profiles", params=query
+            profiles: List[Dict[str, Any]] = await api_list(
+                "profiles", "/profiles", params=query,
+                page=params.page, per_page=params.perPage,
+                request=api_request,
             )
 
             if params.response_format == ResponseFormat.JSON:

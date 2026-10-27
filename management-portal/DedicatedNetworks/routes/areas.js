@@ -9,7 +9,7 @@ https://hub.5g-mag.com/Getting-Started/OFFICIAL_5G-MAG_Public_License_v1.0.pdf
 */
 
 const express = require('express');
-const { apiRequest } = require('../services/apiService');
+const { apiRequest, listPages } = require('../services/apiService');
 const router = express.Router();
 
 const BASE = () => process.env.AREAS_URL;
@@ -17,10 +17,14 @@ const BASE = () => process.env.AREAS_URL;
 // POST /api/areas/retrieve  -> POST /retrieve-service-areas
 router.post('/retrieve', async (req, res) => {
   try {
-    const result = await apiRequest(`${BASE()}/retrieve-service-areas`, {
-      method: 'POST',
-      body: req.body
-    });
+    const url = new URL(`${BASE()}/retrieve-service-areas`);
+    if (req.query.page) {
+      // one page, as the API gives it
+      ['page', 'perPage'].forEach(n => { if (req.query[n]) url.searchParams.set(n, req.query[n]); });
+      const one = await apiRequest(url.toString(), { method: 'POST', body: req.body });
+      return res.status(one.status).json(one.data);
+    }
+    const result = await listPages(url.toString(), { method: 'POST', body: req.body, perPage: Number(req.query.perPage) || undefined });
     res.status(result.status).json(result.data);
   } catch (err) {
     res.status(502).json({ error: err.message });

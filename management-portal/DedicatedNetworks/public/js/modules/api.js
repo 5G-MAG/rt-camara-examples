@@ -48,19 +48,23 @@ export const Api = {
   getNetwork: id => req(`/api/networks/${id}`),
   deleteNetwork: id => req(`/api/networks/${id}`, { method: 'DELETE' }),
 
-  // Accesses — this sandbox implements the one-device-per-access shape
-  // ({networkId, device, id, status, statusInfo}), NOT the newer bulk
-  // `devices[]`/stats/recentAccessDevices model from the current
-  // camaraproject/DedicatedNetworks spec: GET .../devices and
-  // .../devices/add|remove both 404 here ("No matching api service"),
-  // confirmed empirically against the live sandbox. To give a device
-  // access to a network, create a separate Access per device instead.
+  // Accesses. One access holds a list of devices (create takes `devices`; the answer carries `stats` and
+  // `addedAccessDevices`). The server also answers in the earlier shape, one `device` and a `status` on the
+  // access, which the sandbox still uses: it takes one device per access and has no /devices endpoints
+  // (they answer 404 "No matching api service"). The server gives every answer a top-level `status` for the screens.
   listAccesses: networkId => req(`/api/accesses?networkId=${encodeURIComponent(networkId)}`),
   // No filter: every access of this API consumer, across networks.
   listAllAccesses: () => req('/api/accesses'),
   createAccess: body => req('/api/accesses', { method: 'POST', body }),
   getAccess: id => req(`/api/accesses/${id}`),
   deleteAccess: id => req(`/api/accesses/${id}`, { method: 'DELETE' }),
+  // Devices of an access: page, perPage, deviceStatus and addedAt.gte|gt|lte|lt may be given as `query`
+  listAccessDevices: (id, query) => req(`/api/accesses/${id}/devices${query ? '?' + new URLSearchParams(query) : ''}`),
+  addDevice: (id, device) => req(`/api/accesses/${id}/devices`, { method: 'POST', body: { device } }),
+  addDevices: (id, devices) => req(`/api/accesses/${id}/devices/add`, { method: 'POST', body: { devices } }),
+  removeDevices: (id, accessDeviceIds) => req(`/api/accesses/${id}/devices/remove`, { method: 'POST', body: { accessDeviceIds } }),
+  getAccessDevice: (id, accessDeviceId) => req(`/api/accesses/${id}/devices/${accessDeviceId}`),
+  deleteAccessDevice: (id, accessDeviceId) => req(`/api/accesses/${id}/devices/${accessDeviceId}`, { method: 'DELETE' }),
 
   sandboxHealth: () => req('/api/sandbox-health'),
   notifications: () => req('/api/webhooks/notifications'),

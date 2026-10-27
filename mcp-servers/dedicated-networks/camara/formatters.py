@@ -83,15 +83,42 @@ def _device_label(device: Dict[str, Any]) -> str:
     return ", ".join(parts) if parts else "Identified from access token"
 
 
+def fmt_access_device(d: Dict[str, Any]) -> str:
+    """Format one device of an access as a single Markdown bullet."""
+    line = f"- {_device_label(d.get('device') or {})} — **{d.get('status', '?')}**"
+    if d.get("deviceId"):
+        line += f" (access device id `{d['deviceId']}`)"
+    reason = ((d.get("statusInfo") or {}).get("reason") or {})
+    if reason.get("code"):
+        line += f" — {reason['code']}: {reason.get('message', '')}"
+    if d.get("addedAt"):
+        line += f", added {d['addedAt']}"
+    return line
+
+
 def fmt_access(a: Dict[str, Any]) -> str:
-    """Format a single device access grant as a Markdown section."""
+    """Format a single access as a Markdown section.
+
+    An access as the specification defines it holds a list of devices: `stats` counts them and
+    `addedAccessDevices` lists the ones just added; `results` lists the ones that failed. An access in
+    the earlier form has one `device` and a `status` of its own.
+    """
     device = a.get("device") or {}
-    lines = [
-        f"## Access `{a.get('id', '?')}`",
-        f"- **Status**: {a.get('status', '?')}",
-        f"- **Network**: {a.get('networkId', '?')}",
-        f"- **Device**: {_device_label(device)}",
-    ]
+    lines = [f"## Access `{a.get('id', '?')}`"]
+    if a.get("name"):
+        lines.append(f"- **Name**: {a['name']}")
+    if a.get("status"):
+        lines.append(f"- **Status**: {a['status']}")
+    lines.append(f"- **Network**: {a.get('networkId', '?')}")
+    if device:
+        lines.append(f"- **Device**: {_device_label(device)}")
+
+    stats = a.get("stats") or {}
+    if stats:
+        lines.append(
+            f"- **Devices**: {stats.get('totalDevices', 0)} in total, "
+            f"{stats.get('totalGranted', 0)} granted, {stats.get('totalDenied', 0)} denied"
+        )
 
     if a.get("defaultQosProfile"):
         lines.append(f"- **Default QoS Profile**: {a['defaultQosProfile']}")
@@ -106,6 +133,22 @@ def fmt_access(a: Dict[str, Any]) -> str:
 
     if a.get("sink"):
         lines.append(f"- **Notification Sink**: {a['sink']}")
+
+    added = a.get("addedAccessDevices") or []
+    if added:
+        lines.append("")
+        lines.append("### Devices added")
+        lines.extend(fmt_access_device(d) for d in added)
+
+    failed = a.get("results") or []
+    if failed:
+        lines.append("")
+        lines.append("### Devices that could not be added")
+        for r in failed:
+            lines.append(
+                f"- {_device_label(r.get('device') or {})} — {r.get('status', '?')} {r.get('code', '')}: "
+                f"{r.get('message', '')}"
+            )
 
     lines.append("")
     return "\n".join(lines)
