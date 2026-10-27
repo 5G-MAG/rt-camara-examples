@@ -1,6 +1,6 @@
 # Tool reference and workflow
 
-Reference for the 12 tools of the CAMARA Dedicated Networks MCP server, how service areas are shown on a map, the
+Reference for the 18 tools of the CAMARA Dedicated Networks MCP server, how service areas are shown on a map, the
 recommended order of calls, and the interactive map picker (currently disabled). The installation, configuration
 and the list of tools are in the [README](../README.md).
 
@@ -14,6 +14,9 @@ Lists all dedicated networks belonging to the caller.
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
+| `name` | string | No | Exact network name to filter by. |
+| `page` | integer | No | Read this one page. Omit it to get every item, from all pages. |
+| `perPage` | integer (1-100) | No | Items per page; with `page`, that one page, without it the size of the pages read. |
 | `response_format` | `markdown` \| `json` | No | Output format. Default: `markdown`. |
 
 **Returns**: Each network contains `id`, `status`, `serviceAreaId`, `serviceTime`, `networkProfileId` or `qosProfileName`, and `sink`.
@@ -39,6 +42,7 @@ Creates a new dedicated network reservation. Starts in `REQUESTED` status.
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
+| `name` | string | No | A human-readable name. Sent to the API; an API that does not accept it gets the request again without it, and the answer says so. |
 | `serviceAreaId` | string (UUID) | Yes | Target geographic area (from `camara_retrieve_service_areas`). |
 | `serviceTime` | `{ start, end }` | Yes | RFC 3339 timestamps with timezone offset. |
 | `networkProfileId` | string (UUID) | Exclusive* | Profile UUID (from `camara_list_profiles`). |
@@ -78,6 +82,8 @@ Lists all network profiles available to the caller.
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `name` | string | No | Exact profile name to filter by. |
+| `page` | integer | No | Read this one page. Omit it to get every item, from all pages. |
+| `perPage` | integer (1-100) | No | Items per page; with `page`, that one page, without it the size of the pages read. |
 | `response_format` | `markdown` \| `json` | No | Output format. Default: `markdown`. |
 
 **Returns**: Each profile contains `id`, `name`, `maxNumberOfDevices`, throughput budgets, `qosProfiles`, and `defaultQosProfile`.
@@ -108,9 +114,13 @@ Lists device access grants, optionally scoped to a specific network.
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `networkId` | string (UUID) | No | Filter to a specific network. Omit to return all accesses. |
+| `accessDeviceId` | string | No | Only accesses that contain this device (its access device id). |
+| `name` | string | No | Exact access name to filter by. |
+| `page` | integer | No | Read this one page. Omit it to get every item, from all pages. |
+| `perPage` | integer (1-100) | No | Items per page; with `page`, that one page, without it the size of the pages read. |
 | `response_format` | `markdown` \| `json` | No | Output format. Default: `markdown`. |
 
-**Returns**: Each access contains `id`, `status`, `networkId`, `device`, `defaultQosProfile`, `qosProfiles`, and `sink`.
+**Returns**: Each access contains `id`, `networkId`, `stats` (devices in total, granted, denied), `defaultQosProfile`, `qosProfiles`, and `sink`; an API that still answers in the earlier form gives `status` and `device` on the access itself.
 
 ---
 
@@ -131,7 +141,7 @@ Fetches the current state of a single access grant by UUID.
 
 #### `camara_create_access`
 
-Grants a device access to a dedicated network.
+Grants one or more devices access to a dedicated network. An access holds a list of devices: each is added with its own status, starting at `REQUESTED`. The answer lists the devices added (`addedAccessDevices`) with `stats`; if only some could be added, the failed ones are listed with the reason. An API that takes one device per access is sent that form, for exactly one device; for several devices the tool says so, and one access is created for each device instead.
 
 **Token type determines how the device is identified:**
 
@@ -143,7 +153,9 @@ Grants a device access to a dedicated network.
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `networkId` | string (UUID) | Yes | Target network. |
-| `device` | object | Conditional | Device identifier (see above). |
+| `name` | string | No | A human-readable name. Sent to the API; dropped, with a note in the answer, if the API does not accept it. |
+| `device` | object | Conditional | One device (see above). |
+| `devices` | list of objects | No | Several devices (1-100), each a device object. Use this or `device`, not both. |
 | `qosProfiles` | list of strings | No | Allowed QoS profiles for this device. Omit to allow all. |
 | `defaultQosProfile` | string | No | Default QoS profile for this device. |
 | `sink` | string (HTTPS URL) | No | Webhook for status-change notifications. |
@@ -167,6 +179,21 @@ Revokes a device's access grant. Irreversible.
 
 ---
 
+#### Devices of an access
+
+Six tools manage the devices of an existing access. An API that takes one device per access has no such endpoints and answers `404`; the tools then say so.
+
+| Tool | What it does | Parameters |
+|---|---|---|
+| `camara_list_access_devices` | Lists the devices of an access, each with its `deviceId` (access device id), status and when it was added. | `accessId`; `deviceStatus` (`REQUESTED`, `GRANTED`, `DENIED`); `addedAtOrAfter`, `addedAfter`, `addedAtOrBefore`, `addedBefore` (RFC 3339); `page`; `perPage`; `response_format` |
+| `camara_get_access_device` | Reads one device of an access. | `accessId`, `accessDeviceId`, `response_format` |
+| `camara_add_device_to_access` | Adds one device. With a 2-legged token the `device` is required; with a 3-legged token it must be omitted. | `accessId`, `device` |
+| `camara_add_devices_to_access` | Adds 1-100 devices. Lists the devices added and, for a partial success, each failed device with its reason. | `accessId`, `devices` |
+| `camara_remove_devices_from_access` | Removes 1-100 devices by access device id. Lists any device that could not be removed. | `accessId`, `accessDeviceIds` |
+| `camara_delete_access_device` | Removes one device. Irreversible. | `accessId`, `accessDeviceId` |
+
+---
+
 ### Group 4: Service Areas
 
 Service areas are read-only geographic regions defined by the CSP.
@@ -183,6 +210,8 @@ Searches for service areas using geographic and/or profile filters. All filters 
 | `byName` | string | No | Exact area name. |
 | `byNetworkProfileId` | string (UUID) | No | Only areas supporting this network profile. |
 | `byQosProfileName` | string | No | Only areas supporting this QoS profile name. |
+| `page` | integer | No | Read this one page. Omit it to get every item, from all pages. |
+| `perPage` | integer (1-100) | No | Items per page; with `page`, that one page, without it the size of the pages read. |
 | `response_format` | `markdown` \| `json` | No | Output format. Default: `markdown`. |
 
 **Returns**: Each area contains `id`, `name`, `description`, `area` geometry, `networkProfiles`, and `qosProfiles`, plus a geojson.io URL to view it (`geojsonUrl`, or `geojsonNote` if the geometry cannot be drawn). See [Visualizing service areas](#visualizing-service-areas-geojson).
@@ -291,7 +320,7 @@ Before calling the API, the following should already be in place:
 | Step | Tool | What to do |
 |------|------|-----------|
 | 2.1 | `camara_get_network` | Confirm status is `ACTIVATED`. |
-| 2.2 | `camara_create_access` / `camara_delete_access` | Add or remove devices dynamically. |
+| 2.2 | `camara_add_devices_to_access` / `camara_remove_devices_from_access` | Add or remove devices dynamically (or `camara_create_access` / `camara_delete_access` for an API that takes one device per access). |
 | 2.3 | `camara_get_access` | Check device access status: `REQUESTED → GRANTED / REJECTED`. |
 
 ### Phase 3: Dismantling

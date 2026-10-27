@@ -109,8 +109,8 @@ Use **`camara_get_network`** to confirm status is `ACTIVATED`.
 ### 2.2  Add or remove devices dynamically
 
 While the network is active you can:
-- **Add devices**: `camara_create_access` (as above)
-- **Remove devices**: `camara_delete_access` with the relevant `accessId`
+- **Add devices**: `camara_add_devices_to_access` (or `camara_create_access` as above, for an API that takes one device per access)
+- **Remove devices**: `camara_remove_devices_from_access` with the access device ids from `camara_list_access_devices` (or `camara_delete_access` with the relevant `accessId`, for an API that takes one device per access)
 
 This lets you attach and detach devices without losing the reserved resources.
 
@@ -141,7 +141,7 @@ Deleting accesses before the network ensures a clean release of reserved resourc
 | 1.2  | `camara_create_network` | Reserve the network |
 | 1.3  | `camara_get_network` | Track status |
 | 1.4  | `camara_create_access` | Grant device access |
-| 2.2  | `camara_create_access` / `camara_delete_access` | Add/remove devices |
+| 2.2  | `camara_add_devices_to_access` / `camara_remove_devices_from_access` | Add/remove devices |
 | 3    | `camara_delete_access` → `camara_delete_network` | Graceful teardown |
 """
 

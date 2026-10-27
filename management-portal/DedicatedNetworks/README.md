@@ -43,10 +43,18 @@ Implements the 4 sub-APIs published in
 [camaraproject/DedicatedNetworks](https://github.com/camaraproject/DedicatedNetworks):
 Areas, Networks, Accesses and Profiles. It is built against the sandbox deployment, whose paths are
 `dedicated-network/v0.2-wip`, `dedicated-network-accesses/v0.2-wip`,
-`dedicated-network-profiles/v0.2-wip` and `dedicated-network-areas/v0.1-wip`. The sandbox differs from
-the specification in two places: it rejects a `name` on a network, and it takes one device per access
-(`device`, not `devices`). The versions are listed in the
-[root README](../../README.md#specification).
+`dedicated-network-profiles/v0.2-wip` and `dedicated-network-areas/v0.1-wip`. The portal calls the APIs as
+the specification defines them, and also works with the sandbox, which answers in an earlier form:
+
+| The specification | The sandbox | What the portal does |
+|---|---|---|
+| Lists are pages (`items` and `pagination`), asked for with `page` and `perPage` | Bare arrays; `page` and `perPage` are ignored | Asks for pages, follows `totalPages`, and reads a bare array as one page |
+| `name` on a network and on an access | Rejects `name` (400, "unrecognized") | Sends it; on that answer sends the request again without it, and keeps the name as a local nickname |
+| An access holds `devices`; answers carry `addedAccessDevices`, `stats` and, for a partial success, `results` | One `device` per access, with its own `status` | Sends `devices`; on "device is missing" sends one `device`, and gives every answer a top-level `status` for the screens |
+| Devices of an access: list, add one, add several, remove several, read one, remove one | No such endpoints (404, "No matching api service") | Has a route for each (`/api/accesses/:id/devices…`); the sandbox answers 404 |
+
+Not done: three-legged tokens (the portal uses the client-credentials flow only), and the device endpoints
+have no screen yet. The versions are listed in the [root README](../../README.md#specification).
 
 ## Install dependencies
 
@@ -132,10 +140,13 @@ management-portal/DedicatedNetworks/
     lib/                     Locally bundled Leaflet + geocoder (no CDN at runtime)
   routes/                    areas.js, networks.js, accesses.js, profiles.js, config.js,
                              sessions.js (QoD, unexposed in the UI), webhooks.js
-  services/                  tokenService.js (OAuth2 cache), apiService.js, webhookService.js
+  services/                  tokenService.js (OAuth2 cache), apiService.js (paged lists, optional-property retry),
+                             accessService.js (access with devices), webhookService.js
+  test/                      spec-conformance.test.js (npm test)
 ```
 
-No automated test suite yet; verification has been manual/exploratory against the live sandbox.
+`npm test` runs the API layer against a fake CAMARA server that answers in both forms (paged lists, `name`,
+`devices`, and the sandbox's earlier form). The screens are verified by hand against the live sandbox.
 
 ## Contributing
 

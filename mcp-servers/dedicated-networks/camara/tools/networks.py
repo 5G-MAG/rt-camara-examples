@@ -18,7 +18,7 @@ from typing import Any, Dict, List
 
 from mcp.server.mcpserver import MCPServer as FastMCP
 
-from camara.client import api_request, handle_error
+from camara.client import api_list, api_post_dropping, api_request, handle_error
 from camara.formatters import fmt_network
 from camara.models import (
     CreateNetworkInput,
@@ -65,7 +65,12 @@ def register_network_tools(mcp: FastMCP) -> None:
             - "Which networks are currently ACTIVATED?"
         """
         try:
-            networks: List[Dict[str, Any]] = await api_request("networks", "/networks")
+            networks: List[Dict[str, Any]] = await api_list(
+                "networks", "/networks",
+                params={"name": params.name} if params.name else None,
+                page=params.page, per_page=params.perPage,
+                request=api_request,
+            )
 
             if params.response_format == ResponseFormat.JSON:
                 return json.dumps({"networks": networks, "count": len(networks)}, indent=2)
@@ -177,6 +182,8 @@ def register_network_tools(mcp: FastMCP) -> None:
                 "serviceAreaId": params.serviceAreaId,
                 "serviceTime":   params.serviceTime.model_dump(),
             }
+            if params.name:
+                body["name"] = params.name
             if params.networkProfileId:
                 body["networkProfileId"] = params.networkProfileId
             if params.qosProfileName:
@@ -186,17 +193,20 @@ def register_network_tools(mcp: FastMCP) -> None:
             if params.sinkCredential:
                 body["sinkCredential"] = params.sinkCredential.model_dump(exclude_none=True)
 
-            network: Dict[str, Any] = await api_request(
-                "networks", "/networks", method="POST", body=body
-            )
-
-
+            # `name` is sent as the specification defines it; an API that does not accept it gets the
+            # request again without it.
+            network, dropped = await api_post_dropping("networks", "/networks", body, ("name",))
 
             network_id = network.get("id", "?")
+            note = (
+                f"The API does not accept a network name yet, so `{params.name}` was not stored.\n\n"
+                if dropped else ""
+            )
             return (
                 f"# Dedicated Network Created\n\n"
                 f"Network submitted. It will move from REQUESTED to RESERVED or ACTIVATED "
                 f"based on the service time window.\n\n"
+                f"{note}"
                 f"{fmt_network(network)}\n"
                 f"**Next step**: Use `camara_create_access` with `networkId = {network_id}` "
                 f"to grant device access."

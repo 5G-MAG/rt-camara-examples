@@ -3,12 +3,15 @@ camara/client.py
 ────────────────
 Shared HTTP client and error handler used by every tool.
 
-Only two things are exported:
-  api_request(api, path, method, body, params)  →  parsed JSON (dict / list / None)
-  handle_error(exception)                        →  human-readable error string
+Exported:
+  api_request(api, path, method, body, params)   →  parsed JSON (dict / list / None)
+  api_list(api, path, ...)                       →  every item of a paged list, as one list
+  api_post_dropping(api, path, body, optional)   →  POST that retries without an unaccepted optional property
+  handle_error(exception)                         →  human-readable error string
 """
 
-from typing import Any, Dict, Optional
+import re
+from typing import Any, Dict, List, Optional, Tuple
 
 import httpx
 
@@ -66,6 +69,81 @@ async def api_request(
         if response.status_code == 204:   # DELETE returns no body
             return None
         return response.json()
+
+
+# ─── Paged lists ───────────────────────────────────────────────────────────────
+
+async def api_list(
+    api: str,
+    path: str,
+    params: Optional[Dict[str, Any]] = None,
+    method: str = "GET",
+    body: Optional[Dict[str, Any]] = None,
+    per_page: Optional[int] = None,
+    max_pages: int = 50,
+    page: Optional[int] = None,
+    request: Optional[Any] = None,
+) -> List[Dict[str, Any]]:
+    """Return every item of a list endpoint as one list.
+
+    The Dedicated Networks APIs answer with a page, {"items": [...], "pagination": {...}}, where
+    pagination holds page, perPage, totalCount and totalPages; a page is asked for with the page and
+    perPage query parameters. This follows totalPages. An API that still answers with a bare array is
+    read as one single page and not asked again, since it ignores page and perPage.
+
+    With `page` given, only that one page is read; `per_page` alone sets the size of each page asked for. `request` replaces api_request (tests).
+    """
+    fetch = request or api_request
+    size = per_page or 100
+    single = page is not None
+    items: List[Dict[str, Any]] = []
+    for number in ([page or 1] if single else range(1, max_pages + 1)):
+        query = dict(params or {})
+        query["page"] = number
+        query["perPage"] = size
+        data = await fetch(api, path, method=method, body=body, params=query)
+        if isinstance(data, list):
+            return items + data
+        page_items = (data or {}).get("items") or []
+        items.extend(page_items)
+        total_pages = ((data or {}).get("pagination") or {}).get("totalPages")
+        if single or not total_pages or number >= int(total_pages) or not page_items:
+            break
+    return items
+
+
+# ─── POST that tolerates an optional property the API does not accept ──────────
+
+async def api_post_dropping(
+    api: str,
+    path: str,
+    body: Dict[str, Any],
+    optional: Tuple[str, ...] = (),
+) -> Tuple[Any, List[str]]:
+    """POST `body`. If the API answers 400 or 422 and names one of the `optional` properties as not
+    recognised, send the request again without it.
+
+    Returns (response, dropped property names). Keeps one request body, the one the specification
+    defines, for deployments that do not accept every property yet. Any other error is raised.
+    """
+    try:
+        return await api_request(api, path, method="POST", body=body), []
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code not in (400, 422):
+            raise
+        message = e.response.text
+        unknown = [
+            p for p in optional
+            if p in body and re.search(
+                rf"['\"`]{p}['\"`][^.]*(unrecogni[sz]ed|unknown|not allowed|additional)"
+                rf"|(unrecogni[sz]ed|unknown|not allowed|additional)[^.]*['\"`]{p}['\"`]",
+                message, re.IGNORECASE,
+            )
+        ]
+        if not unknown:
+            raise
+        reduced = {k: v for k, v in body.items() if k not in unknown}
+        return await api_request(api, path, method="POST", body=reduced), unknown
 
 
 # ─── Error handler ─────────────────────────────────────────────────────────────
