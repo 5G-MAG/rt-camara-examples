@@ -159,7 +159,7 @@ export function initStageDevices(nav) {
     const name = document.getElementById('pool-dev-name').value.trim();
     if (!phone) { setSt('pool-status', 'Enter the phone number (MSISDN).', false); return; }
     // PhoneNumber pattern from the Accesses API definition (E.164 with a leading '+').
-    if (!/^\+[1-9][0-9]{4,14}$/.test(phone)) { setSt('pool-status', 'Use international format with a leading +, e.g. +41799445408.', false); return; }
+    if (!/^\+[1-9][0-9]{4,14}$/.test(phone)) { setSt('pool-status', 'Use international format with a leading +, e.g. +12025550142.', false); return; }
     if (pool.some(d => d.phone === phone)) { setSt('pool-status', 'A device with this phone number already exists.', false); return; }
     addToPool(pool, { name: name || phone, phone });
     ['pool-dev-phone', 'pool-dev-name'].forEach(id => { document.getElementById(id).value = ''; });

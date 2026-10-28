@@ -164,7 +164,7 @@ export function initStageAccess(nav) {
       ${pool.length ? `<div class="form-row"><select id="access-device-select"><option value="">-- Pick from device pool --</option>${pool.map(d => `<option value="${d.id}">${escapeHtml(d.name)} (${escapeHtml(identifierLine(d).replace(/&middot;/g, '/'))})</option>`).join('')}</select></div>` : '<p class="empty-hint">Your device pool is empty &mdash; add one below.</p>'}
       <p class="form-hint">or quick-add a new device to the pool:</p>
       <div class="form-row"><input type="text" id="access-quick-name" placeholder="Name, e.g. Camera 1"/></div>
-      <div class="form-row"><input type="text" id="access-quick-phone" placeholder="Phone, e.g. +41799445408"/></div>
+      <div class="form-row"><input type="text" id="access-quick-phone" placeholder="Phone, e.g. +12025550142"/></div>
       <div class="toolbar" style="justify-content:flex-start;">
         <button class="btn btn-ghost btn-sm" id="access-quick-add-btn">+ Add to pool &amp; use</button>
       </div>
