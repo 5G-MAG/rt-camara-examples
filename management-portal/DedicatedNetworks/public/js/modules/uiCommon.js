@@ -38,6 +38,9 @@ export function pad(n) { return n < 10 ? '0' + n : String(n); }
 
 // A labelled value, reusing the existing .form-row/.form-label classes for
 // display rather than only for editable fields.
+/** "1 network", "2 networks" (or the given plural form). */
+export function plural(n, one, many) { return n + ' ' + (n === 1 ? one : (many || one + 's')); }
+
 export function drow(label, value) {
   return `<div class="form-row"><label class="form-label">${label}</label><div>${value}</div></div>`;
 }

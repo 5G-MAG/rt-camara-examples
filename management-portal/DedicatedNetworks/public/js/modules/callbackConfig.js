@@ -29,14 +29,14 @@ const CRED_FIELDS = {
     { id: 'accessToken', label: 'Access token', type: 'text' },
     { id: 'accessTokenExpiresUtc', label: 'Expires (UTC, ISO 8601)', type: 'text', placeholder: '2026-01-01T00:00:00Z' },
     { id: 'refreshToken', label: 'Refresh token', type: 'text' },
-    { id: 'refreshTokenEndpoint', label: 'Refresh token endpoint (URL)', type: 'text' }
+    { id: 'refreshTokenEndpoint', label: 'Refresh token endpoint URL', type: 'text' }
   ]
 };
 
 export function renderCallbackConfig(container, idPrefix) {
   container.innerHTML = `
     <details class="advanced-fields">
-      <summary>Callback (webhook) configuration</summary>
+      <summary>Webhook callback configuration</summary>
       <div class="form-row">
         <label class="form-label" for="${idPrefix}-sink">Sink URL</label>
         <input type="text" id="${idPrefix}-sink" placeholder="https://example.com/webhook" />

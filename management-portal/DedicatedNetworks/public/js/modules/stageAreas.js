@@ -13,7 +13,7 @@ byNetworkProfileId / byQosProfileName, all combinable.
 */
 
 import { Api, resolveProfileName } from './api.js';
-import { setSt, clrSt, fmtTp, drow } from './uiCommon.js';
+import { setSt, clrSt, fmtTp, drow, plural } from './uiCommon.js';
 import { wizard } from './wizard.js';
 
 const COLORS = ['#00a0d2', '#b9770e', '#1e8a4c', '#d9534f', '#7c3aed', '#ec4899', '#14b8a6', '#f97316'];
@@ -124,7 +124,7 @@ export function initStageAreas(nav) {
   function buildAreaRow(sa, idx) {
     const el = document.createElement('div'); el.className = 'form-row list-row-clickable';
     el.innerHTML = `<span class="field-name">${sa.name || 'Unnamed'}</span>`
-      + (sa.description ? `<div class="field-key">${sa.description}</div>` : '');
+      + (sa.description ? `<div class="field-desc">${sa.description}</div>` : '');
     el.addEventListener('click', () => {
       document.querySelectorAll('#area-list .list-row-clickable').forEach(c => c.classList.remove('active'));
       el.classList.add('active'); showOnly(idx); fetchAndShowDetail(sa.id, sa);
@@ -174,7 +174,7 @@ export function initStageAreas(nav) {
     btn.textContent = 'Load All Available Service Areas'; btn.disabled = false;
     if (!r.ok) { setSt('areas-status', 'HTTP ' + r.status + ': ' + (r.data.message || r.data.error || 'Error'), false); return; }
     const areas = Array.isArray(r.data) ? r.data : [r.data];
-    setSt('areas-status', areas.length + ' area(s) — click one to focus', true);
+    setSt('areas-status', plural(areas.length, 'area') + ' — click one to focus', true);
     displayAreas(areas); showAll();
   });
 
@@ -296,7 +296,7 @@ export function initStageAreas(nav) {
     btn.textContent = label; btn.disabled = false;
     if (!r.ok) { setSt('areas-status', 'HTTP ' + r.status + ': ' + (r.data.message || r.data.error || 'Error'), false); return; }
     const areas = Array.isArray(r.data) ? r.data : [r.data];
-    setSt('areas-status', areas.length + ' area(s) found', true);
+    setSt('areas-status', plural(areas.length, 'area') + ' found', true);
     displayAreas(areas); showAll();
   }
 

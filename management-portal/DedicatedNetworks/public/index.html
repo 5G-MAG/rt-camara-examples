@@ -59,7 +59,7 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
 
 <!-- ═══ TAB: GUIDE (landing) ═══ -->
 <main class="main" id="tab-guide" role="tabpanel" aria-labelledby="tabbtn-guide" style="max-width:800px;">
-  <p class="subtitle">This portal walks through the four CAMARA Dedicated Networks APIs in the order they depend on each other: find a service area, reserve a network in it, then give devices access to that network. Networks that already exist are listed, and can be deleted, in the Network tab.</p>
+  <p class="subtitle">This portal walks through the four CAMARA Dedicated Networks APIs in the order they depend on each other: find a service area, reserve a network in it, then give devices access to that network. Existing networks are listed in the Network tab, where they can also be deleted.</p>
 
   <div class="card" id="guide-workflow">
     <div class="card-title">How to use this portal</div>
@@ -71,7 +71,7 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
     <div class="section-panel">
       <div class="section-panel-title">What each tab does</div>
       <p class="form-hint"><strong>1. Areas</strong>: find a service area on the map or with filters, and pick the one to use.</p>
-      <p class="form-hint"><strong>2. Network</strong>: reserve a dedicated network in that area, with a network profile or QoS profile and a service time.</p>
+      <p class="form-hint"><strong>2. Network</strong>: reserve a dedicated network in the chosen area, with a network profile or QoS profile and a service time. Existing networks are listed in this tab and can be deleted there.</p>
       <p class="form-hint"><strong>3. Access</strong>: pick a network, add devices one by one or from a CSV file, and give them access.</p>
       <p class="form-hint"><strong>4. Devices</strong>: create devices by phone number, give them access, and see every access each device is part of.</p>
       <p class="form-hint"><strong>Shortcut: Quick Booking</strong>: the simple case of tabs 1 to 3 in one form.</p>
@@ -219,8 +219,8 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
   <div class="card">
     <div class="card-title">Create device</div>
     <p class="subtitle" style="margin-bottom:0.8rem;">A device is identified by its phone number (MSISDN). Devices are kept in this portal&rsquo;s internal device list, stored in this browser; the Accesses API has no device list of its own.</p>
-    <div class="form-row"><label class="form-label" for="pool-dev-phone">Phone number (MSISDN)</label><input id="pool-dev-phone" type="tel" placeholder="+99971530264"/></div>
-    <div class="form-row"><label class="form-label" for="pool-dev-name">Name <span class="form-hint" style="display:inline;">(optional)</span></label><input id="pool-dev-name" type="text" placeholder="e.g. Camera 1"/></div>
+    <div class="form-row"><label class="form-label" for="pool-dev-phone">Phone number</label><input id="pool-dev-phone" type="tel" placeholder="+99971530264"/></div>
+    <div class="form-row"><label class="form-label" for="pool-dev-name">Name <span class="form-hint" style="display:inline;">&middot; optional</span></label><input id="pool-dev-name" type="text" placeholder="e.g. Camera 1"/></div>
     <div class="toolbar" style="justify-content:flex-start;">
       <button class="btn btn-primary btn-sm" id="pool-save-btn">Create device</button>
     </div>
@@ -233,7 +233,7 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
       <p class="empty-hint">Select or create a network (Network tab) to give a device access to it.</p>
     </div>
     <div id="devices-attach-form" hidden>
-      <div class="form-row"><label class="form-label" for="devices-attach-select">Device (MSISDN)</label><select id="devices-attach-select"></select></div>
+      <div class="form-row"><label class="form-label" for="devices-attach-select">Device</label><select id="devices-attach-select"></select></div>
       <div class="toolbar" style="justify-content:flex-start;">
         <button class="btn btn-primary btn-sm" id="devices-attach-btn">Create access</button>
       </div>
@@ -304,13 +304,13 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
     <div class="form-row"><label class="form-label" for="cfg-networks-url">Networks API</label><input type="text" id="cfg-networks-url" placeholder="https://.../dedicated-network/v0.2-wip"/></div>
     <div class="form-row"><label class="form-label" for="cfg-profiles-url">Profiles API</label><input type="text" id="cfg-profiles-url" placeholder="https://.../dedicated-network-profiles/v0.2-wip"/></div>
     <div class="form-row"><label class="form-label" for="cfg-accesses-url">Accesses API</label><input type="text" id="cfg-accesses-url" placeholder="https://.../dedicated-network-accesses/v0.2-wip"/></div>
-    <div class="form-row"><label class="form-label" for="cfg-qod-url">Quality on Demand API <span class="form-hint" style="display:inline;">(optional)</span></label><input type="text" id="cfg-qod-url"/></div>
+    <div class="form-row"><label class="form-label" for="cfg-qod-url">Quality on Demand API <span class="form-hint" style="display:inline;">&middot; optional</span></label><input type="text" id="cfg-qod-url"/></div>
   </div>
 
   <div class="card">
     <div class="card-title">Webhook notifications</div>
     <div class="form-row">
-      <label class="form-label" for="cfg-sink-url">Sink base URL <span class="form-hint" style="display:inline;">(optional)</span></label>
+      <label class="form-label" for="cfg-sink-url">Sink base URL <span class="form-hint" style="display:inline;">&middot; optional</span></label>
       <input type="text" id="cfg-sink-url"/>
       <p class="form-hint">A public tunnel URL for inbound CAMARA notifications, e.g. from <code>npx localtunnel --port 3001</code>.</p>
     </div>
