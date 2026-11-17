@@ -58,7 +58,7 @@ export const wizard = {
   unlockedStages() {
     const u = ['areas'];
     if (state.area) u.push('network');
-    if (state.network) u.push('access');
+    u.push('access'); // networks are picked from the list on the Access tab itself
     if (state.access) u.push('devices');
     return u;
   },
@@ -67,7 +67,6 @@ export const wizard = {
    * principles require next to a disabled step. */
   lockedReason(stage) {
     if (stage === 'network') return 'Select an area first';
-    if (stage === 'access') return 'Create a network first';
     return null;
   },
 
@@ -103,7 +102,7 @@ export const wizard = {
       const r = await Api.getArea(saved.areaId);
       if (r.ok) state.area = r.data;
     }
-    if (state.area && saved.networkId) {
+    if (saved.networkId) {
       const r = await Api.getNetwork(saved.networkId);
       if (r.ok) state.network = r.data;
     }

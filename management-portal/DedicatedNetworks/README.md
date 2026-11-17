@@ -6,9 +6,9 @@ Accesses and Profiles), with a one-click Quick Booking shortcut.
 ## Introduction
 
 The portal walks a user through the full dedicated-network lifecycle as one guided flow
-(**Areas → Network → Access → Devices**) where each stage is disabled with a one-line reason
-until its prerequisite is done, and exercises the full parameter surface of its CAMARA API rather
-than a cut-down subset. A **Start here** tab, shown on a first visit, follows the Dedicated Networks workflow on
+(**Areas → Network → Access → Devices**) where the Network tab is disabled with a one-line reason
+until an area is chosen, and exercises the full parameter surface of its CAMARA API rather
+than a cut-down subset. A **Start here** tab, the first page the portal opens on, follows the Dedicated Networks workflow on
 [5g-mag.com](https://www.5g-mag.com/tech/network-apis/content-production/using-dedicated-networks)
 (pre-conditions, before using the network, during operation, dismantling), marks who performs each
 step (application provider or operator) and names the tab that does it. After the four stages,
@@ -20,7 +20,8 @@ shortcut shows up already unlocked in Devices.
   name / network-profile / QoS-profile filters, combinable
 - **Networks**: reserve by network profile *or* QoS profile, for a chosen area and time window,
   with optional callback (webhook) configuration
-- **Accesses**: grant a device access to a network; the tracker always shows the three access
+- **Accesses**: pick any network from the list on the left, add devices one by one or from a CSV file
+  (one phone number per line, optional name), and give each ticked device its own access; the tracker always shows the three access
   states the API defines (REQUESTED, GRANTED, DENIED), highlights the current one and, for a
   denied access, shows the reason code and message
 - **Devices**: create devices by phone number (MSISDN; kept in the browser, since the Accesses

@@ -44,6 +44,30 @@ export function matchesApiDevice(poolDev, apiDevice) {
   return false;
 }
 
+// PhoneNumber pattern from the Accesses API definition (E.164 with a leading '+').
+export const PHONE_RE = /^\+[1-9][0-9]{4,14}$/;
+
+/** Parse "phone[,name]" lines (comma or semicolon). A first line whose phone
+ * column starts with "phone" is a header and is skipped. */
+export function parseDeviceCsv(text) {
+  const rows = [], errors = [], seen = new Set();
+  let duplicates = 0;
+  const unquote = v => v.trim().replace(/^"(.*)"$/, '$1').trim();
+  String(text).replace(/^\uFEFF/, '').split(/\r?\n/).forEach((raw, i) => {
+    const line = raw.trim();
+    if (!line) return;
+    const cut = line.search(/[,;]/);
+    const phone = unquote(cut < 0 ? line : line.slice(0, cut));
+    const name = cut < 0 ? '' : unquote(line.slice(cut + 1));
+    if (rows.length === 0 && errors.length === 0 && duplicates === 0 && i === 0 && /^phone/i.test(phone)) return;
+    if (!PHONE_RE.test(phone)) { errors.push('line ' + (i + 1) + ': ' + (phone || '(empty)')); return; }
+    if (seen.has(phone)) { duplicates++; return; }
+    seen.add(phone);
+    rows.push({ phone, name });
+  });
+  return { rows, errors, duplicates };
+}
+
 export function identifierLine(d) {
   return [d.phone, d.naid, d.ip].filter(Boolean).join(' &middot; ') || '—';
 }

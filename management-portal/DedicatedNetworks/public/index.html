@@ -48,7 +48,7 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
     <button id="tabbtn-guide" class="tab-btn" type="button" data-tab="guide" role="tab" aria-selected="false" aria-controls="tab-guide">Start here</button>
     <button id="tabbtn-areas" class="tab-btn active" type="button" data-tab="areas" role="tab" aria-selected="true" aria-controls="tab-areas">1. Areas</button>
     <button id="tabbtn-network" class="tab-btn" type="button" data-tab="network" role="tab" aria-selected="false" aria-controls="tab-network" disabled title="Select an area first">2. Network</button>
-    <button id="tabbtn-access" class="tab-btn" type="button" data-tab="access" role="tab" aria-selected="false" aria-controls="tab-access" disabled title="Create a network first">3. Access</button>
+    <button id="tabbtn-access" class="tab-btn" type="button" data-tab="access" role="tab" aria-selected="false" aria-controls="tab-access">3. Access</button>
     <button id="tabbtn-devices" class="tab-btn" type="button" data-tab="devices" role="tab" aria-selected="false" aria-controls="tab-devices">4. Devices</button>
     <button id="tabbtn-quick" class="tab-btn" type="button" data-tab="quick" role="tab" aria-selected="false" aria-controls="tab-quick" title="Shortcut: tabs 1 to 3 in one form">Shortcut: Quick Booking</button>
     <button id="tabbtn-config" class="tab-btn" type="button" data-tab="config" role="tab" aria-selected="false" aria-controls="tab-config">Config</button>
@@ -223,22 +223,26 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
 
 <!-- ═══ TAB: ACCESS ═══ -->
 <main class="main map-layout" id="tab-access" role="tabpanel" aria-labelledby="tabbtn-access" hidden>
-  <div class="map-sidebar" id="access-locked-msg">
-    <p class="empty-hint">Create a network in the Network tab first.</p>
-  </div>
-  <div class="map-sidebar" id="access-body" hidden>
-    <div class="card" id="access-network-chip" style="padding:0.8rem 1rem;"></div>
-    <button class="btn btn-ghost btn-sm" id="access-change-network-btn">&larr; Change Network</button>
+  <div class="map-sidebar" id="access-sidebar">
     <div class="section-panel">
-      <div class="section-panel-title">Existing Accesses on this Network</div>
-      <button class="btn btn-ghost btn-sm" id="load-accesses-btn" style="width:100%;">Load Accesses</button>
+      <div class="section-panel-title">Networks</div>
+      <button class="btn btn-ghost btn-sm" id="load-access-networks-btn" style="width:100%;">Refresh</button>
+      <p class="status-line" id="access-networks-status"></p>
+      <div id="access-networks-list"></div>
+    </div>
+    <div class="section-panel" id="access-accesses-panel" hidden>
+      <div class="section-panel-title">Accesses on this network</div>
+      <button class="btn btn-ghost btn-sm" id="load-accesses-btn" style="width:100%;">Refresh</button>
       <p class="status-line" id="accesses-status"></p>
       <div id="accesses-list"></div>
     </div>
   </div>
+  <div class="main" id="access-empty-wrap" style="max-width:640px;">
+    <div class="card"><p class="empty-hint">Pick a network in the left menu to create accesses for it.</p></div>
+  </div>
   <div class="main" id="access-main-wrap" style="max-width:640px;" hidden>
     <div class="card">
-      <div class="card-title">Access</div>
+      <div class="card-title" id="access-card-title">Access</div>
       <div id="access-main-body"></div>
     </div>
     <div class="card">

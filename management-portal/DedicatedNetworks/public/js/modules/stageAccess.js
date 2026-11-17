@@ -20,7 +20,7 @@ import { setSt, clrSt, escapeHtml, deviceTracker, drow, statusBadge } from './ui
 import { wizard } from './wizard.js';
 import { startPolling } from './polling.js';
 import { renderCallbackConfig } from './callbackConfig.js';
-import { loadPool, addToPool, toApiDevice, identifierLine } from './devicePool.js';
+import { loadPool, addToPool, toApiDevice, identifierLine, matchesApiDevice, parseDeviceCsv, PHONE_RE } from './devicePool.js';
 import { eventRef, mountCallbackPanel, subscribeCallbacks } from './callbackLog.js';
 
 export function initStageAccess(nav) {
@@ -34,33 +34,80 @@ export function initStageAccess(nav) {
 
   wizard.onChange(() => { if (!document.getElementById('tab-access').hidden) render(); });
 
-  function render() {
-    const locked = document.getElementById('access-locked-msg');
-    const body = document.getElementById('access-body');
+  let networks = [];              // every network of this account, for the left menu
+  let existingAccesses = [];      // accesses on the selected network
+  const ticked = new Set();       // pool device ids ticked for the next create
+
+  // Same local nickname the Network tab shows, else the API name, else a short id.
+  function netName(n) {
+    let nick = '';
+    try { nick = JSON.parse(localStorage.getItem('dn_network_nicknames') || '{}')[n.id] || ''; } catch (_) {}
+    return nick || n.name || n.id.slice(0, 8);
+  }
+
+  // ── Left menu: all networks ──
+  document.getElementById('load-access-networks-btn').addEventListener('click', loadNetworks);
+  async function loadNetworks() {
+    clrSt('access-networks-status');
+    const r = await Api.listNetworks();
+    if (!r.ok) { setSt('access-networks-status', 'HTTP ' + r.status + ': ' + (r.data.message || r.data.error || 'Error'), false); return; }
+    networks = Array.isArray(r.data) ? r.data : [r.data];
+    setSt('access-networks-status', networks.length + ' network(s)', true);
+    paintNetworks();
+  }
+  function paintNetworks() {
+    const list = document.getElementById('access-networks-list');
+    list.innerHTML = '';
+    if (!networks.length) { list.innerHTML = '<p class="empty-hint">No networks found.</p>'; return; }
+    networks.forEach(n => {
+      const el = document.createElement('div'); el.className = 'form-row list-row-clickable';
+      if (wizard.network && wizard.network.id === n.id) el.classList.add('active');
+      el.innerHTML = `<span class="field-name">${escapeHtml(netName(n))}</span> ${statusBadge(n.status)}`
+        + `<div class="field-key">${n.id}</div>`;
+      el.addEventListener('click', () => selectNetwork(n));
+      list.appendChild(el);
+    });
+  }
+  async function selectNetwork(n) {
+    if (wizard.network && wizard.network.id === n.id) return;
+    if (!wizard.confirmAndResetFrom('network')) return;
+    // Keep the Network tab consistent: its area is the one this network belongs to.
+    if (n.serviceAreaId && (!wizard.area || wizard.area.id !== n.serviceAreaId)) {
+      const r = await Api.getArea(n.serviceAreaId);
+      if (r.ok) wizard.setArea(r.data);
+    }
+    wizard.setNetwork(n);
+  }
+
+  async function render() {
+    paintNetworks();
+    const network = wizard.network;
+    const accessesPanel = document.getElementById('access-accesses-panel');
     const mainWrap = document.getElementById('access-main-wrap');
-    if (!wizard.network) { locked.hidden = false; body.hidden = true; mainWrap.hidden = true; return; }
-    locked.hidden = true; body.hidden = false; mainWrap.hidden = false;
-    renderNetworkChip();
-    loadAccessesList();
+    const emptyWrap = document.getElementById('access-empty-wrap');
+    if (!network) {
+      stopPolling();
+      existingAccesses = [];
+      accessesPanel.hidden = true; mainWrap.hidden = true; emptyWrap.hidden = false;
+      return;
+    }
+    emptyWrap.hidden = true; accessesPanel.hidden = false; mainWrap.hidden = false;
+    document.getElementById('access-card-title').textContent = 'Access on ' + netName(network);
+    await loadAccessesList();
+    if (wizard.network !== network) return;   // another network was picked meanwhile
     if (wizard.access) renderAccessDetail(wizard.access);
     else renderCreateForm();
   }
 
-  function renderNetworkChip() {
-    const n = wizard.network;
-    document.getElementById('access-network-chip').innerHTML =
-      `<span class="field-name">${escapeHtml(n.name || n.id)}</span> ${statusBadge(n.status)}`
-      + `<div class="field-key">${n.id}</div>`;
-  }
-  document.getElementById('access-change-network-btn').addEventListener('click', () => nav.goTo('network'));
-
-  document.getElementById('load-accesses-btn').addEventListener('click', () => loadAccessesList());
+  document.getElementById('load-accesses-btn').addEventListener('click', async () => { await loadAccessesList(); paintDeviceList(); });
   async function loadAccessesList() {
     const list = document.getElementById('accesses-list');
     list.innerHTML = ''; clrSt('accesses-status');
+    existingAccesses = [];
     const r = await Api.listAccesses(wizard.network.id);
     if (!r.ok) { setSt('accesses-status', 'HTTP ' + r.status + ': ' + (r.data.message || r.data.error || 'Error'), false); return; }
     const accesses = Array.isArray(r.data) ? r.data : [r.data];
+    existingAccesses = accesses;
     setSt('accesses-status', accesses.length + ' access(es) — one per device', true);
     if (!accesses.length) { list.innerHTML = '<p class="empty-hint">None yet.</p>'; return; }
     accesses.forEach(a => {
@@ -78,16 +125,33 @@ export function initStageAccess(nav) {
     });
   }
 
-  // ── Create form: requires one device (this sandbox's hard constraint) ──
+  // ── Create form: pick devices, create one access per device (this sandbox's hard constraint) ──
+  function accessFor(poolDev) { return existingAccesses.find(a => matchesApiDevice(poolDev, a.device)); }
+
   async function renderCreateForm() {
     stopPolling();
     const network = wizard.network;
-    const pool = loadPool();
     const body = document.getElementById('access-main-body');
     body.innerHTML = `
       <div class="section-panel">
-        <div class="section-panel-title">Device &mdash; required to create the access</div>
-        <div id="access-device-pick"></div>
+        <div class="section-panel-title">Devices</div>
+        <p class="form-hint">Tick the devices that should get access. Each device gets its own access, because this sandbox takes one device per access.</p>
+        <div id="access-device-list"></div>
+      </div>
+      <div class="section-panel">
+        <div class="section-panel-title">Add a device</div>
+        <div class="form-row"><label class="form-label" for="access-quick-phone">Phone number (MSISDN)</label><input type="tel" id="access-quick-phone" placeholder="+99971530264"/></div>
+        <div class="form-row"><label class="form-label" for="access-quick-name">Name <span class="form-hint" style="display:inline;">(optional)</span></label><input type="text" id="access-quick-name" placeholder="e.g. Camera 1"/></div>
+        <div class="toolbar" style="justify-content:flex-start;">
+          <button class="btn btn-ghost btn-sm" id="access-quick-add-btn">Add device</button>
+        </div>
+        <p class="status-line" id="access-quick-status"></p>
+      </div>
+      <div class="section-panel">
+        <div class="section-panel-title">Add several devices from a CSV file</div>
+        <p class="form-hint">One device per line: the phone number, then an optional name. A first line starting with &ldquo;phone&rdquo; is skipped.</p>
+        <div class="form-row"><label class="form-label" for="access-csv-input">CSV file</label><input type="file" id="access-csv-input" accept=".csv,text/csv,text/plain"/></div>
+        <p class="status-line" id="access-csv-status"></p>
       </div>
       <div class="section-panel">
         <div class="section-panel-title">QoS Profile</div>
@@ -96,12 +160,52 @@ export function initStageAccess(nav) {
       </div>
       <div id="access-callback-config"></div>
       <p class="status-line" id="access-form-status"></p>
+      <div id="access-create-results"></div>
       <div class="toolbar" style="justify-content:flex-start;">
-        <button class="btn btn-primary" id="access-create-btn">Create Access</button>
+        <button class="btn btn-primary" id="access-create-btn">Create access</button>
       </div>
     `;
     const callbackCfg = renderCallbackConfig(document.getElementById('access-callback-config'), 'access');
-    renderDevicePicker(pool);
+    paintDeviceList();
+
+    document.getElementById('access-quick-add-btn').addEventListener('click', () => {
+      const phone = document.getElementById('access-quick-phone').value.trim();
+      const name = document.getElementById('access-quick-name').value.trim();
+      clrSt('access-quick-status');
+      if (!phone) { setSt('access-quick-status', 'Enter the phone number (MSISDN).', false); return; }
+      if (!PHONE_RE.test(phone)) { setSt('access-quick-status', 'Use international format with a leading +, e.g. +99971530264.', false); return; }
+      const pool = loadPool();
+      const known = pool.find(d => d.phone === phone);
+      if (known) { setSt('access-quick-status', 'This device already exists; it is ticked below.', false); ticked.add(known.id); paintDeviceList(); return; }
+      ticked.add(addToPool(pool, { name: name || phone, phone }).id);
+      ['access-quick-phone', 'access-quick-name'].forEach(id => { document.getElementById(id).value = ''; });
+      setSt('access-quick-status', 'Device added.', true);
+      paintDeviceList();
+    });
+
+    document.getElementById('access-csv-input').addEventListener('change', async function () {
+      const file = this.files && this.files[0];
+      clrSt('access-csv-status');
+      if (!file) return;
+      let text;
+      try { text = await file.text(); } catch (_) { setSt('access-csv-status', 'The file could not be read.', false); return; }
+      const { rows, errors, duplicates } = parseDeviceCsv(text);
+      const pool = loadPool();
+      let added = 0, known = 0;
+      rows.forEach(r => {
+        const have = pool.find(d => d.phone === r.phone);
+        if (have) { known++; ticked.add(have.id); return; }
+        ticked.add(addToPool(pool, { name: r.name || r.phone, phone: r.phone }).id);
+        added++;
+      });
+      this.value = '';
+      const parts = [added + ' added'];
+      if (known) parts.push(known + ' already existed');
+      if (duplicates) parts.push(duplicates + ' repeated in the file');
+      if (errors.length) parts.push(errors.length + ' not a valid phone number (' + errors.slice(0, 3).join('; ') + (errors.length > 3 ? '; …' : '') + ')');
+      setSt('access-csv-status', parts.join(', ') + '.', errors.length === 0 && rows.length > 0);
+      paintDeviceList();
+    });
 
     // Resolve the QoS options this network actually offers.
     let qosOptions = [], defaultQos = null;
@@ -111,6 +215,7 @@ export function initStageAccess(nav) {
     } else if (network.qosProfileName) {
       qosOptions = [network.qosProfileName]; defaultQos = network.qosProfileName;
     }
+    if (wizard.network !== network || wizard.access) return;   // the page moved on while loading
     document.getElementById('access-qos-loading').hidden = true;
     const picker = document.getElementById('access-qos-picker');
     picker.hidden = false;
@@ -123,7 +228,7 @@ export function initStageAccess(nav) {
           &nbsp;&nbsp;
           <label><input type="radio" name="access-qos-default" class="access-qos-default-radio" value="${escapeHtml(q)}" ${q === defaultQos ? 'checked' : ''}/> set as default</label>
         </div>`).join('')
-        + '<p class="form-hint">Check the profiles this access may use; pick one radio button as the default. Leave all unchecked to inherit the network default.</p>';
+        + '<p class="form-hint">Check the profiles these accesses may use; pick one radio button as the default. Leave all unchecked to inherit the network default.</p>';
       picker.querySelectorAll('.access-qos-check').forEach(cb => cb.addEventListener('change', () => {
         const radio = cb.closest('.form-row').querySelector('.access-qos-default-radio');
         radio.disabled = !cb.checked;
@@ -133,65 +238,54 @@ export function initStageAccess(nav) {
 
     document.getElementById('access-create-btn').addEventListener('click', async function () {
       const btn = this;
-      const device = getPickedDevice();
       clrSt('access-form-status');
-      if (!device) { setSt('access-form-status', 'Pick or add a device first.', false); return; }
+      const results = document.getElementById('access-create-results'); results.innerHTML = '';
+      const chosen = loadPool().filter(d => ticked.has(d.id) && !accessFor(d));
+      if (!chosen.length) { setSt('access-form-status', 'Tick at least one device without an access.', false); return; }
       const checked = Array.from(picker.querySelectorAll('.access-qos-check:checked')).map(cb => cb.value);
       const defaultRadio = picker.querySelector('.access-qos-default-radio:checked');
-      const reqBody = { networkId: network.id, device, ...callbackCfg.getValue() };
-      if (checked.length) { reqBody.qosProfiles = checked; reqBody.defaultQosProfile = (defaultRadio && defaultRadio.value) || checked[0]; }
-      btn.textContent = 'Creating…'; btn.disabled = true;
-      const r = await Api.createAccess(reqBody);
-      btn.disabled = false; btn.textContent = 'Create Access';
-      if (!r.ok) { setSt('access-form-status', 'HTTP ' + r.status + ': ' + (r.data.message || r.data.error || 'Error'), false); return; }
-      window.showToast('Access created.', 'success');
-      wizard.setAccess(r.data);
+      const common = { networkId: network.id, ...callbackCfg.getValue() };
+      if (checked.length) { common.qosProfiles = checked; common.defaultQosProfile = (defaultRadio && defaultRadio.value) || checked[0]; }
+      btn.disabled = true;
+      const made = [], failed = [];
+      for (let i = 0; i < chosen.length; i++) {
+        btn.textContent = 'Creating ' + (i + 1) + ' of ' + chosen.length + '…';
+        const r = await Api.createAccess({ ...common, device: toApiDevice(chosen[i]) });
+        if (r.ok) { made.push(r.data); ticked.delete(chosen[i].id); }
+        else failed.push(`${chosen[i].phone || chosen[i].name}: HTTP ${r.status} ${r.data.message || r.data.error || 'Error'}`);
+      }
+      btn.disabled = false; btn.textContent = createLabel();
+      if (made.length === 1 && !failed.length) { window.showToast('Access created.', 'success'); wizard.setAccess(made[0]); return; }
+      await loadAccessesList();
+      paintDeviceList();
+      if (made.length) window.showToast(made.length + ' access(es) created.', 'success');
+      setSt('access-form-status', made.length + ' created, ' + failed.length + ' failed.', failed.length === 0);
+      if (failed.length) results.innerHTML = failed.map(f => `<p class="form-hint">${escapeHtml(f)}</p>`).join('');
     });
+    document.getElementById('access-create-btn').textContent = createLabel();
   }
 
-  let pickedPoolId = null, pickedInline = null;
-  function getPickedDevice() {
-    if (pickedInline) return pickedInline;
+  function createLabel() {
+    const n = loadPool().filter(d => ticked.has(d.id) && !accessFor(d)).length;
+    return n > 1 ? 'Create ' + n + ' accesses' : 'Create access';
+  }
+
+  function paintDeviceList() {
+    const el = document.getElementById('access-device-list');
+    if (!el) return;
     const pool = loadPool();
-    const d = pool.find(x => x.id === pickedPoolId);
-    return d ? toApiDevice(d) : null;
-  }
-
-  function renderDevicePicker(pool) {
-    pickedPoolId = null; pickedInline = null;
-    const el = document.getElementById('access-device-pick');
-    el.innerHTML = `
-      ${pool.length ? `<div class="form-row"><select id="access-device-select"><option value="">-- Pick from device pool --</option>${pool.map(d => `<option value="${d.id}">${escapeHtml(d.name)} (${escapeHtml(identifierLine(d).replace(/&middot;/g, '/'))})</option>`).join('')}</select></div>` : '<p class="empty-hint">Your device pool is empty &mdash; add one below.</p>'}
-      <p class="form-hint">or quick-add a new device to the pool:</p>
-      <div class="form-row"><input type="text" id="access-quick-name" placeholder="Name, e.g. Camera 1"/></div>
-      <div class="form-row"><input type="text" id="access-quick-phone" placeholder="Phone, e.g. +41799445408"/></div>
-      <div class="toolbar" style="justify-content:flex-start;">
-        <button class="btn btn-ghost btn-sm" id="access-quick-add-btn">+ Add to pool &amp; use</button>
-      </div>
-      <p class="form-hint" id="access-device-picked" hidden></p>
-    `;
-    const sel = document.getElementById('access-device-select');
-    if (sel) sel.addEventListener('change', () => {
-      pickedInline = null;
-      pickedPoolId = sel.value || null;
-      showPicked(pool.find(d => d.id === pickedPoolId));
-    });
-    document.getElementById('access-quick-add-btn').addEventListener('click', () => {
-      const name = document.getElementById('access-quick-name').value.trim();
-      const phone = document.getElementById('access-quick-phone').value.trim();
-      if (!name || !phone) { setSt('access-form-status', 'Enter a name and phone number to quick-add a device.', false); return; }
-      const d = addToPool(pool, { name, phone });
-      pickedPoolId = d.id; pickedInline = null;
-      if (sel) { const opt = document.createElement('option'); opt.value = d.id; opt.textContent = `${d.name} (${d.phone})`; sel.appendChild(opt); sel.value = d.id; }
-      showPicked(d);
-      clrSt('access-form-status');
-    });
-  }
-  function showPicked(d) {
-    const el = document.getElementById('access-device-picked');
-    if (!d) { el.hidden = true; return; }
-    el.hidden = false;
-    el.textContent = `Using: ${d.name} (${identifierLine(d).replace(/&middot;/g, '/')})`;
+    if (!pool.length) { el.innerHTML = '<p class="empty-hint">No devices yet &mdash; add one below.</p>'; return; }
+    el.innerHTML = pool.map(d => {
+      const a = accessFor(d);
+      return `<div class="form-row"><label><input type="checkbox" class="access-device-check" value="${d.id}" ${a ? 'disabled' : ticked.has(d.id) ? 'checked' : ''}/> `
+        + `${escapeHtml(d.name || d.phone || 'device')} <span class="field-key">${identifierLine(d)}</span></label>`
+        + (a ? ` ${statusBadge(a.status)} <span class="form-hint" style="display:inline;">has an access on this network</span>` : '') + '</div>';
+    }).join('');
+    el.querySelectorAll('.access-device-check').forEach(cb => cb.addEventListener('change', () => {
+      if (cb.checked) ticked.add(cb.value); else ticked.delete(cb.value);
+      const btn = document.getElementById('access-create-btn'); if (btn) btn.textContent = createLabel();
+    }));
+    const btn = document.getElementById('access-create-btn'); if (btn) btn.textContent = createLabel();
   }
 
   // ── Access detail — top-level status/statusInfo (this sandbox's real shape) ──
@@ -253,7 +347,7 @@ export function initStageAccess(nav) {
   }
 
   return {
-    activate() { render(); },
+    activate() { loadNetworks(); render(); },
     deactivate() { stopPolling(); }
   };
 }

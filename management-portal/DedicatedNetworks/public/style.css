@@ -231,6 +231,9 @@ pre {
 .advanced-fields > summary::before { content: '\25b8  '; }
 .advanced-fields[open] > summary::before { content: '\25be  '; }
 
+input[type="file"] { font-family: inherit; font-size: 0.9rem; color: var(--text); }
+input[type="file"]::file-selector-button { font-family: inherit; }
+
 /* ────────────────────────────────────────────────────────────────────────
    App-specific additions below this line (not part of the shared 5G-MAG
    style sheet above). Kept minimal and built from the same tokens/classes.
