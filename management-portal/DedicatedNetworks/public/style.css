@@ -262,6 +262,8 @@ input[type="file"]::file-selector-button { font-family: inherit; }
    functional requirement (Leaflet needs width), not a style choice. */
 .map-layout { max-width: none; padding: 0; height: calc(100vh - 76px - 56px); display: flex; }
 .map-sidebar { width: 280px; min-width: 240px; border-right: 1px solid var(--border); background: var(--surface); padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem; }
+/* Pages with a centre column (Network, Access): the column scrolls inside the layout, so the sidebar keeps its full height beside it. */
+.map-layout > .main { flex: 1 1 640px; overflow-y: auto; }
 #map, #home-map { flex: 1; min-width: 0; }
 #map.draw-mode { cursor: crosshair !important; }
 .map-right-panel { width: 340px; min-width: 300px; border-left: 1px solid var(--border); background: var(--bg); overflow-y: auto; padding: 1rem; }
