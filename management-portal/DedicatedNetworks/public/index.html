@@ -47,7 +47,7 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
   <nav class="tab-nav" role="tablist">
     <button id="tabbtn-guide" class="tab-btn active" type="button" data-tab="guide" role="tab" aria-selected="true" aria-controls="tab-guide">Start here</button>
     <button id="tabbtn-areas" class="tab-btn" type="button" data-tab="areas" role="tab" aria-selected="false" aria-controls="tab-areas">1. Areas</button>
-    <button id="tabbtn-network" class="tab-btn" type="button" data-tab="network" role="tab" aria-selected="false" aria-controls="tab-network" disabled title="Select an area first">2. Network</button>
+    <button id="tabbtn-network" class="tab-btn" type="button" data-tab="network" role="tab" aria-selected="false" aria-controls="tab-network">2. Network</button>
     <button id="tabbtn-access" class="tab-btn" type="button" data-tab="access" role="tab" aria-selected="false" aria-controls="tab-access">3. Access</button>
     <button id="tabbtn-devices" class="tab-btn" type="button" data-tab="devices" role="tab" aria-selected="false" aria-controls="tab-devices">4. Devices</button>
     <button id="tabbtn-quick" class="tab-btn" type="button" data-tab="quick" role="tab" aria-selected="false" aria-controls="tab-quick" title="Shortcut: tabs 1 to 3 in one form">Shortcut: Quick Booking</button>
@@ -59,7 +59,7 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
 
 <!-- ═══ TAB: GUIDE (landing) ═══ -->
 <main class="main" id="tab-guide" role="tabpanel" aria-labelledby="tabbtn-guide" style="max-width:800px;">
-  <p class="subtitle">This portal walks through the four CAMARA Dedicated Networks APIs in the order they depend on each other: find a service area, reserve a network in it, then give devices access to that network. Each tab unlocks once the one before it has what it needs.</p>
+  <p class="subtitle">This portal walks through the four CAMARA Dedicated Networks APIs in the order they depend on each other: find a service area, reserve a network in it, then give devices access to that network. Networks that already exist are listed, and can be deleted, in the Network tab.</p>
 
   <div class="card" id="guide-workflow">
     <div class="card-title">How to use this portal</div>
@@ -159,20 +159,17 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
 
 <!-- ═══ TAB: NETWORK ═══ -->
 <main class="main map-layout" id="tab-network" role="tabpanel" aria-labelledby="tabbtn-network" hidden>
-  <div class="map-sidebar" id="network-locked-msg">
-    <p class="empty-hint">Select an area in the Areas tab first.</p>
-  </div>
-  <div class="map-sidebar" id="network-body" hidden>
-    <div class="card" id="network-area-chip" style="padding:0.8rem 1rem;"></div>
-    <button class="btn btn-ghost btn-sm" id="network-change-area-btn">&larr; Change Area</button>
+  <div class="map-sidebar" id="network-body">
+    <div class="card" id="network-area-chip" style="padding:0.8rem 1rem;" hidden></div>
+    <button class="btn btn-ghost btn-sm" id="network-change-area-btn">&larr; Choose Area</button>
     <div class="section-panel">
       <div class="section-panel-title">Existing Networks</div>
-      <button class="btn btn-ghost btn-sm" id="load-networks-btn" style="width:100%;">Load Dedicated Networks</button>
+      <button class="btn btn-ghost btn-sm" id="load-networks-btn" style="width:100%;">Refresh</button>
       <p class="status-line" id="networks-status"></p>
       <div id="networks-list"></div>
     </div>
   </div>
-  <div class="main" id="network-main-wrap" style="max-width:640px;" hidden>
+  <div class="main" id="network-main-wrap" style="max-width:640px;">
     <div class="card">
       <div class="card-title">Network</div>
       <div id="network-main-body"></div>
