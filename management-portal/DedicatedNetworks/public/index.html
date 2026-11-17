@@ -45,8 +45,8 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
 
 <header class="header">
   <nav class="tab-nav" role="tablist">
-    <button id="tabbtn-guide" class="tab-btn" type="button" data-tab="guide" role="tab" aria-selected="false" aria-controls="tab-guide">Start here</button>
-    <button id="tabbtn-areas" class="tab-btn active" type="button" data-tab="areas" role="tab" aria-selected="true" aria-controls="tab-areas">1. Areas</button>
+    <button id="tabbtn-guide" class="tab-btn active" type="button" data-tab="guide" role="tab" aria-selected="true" aria-controls="tab-guide">Start here</button>
+    <button id="tabbtn-areas" class="tab-btn" type="button" data-tab="areas" role="tab" aria-selected="false" aria-controls="tab-areas">1. Areas</button>
     <button id="tabbtn-network" class="tab-btn" type="button" data-tab="network" role="tab" aria-selected="false" aria-controls="tab-network" disabled title="Select an area first">2. Network</button>
     <button id="tabbtn-access" class="tab-btn" type="button" data-tab="access" role="tab" aria-selected="false" aria-controls="tab-access">3. Access</button>
     <button id="tabbtn-devices" class="tab-btn" type="button" data-tab="devices" role="tab" aria-selected="false" aria-controls="tab-devices">4. Devices</button>
@@ -58,7 +58,7 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
 <div id="toast" role="status" aria-live="polite" hidden></div>
 
 <!-- ═══ TAB: GUIDE (landing) ═══ -->
-<main class="main" id="tab-guide" role="tabpanel" aria-labelledby="tabbtn-guide" style="max-width:800px;" hidden>
+<main class="main" id="tab-guide" role="tabpanel" aria-labelledby="tabbtn-guide" style="max-width:800px;">
   <p class="subtitle">This portal walks through the four CAMARA Dedicated Networks APIs in the order they depend on each other: find a service area, reserve a network in it, then give devices access to that network. Each tab unlocks once the one before it has what it needs.</p>
 
   <div class="card" id="guide-workflow">
@@ -69,33 +69,13 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
 <li class=""> Selection / Request for Network Profiles and Network Service Areas</li>
 </ul></div></div><div class="p-header" style="background-color:#f38d3c"><div class="p-circle" style="color:#f38d3c">1</div> Before using the network</div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-asp">ASP</span></div><div class="p-content-m">1.0a. Discovery of available and eligible Network Profiles (optional)</div></div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-asp">ASP</span></div><div class="p-content-m">1.0b. Discovery of available and eligible Network Service Areas (optional)</div></div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-asp">ASP</span></div><div class="p-content-a">1.1. <u>Request</u> Reservation of Dedicated Network</div></div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-csp">CSP</span></div><div class="p-content">1.2. Assessment of Dedicated Network reservation request and change of status</div></div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-asp">ASP</span></div><div class="p-content-a">1.3. <u>Request</u> Device Access for the Dedicated Network</div></div><div class="p-header" style="background-color:#74b85c"><div class="p-circle" style="color:#74b85c">2</div> During operation</div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-asp">ASP</span></div><div class="p-content-a">2.1. <u>Request</u> Device Access for the Dedicated Network</div></div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-csp">CSP</span></div><div class="p-content">2.2. Dedicated Network is active and available</div></div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-asp">ASP</span></div><div class="p-content">2.3. Device establishes connection and makes use of the Dedicated Network</div></div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-asp">ASP</span></div><div class="p-content-a">2.4. Usage of various API capabilities</div></div><div class="p-header" style="background-color:#cc0000"><div class="p-circle" style="color:#cc0000">3</div> Dismantling</div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-asp">ASP</span></div><div class="p-content-a">3.1a. <u>Deletion</u> of Device Access and <u>Deletion</u> of Dedicated Network</div></div><div class="p-entry"><div class="p-actors"><span class="p-pill p-pill-csp">CSP</span></div><div class="p-content">3.1b. Or the CSP simply tears the Dedicated Network down</div></div></div>
     <div class="section-panel">
-      <div class="section-panel-title">0. Pre-conditions</div>
-      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <span class="badge badge-neutral">CSP</span> <strong>0</strong> On-boarding: sign up, access credentials, and the network profiles and service areas agreed with the operator.<br><em>In the portal:</em> enter the CAMARA API base URLs and OAuth2 credentials in <strong>Config</strong>. The four dots in the top bar turn green when each API answers.</p>
-    </div>
-    <div class="section-panel">
-      <div class="section-panel-title">1. Before using the network</div>
-      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>1.0a</strong> Discover the available network profiles (optional).<br><em>In the portal:</em> the profiles are listed in <strong>2. Network</strong>, and <strong>1. Areas</strong> can filter areas by profile.</p>
-      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>1.0b</strong> Discover the available network service areas (optional).<br><em>In the portal:</em> <strong>1. Areas</strong>: search by point, circle, polygon, name or profile, pick one and click &ldquo;Use This Area&rdquo;.</p>
-      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>1.1</strong> Request the reservation of a dedicated network.<br><em>In the portal:</em> <strong>2. Network</strong>: choose a network profile (or a QoS profile) and the service time.</p>
-      <p class="form-hint"><span class="badge badge-neutral">CSP</span> <strong>1.2</strong> The operator assesses the request and changes its status.<br><em>In the portal:</em> <strong>2. Network</strong> shows the status: REQUESTED, then RESERVED outside the service time and ACTIVATED during it.</p>
-      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>1.3</strong> Request device access to the dedicated network.<br><em>In the portal:</em> <strong>4. Devices</strong> (create devices by phone number and give one access to the network) or <strong>3. Access</strong>. The access starts as REQUESTED; the operator grants or denies it.</p>
-    </div>
-    <div class="section-panel">
-      <div class="section-panel-title">2. During operation</div>
-      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>2.1</strong> Request device access, also while the network is running.<br><em>In the portal:</em> <strong>4. Devices</strong> and <strong>3. Access</strong> work at any time.</p>
-      <p class="form-hint"><span class="badge badge-neutral">CSP</span> <strong>2.2</strong> The dedicated network is active and available.<br><em>In the portal:</em> <strong>2. Network</strong> shows ACTIVATED.</p>
-      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>2.3</strong> The device connects and uses the dedicated network.<br><em>In the portal:</em> on the device itself; its access must be GRANTED and the network ACTIVATED.</p>
-      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>2.4</strong> Assign new devices and remove existing ones while the network is active.<br><em>In the portal:</em> give access in <strong>4. Devices</strong>; &ldquo;Delete&rdquo; an access in <strong>3. Access</strong> or <strong>4. Devices</strong>.</p>
-    </div>
-    <div class="section-panel">
-      <div class="section-panel-title">3. Dismantling</div>
-      <p class="form-hint"><span class="badge badge-reserved">ASP</span> <strong>3.1a</strong> Delete the device accesses and the dedicated network.<br><em>In the portal:</em> &ldquo;Delete&rdquo; in <strong>3. Access</strong> or <strong>4. Devices</strong>, and in <strong>2. Network</strong>.</p>
-      <p class="form-hint"><span class="badge badge-neutral">CSP</span> <strong>3.1b</strong> Or the operator tears the network down.<br><em>In the portal:</em> <strong>2. Network</strong> shows TERMINATED.</p>
-    </div>
-    <div class="section-panel">
-      <div class="section-panel-title">Shortcut: Quick Booking (a sub-case of steps 1.0b to 1.3)</div>
-      <p class="form-hint">Once you know the full path, Quick Booking runs one narrow case of it in a single form: the area is the one found at the location you click, the network uses the profile you pick and runs from now until the time you set, and one access is created for one phone number. Area search options, a later start time, QoS-only networks and more devices are only available in the full path.</p>
-      <p class="form-hint"><strong>Expected:</strong> the network and access it creates are the same objects the full path creates, and they appear in the Network, Access and Devices tabs afterwards.</p>
+      <div class="section-panel-title">What each tab does</div>
+      <p class="form-hint"><strong>1. Areas</strong>: find a service area on the map or with filters, and pick the one to use.</p>
+      <p class="form-hint"><strong>2. Network</strong>: reserve a dedicated network in that area, with a network profile or QoS profile and a service time.</p>
+      <p class="form-hint"><strong>3. Access</strong>: pick a network, add devices one by one or from a CSV file, and give them access.</p>
+      <p class="form-hint"><strong>4. Devices</strong>: create devices by phone number, give them access, and see every access each device is part of.</p>
+      <p class="form-hint"><strong>Shortcut: Quick Booking</strong>: the simple case of tabs 1 to 3 in one form.</p>
+      <p class="form-hint"><strong>Config</strong>: the API addresses and OAuth2 credentials. The four dots in the top bar turn green when each API answers.</p>
     </div>
     <div class="toolbar" style="justify-content:flex-start;">
       <button class="btn btn-primary" id="guide-start-btn">Start with 1. Areas &rarr;</button>
@@ -104,7 +84,7 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
 </main>
 
 <!-- ═══ TAB: AREAS ═══ -->
-<main class="main map-layout" id="tab-areas" role="tabpanel" aria-labelledby="tabbtn-areas">
+<main class="main map-layout" id="tab-areas" role="tabpanel" aria-labelledby="tabbtn-areas" hidden>
   <div class="map-sidebar">
     <div class="toolbar" style="justify-content:flex-start;margin-top:0;flex-wrap:wrap;">
       <button class="btn btn-primary btn-sm" id="get-areas-btn" style="width:100%;">Load All Available Service Areas</button>

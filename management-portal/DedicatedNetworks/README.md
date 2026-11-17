@@ -11,7 +11,7 @@ until an area is chosen, and exercises the full parameter surface of its CAMARA 
 than a cut-down subset. A **Start here** tab, the first page the portal opens on, follows the Dedicated Networks workflow on
 [5g-mag.com](https://www.5g-mag.com/tech/network-apis/content-production/using-dedicated-networks)
 (pre-conditions, before using the network, during operation, dismantling), marks who performs each
-step (application provider or operator) and names the tab that does it. After the four stages,
+step (application provider or operator) and summarises what each tab does. After the four stages,
 **Shortcut: Quick Booking** covers one narrow case of tabs 1 to 3 in a single form (pick a point on the map, set a phone number and a time window, get a
 network and an access in one request); both share the same state, so a network booked through the
 shortcut shows up already unlocked in Devices.

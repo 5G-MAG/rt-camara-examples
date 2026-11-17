@@ -54,7 +54,7 @@ window.addEventListener('load', () => {
   };
 
   // ── Tabs: Areas / Network / Access / Devices / Quick Booking ──
-  let currentTab = 'areas';
+  let currentTab = 'guide';
   // `nav.goTo` is filled in below, after all stage controllers exist — each
   // stage module only needs to *call* it later (e.g. "Continue to Access"),
   // never at its own init time.
@@ -142,12 +142,9 @@ window.addEventListener('load', () => {
     }).catch(() => {}).finally(() => setTimeout(pollSandboxHealth, 60000));
   }());
 
-  // ── Boot: restore any previous Area/Network/Access, land on the furthest
-  // unlocked tab so a reload doesn't lose place. With nothing restored yet,
-  // land on the guide instead. ──
+  // ── Boot: the portal always opens on the Start here tab. Any previous
+  // Area/Network/Access is still restored, so the later tabs are unlocked. ──
   wizard.hydrate().then(() => {
     updateTabLocks();
-    const unlocked = wizard.unlockedStages();
-    goTo(unlocked.length > 1 ? unlocked[unlocked.length - 1] : 'guide');
   });
 });
