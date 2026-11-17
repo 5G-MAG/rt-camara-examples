@@ -24,8 +24,8 @@ shortcut shows up already unlocked in Devices.
   (one phone number per line, optional name), and give each ticked device its own access; the tracker always shows the three access
   states the API defines (REQUESTED, GRANTED, DENIED), highlights the current one and, for a
   denied access, shows the reason code and message
-- **Devices**: create devices by phone number (MSISDN; kept in the browser, since the Accesses
-  API has no device list), give one access to the current network from a drop-down, and see
+- **Devices**: create and delete devices by phone number (MSISDN; kept in the portal's internal
+  device list in the browser, since the Accesses API has no device list), give one access to the current network from a drop-down, and see
   every access each device is part of, on any network
 - **Live status**: adaptive polling (fast while transitioning or near expiry, slow once stable)
 - **Callbacks**: status notifications sent by CAMARA arrive at the portal's webhook receiver and are

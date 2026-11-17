@@ -102,7 +102,7 @@ export function initStageDevices(nav) {
     return `<div style="margin-bottom:0.6rem;padding-bottom:0.6rem;border-bottom:1px solid var(--border);">
         <div class="toolbar" style="justify-content:space-between;margin:0;">
           <div><span class="field-name">${escapeHtml(title)}</span><div class="field-key">${idLine}</div></div>
-          ${delId ? `<button class="btn btn-ghost btn-sm" data-del-id="${delId}" title="Remove from this browser's device list">&times;</button>` : ''}
+          ${delId ? `<button class="btn btn-danger btn-sm" data-del-id="${delId}" title="Delete this device from the internal device list">Delete device</button>` : ''}
         </div>
         ${devAccesses.length ? devAccesses.map(accessRow).join('') : '<p class="form-hint">Not part of any access.</p>'}
       </div>`;
@@ -144,10 +144,16 @@ export function initStageDevices(nav) {
     }));
     el.querySelectorAll('[data-del-id]').forEach(btn => btn.addEventListener('click', () => {
       const d = pool.find(x => x.id === btn.dataset.delId);
+      if (!d) return;
       const inAccess = accesses.some(a => matchesApiDevice(d, a.device));
-      if (inAccess && !confirm('This device is still part of an access on the API side. Remove it from this browser anyway? (Its accesses are not deleted.)')) return;
+      const label = d.name && d.name !== d.phone ? d.phone + ' (' + d.name + ')' : d.phone;
+      const msg = inAccess
+        ? 'Delete ' + label + ' from the internal device list? It is still part of an access; the access is not deleted and stays listed below.'
+        : 'Delete ' + label + ' from the internal device list?';
+      if (!confirm(msg)) return;
       pool = pool.filter(x => x.id !== btn.dataset.delId);
       savePool(pool);
+      setSt('devices-action-status', 'Device deleted.', true);
       renderAttachSelect();
       renderDevices();
     }));
