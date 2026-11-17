@@ -159,7 +159,7 @@ export function initStageAreas(nav) {
       html += drow('Network Profiles', sa.networkProfiles.map(p => `<span class="badge badge-neutral" data-profile-id="${p}" style="cursor:pointer;">${p.slice(0, 8)}...</span>`).join(' '));
     }
     if (sa.qosProfiles && sa.qosProfiles.length) {
-      html += drow('QoS Profiles', sa.qosProfiles.map(p => `<span class="badge badge-success" data-qos-name="${p}" style="cursor:pointer;">${p}</span>`).join(' '));
+      html += drow('QoS Profiles', sa.qosProfiles.map(p => `<span class="badge badge-success">${p}</span>`).join(' '));
     }
     el.innerHTML = html || '<p class="empty-hint">No details available.</p>';
     (sa.networkProfiles || []).forEach(async pid => {
@@ -167,16 +167,11 @@ export function initStageAreas(nav) {
       el.querySelectorAll(`[data-profile-id="${pid}"]`).forEach(tag => { tag.textContent = name; });
     });
   }
-  document.getElementById('detail-content').addEventListener('click', e => {
-    const qt = e.target.closest('[data-qos-name]');
-    if (qt) loadQosDetail(qt.dataset.qosName);
-  });
-
   // ── Get / Clear all areas ──
   document.getElementById('get-areas-btn').addEventListener('click', async function () {
     const btn = this; btn.textContent = 'Loading...'; btn.disabled = true; clrSt('areas-status');
     const r = await Api.retrieveAreas({});
-    btn.textContent = 'Load All Service Areas'; btn.disabled = false;
+    btn.textContent = 'Load All Available Service Areas'; btn.disabled = false;
     if (!r.ok) { setSt('areas-status', 'HTTP ' + r.status + ': ' + (r.data.message || r.data.error || 'Error'), false); return; }
     const areas = Array.isArray(r.data) ? r.data : [r.data];
     setSt('areas-status', areas.length + ' area(s) — click one to focus', true);
@@ -185,74 +180,12 @@ export function initStageAreas(nav) {
 
   document.getElementById('clear-map-btn').addEventListener('click', () => {
     clearViz(); layersByArea = []; currentAreas = [];
-    document.getElementById('area-list').innerHTML = '<p class="empty-hint">Click &ldquo;Load All Service Areas&rdquo; to load.</p>';
+    document.getElementById('area-list').innerHTML = '<p class="empty-hint">Click &ldquo;Load All Available Service Areas&rdquo; to load.</p>';
     document.getElementById('detail-content').innerHTML = '<p class="empty-hint">Click an area to see details.</p>';
     clrSt('areas-status');
     selectedArea = null;
     document.getElementById('use-area-wrap').hidden = true;
   });
-
-  // ── Reference: Network Profiles / QoS Profiles browsers ──
-  async function loadAllProfiles() {
-    const list = document.getElementById('profiles-list'); list.innerHTML = ''; clrSt('profiles-status');
-    const r = await Api.listNetworkProfiles();
-    if (!r.ok) { setSt('profiles-status', 'Error: ' + (r.data.message || 'Unknown'), false); return; }
-    const profiles = Array.isArray(r.data) ? r.data : [r.data];
-    setSt('profiles-status', profiles.length + ' profile(s)', true);
-    list.innerHTML = profiles.map(p => profileRow(p, false)).join('') || '<p class="empty-hint">None returned.</p>';
-  }
-  async function loadProfileDetail(pid) {
-    const list = document.getElementById('profiles-list'); list.innerHTML = ''; clrSt('profiles-status');
-    const r = await Api.getNetworkProfile(pid);
-    if (!r.ok) { setSt('profiles-status', 'Error: ' + (r.data.message || 'Unknown'), false); return; }
-    setSt('profiles-status', 'Loaded', true);
-    list.innerHTML = `<button class="btn btn-ghost btn-sm" id="profiles-back-btn">&larr; All profiles</button>` + profileRow(r.data, true);
-    document.getElementById('profiles-back-btn').addEventListener('click', loadAllProfiles);
-  }
-  function profileRow(p, expanded) {
-    let html = `<div class="form-row"><span class="field-name">${p.name || p.id || 'Profile'}</span>`;
-    if (!expanded) {
-      if (p.id) html += `<div class="field-key">${p.id}</div>`;
-      html += ` <span class="badge badge-neutral" data-profile-id="${p.id || p.name || ''}" style="cursor:pointer;">View details</span>`;
-    } else {
-      html += drow('Maximum allowed number of devices', p.maxNumberOfDevices != null ? p.maxNumberOfDevices : '—');
-      if (p.aggregatedUlThroughput) html += drow('Aggregated Uplink Throughput', fmtTp(p.aggregatedUlThroughput));
-      if (p.aggregatedDlThroughput) html += drow('Aggregated Downlink Throughput', fmtTp(p.aggregatedDlThroughput));
-      if (p.qosProfiles && p.qosProfiles.length) html += drow('Available QoS Profiles', p.qosProfiles.map(q => `<span class="badge badge-success" data-qos-name="${q}" style="cursor:pointer;">${q}</span>`).join(' '));
-      if (p.defaultQosProfile) html += drow('Default QoS Profile', `<span class="badge badge-success">${p.defaultQosProfile}</span>`);
-    }
-    return html + '</div>';
-  }
-  document.getElementById('load-profiles-btn').addEventListener('click', loadAllProfiles);
-  document.getElementById('profiles-list').addEventListener('click', e => {
-    const pt = e.target.closest('[data-profile-id]'), qt = e.target.closest('[data-qos-name]');
-    if (pt) loadProfileDetail(pt.dataset.profileId);
-    if (qt) loadQosDetail(qt.dataset.qosName);
-  });
-
-  async function loadAllQos() {
-    const list = document.getElementById('qos-list'); list.innerHTML = ''; clrSt('qos-status');
-    const r = await Api.listQosProfiles();
-    if (!r.ok) { setSt('qos-status', r.data.error || 'Error', false); return; }
-    const profiles = Array.isArray(r.data) ? r.data : (r.data.qosProfiles || [r.data]);
-    setSt('qos-status', profiles.length + ' profile(s)', true);
-    list.innerHTML = profiles.map(p => { const name = typeof p === 'string' ? p : (p.name || p.qosProfile || JSON.stringify(p)); return `<div class="form-row"><span class="badge badge-success" data-qos-name="${name}" style="cursor:pointer;">${name}</span></div>`; }).join('') || '<p class="empty-hint">None returned.</p>';
-  }
-  async function loadQosDetail(name) {
-    const list = document.getElementById('qos-list'); list.innerHTML = ''; clrSt('qos-status');
-    const r = await Api.getQosProfile(name);
-    if (!r.ok) { setSt('qos-status', r.data.error || 'Error', false); return; }
-    setSt('qos-status', 'Loaded', true);
-    const p = r.data;
-    const skip = { name: 1, qosProfile: 1 };
-    let html = `<button class="btn btn-ghost btn-sm" id="qos-back-btn">&larr; All QoS profiles</button><div class="form-row"><span class="field-name">${p.name || name}</span>`;
-    Object.keys(p).forEach(k => { if (skip[k]) return; html += drow(k, typeof p[k] === 'object' ? JSON.stringify(p[k]) : String(p[k])); });
-    html += '</div>';
-    list.innerHTML = html;
-    document.getElementById('qos-back-btn').addEventListener('click', loadAllQos);
-  }
-  document.getElementById('load-qos-btn').addEventListener('click', loadAllQos);
-  document.getElementById('qos-list').addEventListener('click', e => { const qt = e.target.closest('[data-qos-name]'); if (qt) loadQosDetail(qt.dataset.qosName); });
 
   // ── Draw tools: point / circle / polygon ──
   let drawMode = null, drawing = false, drawPoints = [], drawMarkers = [], drawPolyline = null, drawPolygon = null, drawCircle = null;

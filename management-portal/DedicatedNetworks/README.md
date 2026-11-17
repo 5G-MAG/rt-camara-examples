@@ -96,7 +96,7 @@ base URLs can also be viewed and edited live from the portal's own **Config** ta
 | `NETWORKS_URL` | Base URL for the Dedicated Network API |
 | `PROFILES_URL` | Base URL for the Dedicated Network Profiles API |
 | `ACCESSES_URL` | Base URL for the Dedicated Network Accesses API |
-| `QOD_URL` | Base URL for the Quality on Demand API. Optional. Used by the QoS Profiles (reference) list in Areas, and by the Sessions route, which the UI does not expose. Left unset, the list shows "QOD_URL is not set" |
+| `QOD_URL` | Base URL for the Quality on Demand API. Optional. Used by the QoS profiles and Sessions routes, which the UI does not use. Left unset, they answer 503 "QOD_URL is not set" |
 | `PORT` | Server port (default: 3001) |
 | `SINK_BASE_URL` | Public https base URL for inbound CloudEvents notifications. The portal registers it with a bearer `sinkCredential` and answers `204`, or `401` without that credential |
 

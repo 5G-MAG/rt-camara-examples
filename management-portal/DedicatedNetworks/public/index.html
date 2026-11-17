@@ -106,14 +106,14 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
 <!-- ═══ TAB: AREAS ═══ -->
 <main class="main map-layout" id="tab-areas" role="tabpanel" aria-labelledby="tabbtn-areas">
   <div class="map-sidebar">
-    <div class="toolbar" style="justify-content:flex-start;margin-top:0;">
-      <button class="btn btn-primary btn-sm" id="get-areas-btn">Load All Service Areas</button>
+    <div class="toolbar" style="justify-content:flex-start;margin-top:0;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm" id="get-areas-btn" style="width:100%;">Load All Available Service Areas</button>
       <button class="btn btn-ghost btn-sm" id="clear-map-btn">Clear Map</button>
     </div>
     <p class="status-line" id="areas-status"></p>
 
     <details class="advanced-fields">
-      <summary>Search by shape (point / circle / polygon)</summary>
+      <summary>Search by shape</summary>
       <p class="form-hint" id="draw-hint">Choose a mode then click the map.</p>
       <div class="toolbar" style="justify-content:flex-start;">
         <button class="btn btn-ghost btn-sm" id="mode-point-btn">Point</button>
@@ -158,23 +158,6 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
       </div>
       <button class="btn btn-ghost btn-sm" id="search-filters-only-btn" style="width:100%;">Search by Filters Only</button>
     </details>
-
-    <details class="advanced-fields">
-      <summary>Network Profiles (reference)</summary>
-      <div class="toolbar" style="justify-content:flex-start;">
-        <button class="btn btn-ghost btn-sm" id="load-profiles-btn">Load</button>
-      </div>
-      <p class="status-line" id="profiles-status"></p>
-      <div id="profiles-list"></div>
-    </details>
-    <details class="advanced-fields">
-      <summary>QoS Profiles (reference)</summary>
-      <div class="toolbar" style="justify-content:flex-start;">
-        <button class="btn btn-ghost btn-sm" id="load-qos-btn">Load</button>
-      </div>
-      <p class="status-line" id="qos-status"></p>
-      <div id="qos-list"></div>
-    </details>
   </div>
 
   <div id="map"></div>
@@ -182,7 +165,7 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
   <div class="map-right-panel">
     <div class="card">
       <div class="card-title">Service Areas</div>
-      <div id="area-list"><p class="empty-hint">Click &ldquo;Load All Service Areas&rdquo;, or search on the left, to load.</p></div>
+      <div id="area-list"><p class="empty-hint">Click &ldquo;Load All Available Service Areas&rdquo;, or search on the left, to load.</p></div>
     </div>
     <div class="card">
       <div class="card-title">Area Detail</div>
@@ -203,7 +186,7 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
     <div class="card" id="network-area-chip" style="padding:0.8rem 1rem;"></div>
     <button class="btn btn-ghost btn-sm" id="network-change-area-btn">&larr; Change Area</button>
     <div class="section-panel">
-      <div class="section-panel-title">Existing Networks (reference)</div>
+      <div class="section-panel-title">Existing Networks</div>
       <button class="btn btn-ghost btn-sm" id="load-networks-btn" style="width:100%;">Load Dedicated Networks</button>
       <p class="status-line" id="networks-status"></p>
       <div id="networks-list"></div>
@@ -344,7 +327,7 @@ plain tab-nav, .card/.toolbar/.badge/.form-row, #toast, dark mode toggle.
     <div class="form-row"><label class="form-label" for="cfg-networks-url">Networks API</label><input type="text" id="cfg-networks-url" placeholder="https://.../dedicated-network/v0.2-wip"/></div>
     <div class="form-row"><label class="form-label" for="cfg-profiles-url">Profiles API</label><input type="text" id="cfg-profiles-url" placeholder="https://.../dedicated-network-profiles/v0.2-wip"/></div>
     <div class="form-row"><label class="form-label" for="cfg-accesses-url">Accesses API</label><input type="text" id="cfg-accesses-url" placeholder="https://.../dedicated-network-accesses/v0.2-wip"/></div>
-    <div class="form-row"><label class="form-label" for="cfg-qod-url">Quality on Demand API <span class="form-hint" style="display:inline;">(optional — powers the QoS Profiles reference browser)</span></label><input type="text" id="cfg-qod-url"/></div>
+    <div class="form-row"><label class="form-label" for="cfg-qod-url">Quality on Demand API <span class="form-hint" style="display:inline;">(optional)</span></label><input type="text" id="cfg-qod-url"/></div>
   </div>
 
   <div class="card">

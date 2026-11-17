@@ -231,6 +231,16 @@ pre {
 .advanced-fields > summary::before { content: '\25b8  '; }
 .advanced-fields[open] > summary::before { content: '\25be  '; }
 
+/* Areas menu: sections read as plain buttons, without the disclosure arrows. */
+#tab-areas .advanced-fields > summary::before,
+#tab-areas .advanced-fields[open] > summary::before { content: none; }
+#tab-areas .advanced-fields > summary {
+  padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 999px;
+  text-align: center; color: var(--accent);
+}
+#tab-areas .advanced-fields[open] > summary { border-color: var(--accent); }
+#tab-areas .advanced-fields { border-top: 0; padding-top: 0; }
+
 input[type="file"] { font-family: inherit; font-size: 0.9rem; color: var(--text); }
 input[type="file"]::file-selector-button { font-family: inherit; }
 
