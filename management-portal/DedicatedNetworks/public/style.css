@@ -9,7 +9,7 @@
   --bg: #f8fafc; --surface: #ffffff; --surface-2: #f7fafc; --border: #e2e8f0;
   --text: #212529; --text-2: #475569; --text-3: #64748b; --accent: #00a0d2;
   --success: #1e8a4c; --danger: #d9534f; --warning: #b9770e; --reserved: #7c3aed; --radius: 10px;
-  --font-mono: ui-monospace, 'SF Mono', 'Fira Code', monospace;
+  --font-mono: 'Ubuntu Mono', ui-monospace, monospace;
 }
 :root[data-theme="dark"] {
   --bg: #0d0d0f; --surface: #17181c; --surface-2: #1e2126; --border: rgba(255,255,255,0.08);
@@ -21,6 +21,7 @@
 :root[data-theme="dark"] input[type="number"],
 :root[data-theme="dark"] input[type="text"],
 :root[data-theme="dark"] input[type="tel"],
+:root[data-theme="dark"] input[type="password"],
 :root[data-theme="dark"] input[type="datetime-local"],
 :root[data-theme="dark"] select,
 :root[data-theme="dark"] textarea { border-color: rgba(255,255,255,0.15); }
@@ -43,7 +44,7 @@
 [hidden] { display: none !important; }
 html, body {
   height: 100%; background: var(--bg); color: var(--text);
-  font-family: 'Poppins', system-ui, sans-serif;
+  font-family: 'Ubuntu', system-ui, sans-serif;
   /* Match rt-media-server's actual base exactly (not just its rem ratios) —
      everything else in this file is sized in rem off this. */
   font-size: 14px; -webkit-font-smoothing: antialiased;
@@ -154,7 +155,7 @@ tbody tr:last-child td { border-bottom: none; }
 }
 code { font-family: var(--font-mono); font-size: 0.9em; }
 
-input[type="number"], input[type="text"], input[type="tel"], input[type="datetime-local"], select, textarea {
+input[type="number"], input[type="text"], input[type="tel"], input[type="password"], input[type="datetime-local"], select, textarea {
   width: 100%;
   background: var(--surface-2); border: 1.5px solid #c7d2dc;
   border-radius: 8px; padding: 0.42rem 0.7rem; color: var(--text);
@@ -243,6 +244,13 @@ pre {
 
 input[type="file"] { font-family: inherit; font-size: 0.9rem; color: var(--text); }
 input[type="file"]::file-selector-button { font-family: inherit; }
+
+/* Keep the map's own widgets on the page font. */
+.leaflet-container,
+.leaflet-container button,
+.leaflet-container a,
+.leaflet-container .leaflet-control-zoom-in,
+.leaflet-container .leaflet-control-zoom-out { font-family: inherit; }
 
 /* ────────────────────────────────────────────────────────────────────────
    App-specific additions below this line (not part of the shared 5G-MAG

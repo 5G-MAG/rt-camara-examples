@@ -63,7 +63,7 @@ export function initStageAreas(nav) {
       className: '',
       html: `<div style="display:inline-block;background:#fff;border:2px solid ${color};border-radius:6px;padding:4px 10px;white-space:nowrap;cursor:pointer;line-height:1.4;font-size:13px;font-weight:600;color:#111827;box-shadow:0 2px 6px rgba(0,0,0,0.12);">`
         + `<span style="color:#111827;">${name || 'Area'}</span>`
-        + (id ? `<span style="display:block;font-size:10px;font-family:monospace;color:${color};margin-top:1px;">${id}</span>` : '')
+        + (id ? `<span style="display:block;font-size:10px;font-family:var(--font-mono);color:${color};margin-top:1px;">${id}</span>` : '')
         + `</div>`,
       iconSize: null, iconAnchor: [0, 0]
     });
