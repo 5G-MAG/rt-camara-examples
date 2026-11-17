@@ -57,7 +57,7 @@ export const wizard = {
   /** Which of the 4 stages are currently reachable, in order. */
   unlockedStages() {
     const u = ['areas'];
-    if (state.area) u.push('network');
+    u.push('network'); // existing networks are listed (and can be deleted) without an area
     u.push('access'); // networks are picked from the list on the Access tab itself
     if (state.access) u.push('devices');
     return u;
@@ -66,7 +66,6 @@ export const wizard = {
   /** Why a stage is still locked, for the "one-line reason" the UX
    * principles require next to a disabled step. */
   lockedReason(stage) {
-    if (stage === 'network') return 'Select an area first';
     return null;
   },
 

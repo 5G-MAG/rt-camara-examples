@@ -42,14 +42,26 @@ export function initStageNetwork(nav) {
   wizard.onChange(() => { if (!document.getElementById('tab-network').hidden) render(); });
 
   function render() {
-    const locked = document.getElementById('network-locked-msg');
-    const body = document.getElementById('network-body');
-    const mainWrap = document.getElementById('network-main-wrap');
-    if (!wizard.area) { locked.hidden = false; body.hidden = true; mainWrap.hidden = true; return; }
-    locked.hidden = true; body.hidden = false; mainWrap.hidden = false;
-    renderAreaChip();
+    const chip = document.getElementById('network-area-chip');
+    chip.hidden = !wizard.area;
+    document.getElementById('network-change-area-btn').innerHTML = wizard.area ? '&larr; Change Area' : '&larr; Choose Area';
+    if (wizard.area) renderAreaChip();
     if (wizard.network) renderNetworkDetail(wizard.network);
-    else renderCreateForm();
+    else if (wizard.area) renderCreateForm();
+    else renderNoArea();
+    markActiveRow();
+  }
+
+  // No area chosen and no network selected: nothing to create or show yet.
+  function renderNoArea() {
+    stopPolling(); destroyMiniMap();
+    document.getElementById('network-main-body').innerHTML =
+      '<p class="empty-hint">Select a network on the left, or choose an area in the Areas tab to create a new one.</p>';
+  }
+
+  function markActiveRow() {
+    document.querySelectorAll('#networks-list [data-net-id]').forEach(el =>
+      el.classList.toggle('active', !!wizard.network && wizard.network.id === el.dataset.netId));
   }
 
   function renderAreaChip() {
@@ -76,7 +88,9 @@ export function initStageNetwork(nav) {
       if (wizard.network && wizard.network.id === n.id) el.classList.add('active');
       el.innerHTML = `<span class="field-name">${escapeHtml(displayName(n))}</span> `
         + `<span class="net-row-badge">${statusBadge(n.status)}</span>`
-        + `<div class="field-key">${n.id}</div>`;
+        + `<div class="field-key">${n.id}</div>`
+        + `<button type="button" class="btn btn-danger btn-sm" data-del-net="${n.id}" style="margin-top:0.4rem;">Delete</button>`;
+      el.querySelector('[data-del-net]').addEventListener('click', ev => { ev.stopPropagation(); deleteNetwork(n, 'networks-status'); });
       el.addEventListener('click', () => {
         if (!wizard.network || wizard.network.id !== n.id) {
           if (!wizard.confirmAndResetFrom('network')) return;
@@ -85,6 +99,25 @@ export function initStageNetwork(nav) {
       });
       list.appendChild(el);
     });
+  }
+
+  // Deletes a network on the API. If it is the one the wizard holds, the selection is cleared
+  // (the area is kept when there is one). Reports a refusal, for example a network that still
+  // has accesses, in the status line given.
+  async function deleteNetwork(n, statusId) {
+    if (!confirm(`Delete "${displayName(n)}"? This cannot be undone.`)) return;
+    const r = await Api.deleteNetwork(n.id);
+    if (!(r.status === 204 || r.ok)) {
+      setSt(statusId, 'Error: ' + ((r.data && (r.data.message || r.data.error)) || 'HTTP ' + r.status), false);
+      return;
+    }
+    delete nicknames[n.id]; saveJSON('dn_network_nicknames', nicknames);
+    window.showToast('Network deleted.', 'success');
+    if (wizard.network && wizard.network.id === n.id) {
+      stopPolling();
+      if (wizard.area) wizard.setArea(wizard.area); else wizard.setNetwork(null); // clears network and access
+    }
+    loadNetworksList();
   }
 
   // ── Create form ──
@@ -274,19 +307,7 @@ export function initStageNetwork(nav) {
       if (r.ok) wizard.setNetwork(r.data);
     });
 
-    document.getElementById('net-delete-btn').addEventListener('click', async () => {
-      if (!confirm(`Delete "${dn}"? This cannot be undone.`)) return;
-      const r = await Api.deleteNetwork(n.id);
-      if (r.status === 204 || r.ok) {
-        window.showToast('Network deleted.', 'success');
-        stopPolling();
-        wizard.setArea(wizard.area); // keeps area, clears network+access
-        loadNetworksList(); // refresh the reference list — it doesn't
-                             // otherwise know this network is gone
-      } else {
-        setSt('net-action-status', 'Error: ' + (r.data.message || r.data.error || 'HTTP ' + r.status), false);
-      }
-    });
+    document.getElementById('net-delete-btn').addEventListener('click', () => deleteNetwork(n, 'net-action-status'));
 
     document.getElementById('net-continue-btn').addEventListener('click', () => nav.goTo('access'));
 
@@ -417,7 +438,7 @@ export function initStageNetwork(nav) {
   }
 
   return {
-    activate() { render(); },
+    activate() { loadNetworksList(); render(); },
     deactivate() { stopPolling(); destroyMiniMap(); }
   };
 }
