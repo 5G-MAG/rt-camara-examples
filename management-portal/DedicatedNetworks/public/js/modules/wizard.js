@@ -98,13 +98,15 @@ export const wizard = {
   async hydrate() {
     let saved;
     try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch (_) { saved = {}; }
-    if (saved.areaId) {
-      const r = await Api.getArea(saved.areaId);
-      if (r.ok) state.area = r.data;
-    }
+    // An area is restored only together with the network it was chosen for; an area picked
+    // without a network is not remembered, so the Network tab does not open on an old choice.
     if (saved.networkId) {
       const r = await Api.getNetwork(saved.networkId);
       if (r.ok) state.network = r.data;
+    }
+    if (saved.areaId && state.network) {
+      const r = await Api.getArea(saved.areaId);
+      if (r.ok) state.area = r.data;
     }
     if (state.network && saved.accessId) {
       const r = await Api.getAccess(saved.accessId);
