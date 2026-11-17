@@ -93,7 +93,7 @@ export function initStageDevices(nav) {
     const isCurrent = wizard.network && a.networkId === wizard.network.id;
     const netLabel = networkNames[a.networkId] || (a.networkId ? a.networkId.slice(0, 8) + '…' : 'unknown network');
     return `<div class="toolbar" style="justify-content:space-between;margin:0.2rem 0;">
-        <span>${escapeHtml(netLabel)}${isCurrent ? ' <span class="form-hint" style="display:inline;">(current network)</span>' : ''} ${statusBadge(a.status)}</span>
+        <span>${escapeHtml(netLabel)}${isCurrent ? ' <span class="form-hint" style="display:inline;">&middot; current network</span>' : ''} ${statusBadge(a.status)}</span>
         <button class="btn btn-danger btn-sm" data-detach-access="${a.id}">Delete access</button>
       </div>`;
   }
@@ -163,7 +163,7 @@ export function initStageDevices(nav) {
   document.getElementById('pool-save-btn').addEventListener('click', () => {
     const phone = document.getElementById('pool-dev-phone').value.trim();
     const name = document.getElementById('pool-dev-name').value.trim();
-    if (!phone) { setSt('pool-status', 'Enter the phone number (MSISDN).', false); return; }
+    if (!phone) { setSt('pool-status', 'Enter the phone number.', false); return; }
     // PhoneNumber pattern from the Accesses API definition (E.164 with a leading '+').
     if (!/^\+[1-9][0-9]{4,14}$/.test(phone)) { setSt('pool-status', 'Use international format with a leading +, e.g. +99971530264.', false); return; }
     if (pool.some(d => d.phone === phone)) { setSt('pool-status', 'A device with this phone number already exists.', false); return; }

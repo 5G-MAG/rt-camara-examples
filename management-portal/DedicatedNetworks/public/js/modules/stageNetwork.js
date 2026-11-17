@@ -16,7 +16,7 @@ the full lifecycle tracker.
 import { Api, resolveProfileName } from './api.js';
 import {
   setSt, clrSt, fmtTp, fmtDate, fmtDuration, drow, escapeHtml, pad,
-  networkTracker, statusBadge
+  networkTracker, statusBadge, plural
 } from './uiCommon.js';
 import { wizard } from './wizard.js';
 import { startPolling } from './polling.js';
@@ -56,7 +56,7 @@ export function initStageNetwork(nav) {
   function renderNoArea() {
     stopPolling(); destroyMiniMap();
     document.getElementById('network-main-body').innerHTML =
-      '<p class="empty-hint">Select a network on the left, or choose an area in the Areas tab to create a new one.</p>';
+      '<p class="empty-hint">Select a network from the list, or choose an area in the Areas tab to create a new one.</p>';
   }
 
   function markActiveRow() {
@@ -80,7 +80,7 @@ export function initStageNetwork(nav) {
     const r = await Api.listNetworks();
     if (!r.ok) { setSt('networks-status', 'HTTP ' + r.status + ': ' + (r.data.message || r.data.error || 'Error'), false); return; }
     const networks = Array.isArray(r.data) ? r.data : [r.data];
-    setSt('networks-status', networks.length + ' network(s)', true);
+    setSt('networks-status', plural(networks.length, 'network'), true);
     if (!networks.length) { list.innerHTML = '<p class="empty-hint">No networks found.</p>'; return; }
     networks.forEach(n => {
       const el = document.createElement('div'); el.className = 'form-row list-row-clickable';
@@ -131,7 +131,7 @@ export function initStageNetwork(nav) {
       <p class="form-hint">Creating a network for area: <strong style="color:var(--text);">${escapeHtml(area.name || area.id)}</strong></p>
       <div id="net-mini-map" style="width:100%;aspect-ratio:16/9;max-height:180px;border-radius:8px;overflow:hidden;border:1px solid var(--border);margin:0.5rem 0 1rem;"></div>
       <div class="form-row">
-        <label class="form-label" for="net-name">Name <span class="form-hint" style="display:inline;">(optional)</span></label>
+        <label class="form-label" for="net-name">Name <span class="form-hint" style="display:inline;">&middot; optional</span></label>
         <input type="text" id="net-name" placeholder="e.g. Press Briefing Network"/>
       </div>
       <div class="section-panel">

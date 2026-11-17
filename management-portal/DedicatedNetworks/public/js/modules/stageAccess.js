@@ -16,7 +16,7 @@ Access on the same network.
 */
 
 import { Api } from './api.js';
-import { setSt, clrSt, escapeHtml, deviceTracker, drow, statusBadge } from './uiCommon.js';
+import { setSt, clrSt, escapeHtml, deviceTracker, drow, statusBadge, plural } from './uiCommon.js';
 import { wizard } from './wizard.js';
 import { startPolling } from './polling.js';
 import { renderCallbackConfig } from './callbackConfig.js';
@@ -52,7 +52,7 @@ export function initStageAccess(nav) {
     const r = await Api.listNetworks();
     if (!r.ok) { setSt('access-networks-status', 'HTTP ' + r.status + ': ' + (r.data.message || r.data.error || 'Error'), false); return; }
     networks = Array.isArray(r.data) ? r.data : [r.data];
-    setSt('access-networks-status', networks.length + ' network(s)', true);
+    setSt('access-networks-status', plural(networks.length, 'network'), true);
     paintNetworks();
   }
   function paintNetworks() {
@@ -108,7 +108,7 @@ export function initStageAccess(nav) {
     if (!r.ok) { setSt('accesses-status', 'HTTP ' + r.status + ': ' + (r.data.message || r.data.error || 'Error'), false); return; }
     const accesses = Array.isArray(r.data) ? r.data : [r.data];
     existingAccesses = accesses;
-    setSt('accesses-status', accesses.length + ' access(es) — one per device', true);
+    setSt('accesses-status', plural(accesses.length, 'access', 'accesses') + ' — one per device', true);
     if (!accesses.length) { list.innerHTML = '<p class="empty-hint">None yet.</p>'; return; }
     accesses.forEach(a => {
       const id = (a.device && (a.device.phoneNumber || a.device.networkAccessIdentifier)) || 'device';
@@ -140,8 +140,8 @@ export function initStageAccess(nav) {
       </div>
       <div class="section-panel">
         <div class="section-panel-title">Add a device</div>
-        <div class="form-row"><label class="form-label" for="access-quick-phone">Phone number (MSISDN)</label><input type="tel" id="access-quick-phone" placeholder="+99971530264"/></div>
-        <div class="form-row"><label class="form-label" for="access-quick-name">Name <span class="form-hint" style="display:inline;">(optional)</span></label><input type="text" id="access-quick-name" placeholder="e.g. Camera 1"/></div>
+        <div class="form-row"><label class="form-label" for="access-quick-phone">Phone number</label><input type="tel" id="access-quick-phone" placeholder="+99971530264"/></div>
+        <div class="form-row"><label class="form-label" for="access-quick-name">Name <span class="form-hint" style="display:inline;">&middot; optional</span></label><input type="text" id="access-quick-name" placeholder="e.g. Camera 1"/></div>
         <div class="toolbar" style="justify-content:flex-start;">
           <button class="btn btn-ghost btn-sm" id="access-quick-add-btn">Add device</button>
         </div>
@@ -172,7 +172,7 @@ export function initStageAccess(nav) {
       const phone = document.getElementById('access-quick-phone').value.trim();
       const name = document.getElementById('access-quick-name').value.trim();
       clrSt('access-quick-status');
-      if (!phone) { setSt('access-quick-status', 'Enter the phone number (MSISDN).', false); return; }
+      if (!phone) { setSt('access-quick-status', 'Enter the phone number.', false); return; }
       if (!PHONE_RE.test(phone)) { setSt('access-quick-status', 'Use international format with a leading +, e.g. +99971530264.', false); return; }
       const pool = loadPool();
       const known = pool.find(d => d.phone === phone);
@@ -224,7 +224,7 @@ export function initStageAccess(nav) {
     } else {
       picker.innerHTML = qosOptions.map(q => `
         <div class="form-row">
-          <label><input type="checkbox" class="access-qos-check" value="${escapeHtml(q)}" ${q === defaultQos ? 'checked' : ''}/> ${escapeHtml(q)}${q === defaultQos ? ' <span class="form-hint" style="display:inline;">(network default)</span>' : ''}</label>
+          <label><input type="checkbox" class="access-qos-check" value="${escapeHtml(q)}" ${q === defaultQos ? 'checked' : ''}/> ${escapeHtml(q)}${q === defaultQos ? ' <span class="form-hint" style="display:inline;">&middot; network default</span>' : ''}</label>
           &nbsp;&nbsp;
           <label><input type="radio" name="access-qos-default" class="access-qos-default-radio" value="${escapeHtml(q)}" ${q === defaultQos ? 'checked' : ''}/> set as default</label>
         </div>`).join('')
@@ -258,7 +258,7 @@ export function initStageAccess(nav) {
       if (made.length === 1 && !failed.length) { window.showToast('Access created.', 'success'); wizard.setAccess(made[0]); return; }
       await loadAccessesList();
       paintDeviceList();
-      if (made.length) window.showToast(made.length + ' access(es) created.', 'success');
+      if (made.length) window.showToast(plural(made.length, 'access', 'accesses') + ' created.', 'success');
       setSt('access-form-status', made.length + ' created, ' + failed.length + ' failed.', failed.length === 0);
       if (failed.length) results.innerHTML = failed.map(f => `<p class="form-hint">${escapeHtml(f)}</p>`).join('');
     });
@@ -302,7 +302,7 @@ export function initStageAccess(nav) {
       </div>
       ${drow('Device', `<span class="field-key">${escapeHtml(deviceId)}</span>`)}
       <div id="access-tracker"></div>
-      ${(a.qosProfiles && a.qosProfiles.length) ? drow('QoS Profiles', a.qosProfiles.map(q => `<span class="badge ${q === a.defaultQosProfile ? 'badge-success' : 'badge-neutral'}">${escapeHtml(q)}${q === a.defaultQosProfile ? ' (default)' : ''}</span>`).join(' ')) : ''}
+      ${(a.qosProfiles && a.qosProfiles.length) ? drow('QoS Profiles', a.qosProfiles.map(q => `<span class="badge ${q === a.defaultQosProfile ? 'badge-success' : 'badge-neutral'}">${escapeHtml(q)}${q === a.defaultQosProfile ? ' · default' : ''}</span>`).join(' ')) : ''}
       <p class="status-line" id="access-action-status"></p>
       <div class="toolbar" style="justify-content:flex-start;">
         <button class="btn btn-primary" id="access-continue-btn">Continue to Devices &rarr;</button>
