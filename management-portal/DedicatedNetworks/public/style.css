@@ -409,3 +409,20 @@ input[type="file"]::file-selector-button { font-family: inherit; }
     align-items: flex-start;
   }
 }
+
+/* Phone width: the header wraps, the tab bar scrolls sideways, and the side-by-side pages stack. */
+@media (max-width: 760px) {
+  .blue-bar { height: auto; flex-wrap: wrap; padding: 8px 12px; gap: 6px 12px; }
+  .blue-bar-logo img { height: 40px; }
+  .blue-bar-title { order: 3; flex: 1 1 100%; font-size: 15px; }
+  .blue-bar-actions { flex: 1 1 auto; flex-wrap: wrap; justify-content: flex-end; gap: 6px 10px; }
+  .header { height: auto; padding: 0.4rem 0.75rem; justify-content: flex-start; overflow-x: auto; }
+  .tab-nav { flex-wrap: nowrap; }
+  .tab-btn { white-space: nowrap; flex: 0 0 auto; }
+  .main { padding: 1rem 0.75rem 3rem; }
+  .map-layout { height: auto; flex-direction: column; }
+  .map-sidebar { width: auto !important; min-width: 0 !important; border-right: none; border-bottom: 1px solid var(--border); overflow-y: visible; }
+  .map-layout > .main { flex: 0 0 auto; overflow-y: visible; max-width: none !important; }
+  #map, #home-map { flex: none; width: 100%; height: 55vh; min-height: 300px; }
+  .map-right-panel { width: auto; min-width: 0; border-left: none; border-top: 1px solid var(--border); overflow-y: visible; }
+}
